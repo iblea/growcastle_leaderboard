@@ -19,9 +19,13 @@ repositories {
 dependencies {
     // Use JUnit Jupiter for testing.
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
+    testImplementation("org.assertj:assertj-core:3.25.3")
 
     // This dependency is used by the application.
     implementation("com.google.guava:guava:31.1-jre")
+    implementation("org.hibernate:hibernate-core:5.6.5.Final")
+    implementation("com.h2database:h2:2.2.224")
+    implementation("javax.xml.bind:jaxb-api:2.3.1")
 }
 
 application {
