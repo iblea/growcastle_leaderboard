@@ -2,10 +2,17 @@
 package parser.db;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+
+import parser.entity.Token;
 
 import javax.persistence.PersistenceException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThat;
 

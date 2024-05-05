@@ -43,4 +43,29 @@ public class Token {
         this.botChannel = botChannel;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj.getClass() != this.getClass()) {
+            return false;
+        }
+
+        final Token token = (Token)obj;
+        if (this.getBotName() != token.getBotName()) {
+            return false;
+        }
+
+        if (this.getBotToken() != token.getBotToken()) {
+            return false;
+        }
+
+        if (this.getBotChannel() != token.getBotChannel()) {
+            return false;
+        }
+
+        return true;
+    }
+
 }

@@ -20,6 +20,10 @@ dependencies {
     // Use JUnit Jupiter for testing.
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
     testImplementation("org.assertj:assertj-core:3.25.3")
+    // https://mvnrepository.com/artifact/org.mockito/mockito-core
+    testImplementation("org.mockito:mockito-core:5.11.0")
+    // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
+    testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
 
     // This dependency is used by the application.
     implementation("com.google.guava:guava:31.1-jre")

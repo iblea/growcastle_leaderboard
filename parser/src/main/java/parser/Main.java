@@ -4,24 +4,11 @@
 package parser;
 
 import parser.db.Database;
-import parser.entity.Token;
+import parser.telegram.Bot;
 
 public class Main {
     public String getGreeting() {
         return "Hello World!";
-    }
-
-    public static Token getTelegramToken(Database db) {
-        String findTokenName = "telegram";
-        Token token = db.selectByBotName(findTokenName);
-
-        if (token == null) {
-            System.out.println("token is NULL");
-            throw new NullPointerException(findTokenName + " token is NULL");
-        }
-        System.out.println("token.botName : " + token.getBotName());
-        System.out.println("token.botToken : " + token.getBotToken());
-        return token;
     }
 
     public static void main(String[] args) {
@@ -29,7 +16,10 @@ public class Main {
 
         Database db = new Database("growcastle");
         db.connectEntityManagerFactory();
-        Token token = getTelegramToken(db);
         db.disconnectEntityManagerFactory();
+
+        Bot bot = new Bot("telegram");
+        bot.getBotToken(db);
+
     }
 }
