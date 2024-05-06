@@ -41,6 +41,11 @@ application {
     mainClass.set("parser.Main")
 }
 
+// compileJava.options.encoding = 'UTF-8'
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
 tasks.withType<Jar> {
     manifest {
         attributes["Main-Class"] = application.mainClass
