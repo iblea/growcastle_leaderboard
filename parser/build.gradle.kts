@@ -34,6 +34,10 @@ dependencies {
     // telegram bot
     // https://rubenlagus.github.io/TelegramBotsDocumentation/lesson-1.html#prepare-to-launch
     implementation("org.telegram:telegrambots:6.9.7.1")
+
+    // json
+    // https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple
+    implementation("com.googlecode.json-simple:json-simple:1.1.1")
 }
 
 application {
