@@ -38,6 +38,9 @@ public class Database {
         if (this.emf == null) {
             throw new NullPointerException("EntityManagerFactory is null");
         }
+        if (botName == null) {
+            throw new NullPointerException("botName is null");
+        }
 
         EntityManager em = emf.createEntityManager();
         // EntityTransaction tx = em.getTransaction();
