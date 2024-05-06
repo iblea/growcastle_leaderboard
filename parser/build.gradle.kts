@@ -30,6 +30,10 @@ dependencies {
     implementation("org.hibernate:hibernate-core:5.6.5.Final")
     implementation("com.h2database:h2:2.2.224")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
+
+    // telegram bot
+    // https://rubenlagus.github.io/TelegramBotsDocumentation/lesson-1.html#prepare-to-launch
+    implementation("org.telegram:telegrambots:6.9.7.1")
 }
 
 application {

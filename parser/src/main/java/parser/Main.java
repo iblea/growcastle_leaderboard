@@ -3,23 +3,37 @@
  */
 package parser;
 
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+
 import parser.db.Database;
-import parser.telegram.Bot;
+import parser.telegram.TelegramBot;
 
 public class Main {
     public String getGreeting() {
         return "Hello World!";
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args)
+        throws TelegramApiException
+    {
         System.out.println(new Main().getGreeting());
 
         Database db = new Database("growcastle");
         db.connectEntityManagerFactory();
+
+        TelegramBot telegrambot = new TelegramBot();
+        telegrambot.setBotToken(db, "telegram");
+
+        TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
+        botsApi.registerBot(telegrambot);
+
+        telegrambot.sendMsg("connect success");
+        System.out.println("end");
+
+
         db.disconnectEntityManagerFactory();
-
-        Bot bot = new Bot("telegram");
-        bot.getBotToken(db);
-
     }
 }

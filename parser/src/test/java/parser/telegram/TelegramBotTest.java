@@ -15,12 +15,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
-class BotTest {
+class TelegramBotTest {
 
     @Test
     void createTest() {
-        Bot bot = new Bot("telegram");
-        assertThat(bot.getBotTokenName()).isEqualTo("telegram");
+        TelegramBot bot = new TelegramBot();
+        assertThat(bot.getBotUsername()).isEqualTo("GrowCastle Alarm Bot");
     }
 
     @Mock
@@ -38,8 +38,8 @@ class BotTest {
         Mockito.when(dbMock.selectByBotName("telegram"))
             .thenReturn(token);
 
-        Bot bot = new Bot("telegram");
-        bot.getBotToken(dbMock);
+        TelegramBot bot = new TelegramBot();
+        bot.setBotToken(dbMock, "telegram");
         assertThat(bot.getToken()).isEqualTo(token);
     }
 
@@ -50,12 +50,14 @@ class BotTest {
         Mockito.when(dbMock.selectByBotName("telegram"))
             .thenReturn(null);
 
-        Bot bot = new Bot("telegram");
+        TelegramBot bot = new TelegramBot();
         assertThatThrownBy(() -> {
-            bot.getBotToken(dbMock);
+            bot.setBotToken(dbMock, "telegram");
         })
         .isExactlyInstanceOf(NullPointerException.class)
         .hasMessage("telegram token is NULL");
     }
+
+
 
 }
