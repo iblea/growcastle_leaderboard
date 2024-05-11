@@ -17,13 +17,6 @@ public class ParseAPITest {
         assertThat(Pattern.matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", getURL)).isEqualTo(true);
     }
 
-    // @Test
-    // void PlayerRequestTest() {
-    //     ParsePlayer parse = new ParsePlayer(null);
-    //     parse.parsePlayer();
-    // }
-
-
     String jsonNormalData = """
 {
   "code": 200,

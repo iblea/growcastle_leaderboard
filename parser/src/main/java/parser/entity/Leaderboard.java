@@ -1,6 +1,6 @@
 package parser.entity;
 
-public class Player {
+public class Leaderboard {
 
     private int rank;
     private String name;
