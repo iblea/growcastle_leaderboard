@@ -27,28 +27,33 @@ public class ParseLeaderboard extends ParseAPI {
         for (int i = 0; i < leaderboardlist.size(); i++) {
             JSONObject rankObject = (JSONObject)leaderboardlist.get(i);
 
-            Leaderboard leaderboard = new Leaderboard();
             Integer rank = (Integer)rankObject.get("rank");
             Integer score = (Integer)rankObject.get("score");
-            leaderboard.setRank(rank.intValue());
-            leaderboard.setName((String)rankObject.get("name"));
-            leaderboard.setRank(score.intValue());
+            Leaderboard leaderboard = new Leaderboard(
+                rank.intValue(),
+                (String)rankObject.get("name"),
+                score.intValue()
+            );
             leaderboards.add(leaderboard);
         }
         return leaderboards;
     }
 
+    private String getLeaderboardURL(String leaderboardType) {
+        // players, guilds
+        return getCurrentKSTURL() + "/" + leaderboardType;
+    }
+
     public List<Leaderboard> parseLeaderboards(String leaderboardType)
     {
-        // players, guilds
-        String leaderboardURL = getCurrentKSTURL() + "/" + leaderboardType;
+        String leaderboardURL = getLeaderboardURL(leaderboardType);
         String leaderboardData = null;
         try {
             leaderboardData = requestURL(leaderboardURL);
         } catch(Not200OK | IOException e) {
             e.printStackTrace();
             // alarm
-            sendErrMsg(e.getMessage());
+            sendErrMsg("Leaderboard (" + leaderboardType + ") Request Error : " + e.getMessage());
             return null;
         }
 
@@ -58,6 +63,7 @@ public class ParseLeaderboard extends ParseAPI {
         } catch (ParseException | NullPointerException | WrongJsonType e) {
             e.printStackTrace();
             sendErrMsg(e.getMessage());
+            sendErrMsg("Leaderboard (" + leaderboardType + ") Parse Error : " + e.getMessage());
             return null;
         }
         return leaderboards;
