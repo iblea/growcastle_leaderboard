@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 // import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import parser.db.Database;
+import parser.parser.ParseSchedular;
 import parser.telegram.TelegramBot;
 
 public class Main {
@@ -33,9 +34,13 @@ public class Main {
 
 
         // Parse Schedular
+        ParseSchedular schedular = new ParseSchedular();
+        // ParseSchedular schedular = new ParseSchedular(30, 1);
+        schedular.start();
+        System.out.println("start parse schedular");
 
-
-        // Thread.currentThread().join();
+        // 모든 작업이 끝나면 아래 내용 진행
+        Thread.currentThread().join();
         // Thread.sleep(1000);
 
         // Ensure this process wait forever
