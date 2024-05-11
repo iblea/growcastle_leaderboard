@@ -1,33 +1,72 @@
 package parser.telegram;
 
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
-
 import parser.db.Database;
 import parser.entity.Token;
 
-public class TelegramBot extends TelegramLongPollingBot {
+import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
+import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-    TelegramBotsApi botsApi;
-    private Token token = null;
+public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
+    // private final String BOTNAME = "Telegram Alarm Bot";
+    private Token token;
+    private long defaultChannel;
+    private TelegramClient telegramClient;
 
-    // https://jsonobject.tistory.com/404
-    @Override
-    public void onUpdateReceived(Update update) {
+    public TelegramBot() {
+        this.token = null;
+        this.defaultChannel = -1;
+        this.telegramClient = null;
     }
 
-    public synchronized void sendMsg(String s) {
-        SendMessage sm = new SendMessage();
-        sm.setChatId(token.getBotChannel());
-        sm.setText(s);
+    public TelegramBot(Database db, String botTokenName) {
+        this.token = null;
+        this.defaultChannel = -1;
+        this.telegramClient = null;
+        this.setBotToken(db, botTokenName);
+    }
+
+
+    public Token getToken() {
+        return this.token;
+    }
+
+    public String getAPIBotToken() {
+        if (this.token == null) {
+            return null;
+        }
+        return this.token.getBotToken();
+    }
+
+
+    @Override
+    public void consume(Update update) {
+        // We check if the update has a message and the message has text
+        // if (update.hasMessage() && update.getMessage().hasText()) {
+        //     // Set variables
+        //     String message_text = update.getMessage().getText();
+        //     long chat_id = update.getMessage().getChatId();
+        //     sendMsg(chat_id, message_text);
+        // }
+    }
+
+    public void sendMsg(String msg) {
+        this.sendMsg(this.defaultChannel, msg);
+    }
+
+    public void sendMsg(long chatId, String msg) {
+        SendMessage message = SendMessage // Create a message object
+            .builder()
+            .chatId(chatId)
+            .text(msg)
+            .build();
         try {
-            execute(sm);
-        } catch (TelegramApiException e) {
-            System.out.println("Exception: " + e.toString());
+            this.telegramClient.execute(message); // Sending our message object to user
+        } catch (TelegramApiException | NullPointerException e) {
+            e.printStackTrace();
         }
     }
 
@@ -44,30 +83,8 @@ public class TelegramBot extends TelegramLongPollingBot {
             System.out.println("token is NULL");
             throw new NullPointerException(botTokenName + " token is NULL");
         }
-    }
 
-    public Token getToken() {
-        return this.token;
-    }
-
-    @Override
-    public String getBotUsername() {
-        return "GrowCastle Alarm Bot";
-    }
-
-    @Override
-    public String getBotToken() {
-        return this.token.getBotToken();
-    }
-
-    public void connectBot()
-        throws NullPointerException, TelegramApiException
-    {
-        if (this.token == null) {
-            throw new NullPointerException();
-        }
-
-        this.botsApi = new TelegramBotsApi(DefaultBotSession.class);
-        this.botsApi.registerBot(this);
+        this.telegramClient = new OkHttpTelegramClient(this.getAPIBotToken());
+        this.defaultChannel = Long.valueOf(this.token.getBotChannel());
     }
 }

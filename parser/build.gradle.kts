@@ -33,7 +33,10 @@ dependencies {
 
     // telegram bot
     // https://rubenlagus.github.io/TelegramBotsDocumentation/lesson-1.html#prepare-to-launch
-    implementation("org.telegram:telegrambots:6.9.7.1")
+    // implementation("org.telegram:telegrambots:6.9.7.1") // deprecated
+    implementation("org.telegram:telegrambots-longpolling:7.2.1")
+    implementation("org.telegram:telegrambots-client:7.2.1")
+    // implementation("org.telegram:telegrambots-abilities:7.2.1")
 
     // json
     // https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple

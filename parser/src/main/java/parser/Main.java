@@ -3,37 +3,50 @@
  */
 package parser;
 
-import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.apache.commons.lang3.ObjectUtils.Null;
+import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+
+// import org.telegram.telegrambots.meta.TelegramBotsApi;
+// import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+// import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import parser.db.Database;
 import parser.telegram.TelegramBot;
 
 public class Main {
-    public String getGreeting() {
-        return "Hello World!";
-    }
 
     public static void main(String[] args)
-        throws TelegramApiException
+        throws NullPointerException, TelegramApiException, InterruptedException
     {
-        System.out.println(new Main().getGreeting());
+        TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication();
 
         Database db = new Database("growcastle");
         db.connectEntityManagerFactory();
 
-        TelegramBot telegrambot = new TelegramBot();
-        telegrambot.setBotToken(db, "telegram");
+        TelegramBot telegramBot = new TelegramBot(db, "telegram");
+        System.out.println("telegram bot token : " + telegramBot.getAPIBotToken());
+        botsApplication.registerBot(telegramBot.getAPIBotToken(), telegramBot);
+        System.out.println("TelegramBot successfully started!");
 
-        TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-        botsApi.registerBot(telegrambot);
-
-        telegrambot.sendMsg("connect success");
-        System.out.println("end");
+        telegramBot.sendMsg("connect success");
+        System.out.println("msg send success!");
 
 
+        Thread.currentThread().join();
+        // Thread.sleep(1000);
+
+        // Ensure this process wait forever
+
+        try {
+            botsApplication.close();
+            System.out.println("disconnect Telegram");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         db.disconnectEntityManagerFactory();
+        System.out.println("disconnect Database");
+
     }
+
 }

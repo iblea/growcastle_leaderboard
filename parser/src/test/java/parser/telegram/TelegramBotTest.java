@@ -17,12 +17,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ExtendWith(MockitoExtension.class)
 class TelegramBotTest {
 
-    @Test
-    void createTest() {
-        TelegramBot bot = new TelegramBot();
-        assertThat(bot.getBotUsername()).isEqualTo("GrowCastle Alarm Bot");
-    }
-
     @Mock
     private Database dbMock;
 
@@ -31,7 +25,7 @@ class TelegramBotTest {
         Token token = new Token();
         token.setBotName("telegram");
         token.setBotToken("testToken");
-        token.setBotChannel("testChannel");
+        token.setBotChannel("123456");
 
         // Database dbMock = Mockito.spy(new Database("growcastle"));
         // BDDMockito.given(dbMock.selectByBotName("telegram")).willReturn(token);
