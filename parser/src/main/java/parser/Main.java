@@ -25,19 +25,20 @@ public class Main {
         db.connectEntityManagerFactory();
 
         TelegramBot telegramBot = new TelegramBot(db, "telegram");
-        System.out.println("telegram bot token : " + telegramBot.getAPIBotToken());
         botsApplication.registerBot(telegramBot.getAPIBotToken(), telegramBot);
         System.out.println("TelegramBot successfully started!");
 
-        telegramBot.sendMsg("connect success");
-        System.out.println("msg send success!");
+        // telegramBot.sendMsg("connect success");
+        // System.out.println("msg send success!");
 
 
-        Thread.currentThread().join();
+        // Parse Schedular
+
+
+        // Thread.currentThread().join();
         // Thread.sleep(1000);
 
         // Ensure this process wait forever
-
         try {
             botsApplication.close();
             System.out.println("disconnect Telegram");
