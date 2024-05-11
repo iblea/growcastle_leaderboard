@@ -22,6 +22,14 @@ public class ParseGuild extends ParseAPI {
         super(bot);
     }
 
+    /**
+     * 리턴된 Json을 파싱한다.
+     * Guild별 길드원 조회 결과에는 rank 값이 없기 때문에
+     * score 별로 정렬해 rank 값을 직접 세팅한다.
+     *
+     * @param leaderboardDataString - API 응답받은 Json
+     * @return List<Leaderboard>
+     */
     public List<Leaderboard> guildJsonParser(String leaderboardDataString)
         throws ParseException, NullPointerException, WrongJsonType
     {
@@ -49,10 +57,22 @@ public class ParseGuild extends ParseAPI {
         return leaderboards;
     }
 
+    /**
+     * 요청할 API URL을 만든다.
+     * @param guildName - 검색할 길드명
+     * @return String
+     */
     private String getGuildURL(String guildName) {
         return getCurrentKSTURL() + "/guilds/" + guildName;
     }
 
+    /**
+     * 길드 내 길드원들의 이름(name), 웨이브(score) 를 파싱해
+     * LeaderBoard Entity 형식으로 리턴한다.
+     *
+     * @param guildName - 파싱할 Guild Name
+     * @return List<Leaderboard>
+     */
     public List<Leaderboard> parseGuildByName(String guildName)
     {
         String leaderboardURL = getGuildURL(guildName);

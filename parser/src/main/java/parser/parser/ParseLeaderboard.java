@@ -18,6 +18,12 @@ public class ParseLeaderboard extends ParseAPI {
         super(bot);
     }
 
+    /**
+     * 리턴된 Json을 파싱한다.
+     *
+     * @param leaderboardDataString
+     * @return List<Leaderboard>
+     */
     public List<Leaderboard> leaderboardJsonParser(String leaderboardDataString)
         throws ParseException, NullPointerException, WrongJsonType
     {
@@ -39,11 +45,21 @@ public class ParseLeaderboard extends ParseAPI {
         return leaderboards;
     }
 
+    /**
+     * 요청할 API URL을 만든다.
+     * @param leaderboardType - 요청할 URL 타입 ( players / guilds )
+     * @return String
+     */
     private String getLeaderboardURL(String leaderboardType) {
-        // players, guilds
         return getCurrentKSTURL() + "/" + leaderboardType;
     }
 
+    /**
+     * 리더보드 정보를 가져와 LeaderBoard Entity 형식으로 리턴한다.
+     *
+     * @param leaderboardType
+     * @return
+     */
     public List<Leaderboard> parseLeaderboards(String leaderboardType)
     {
         String leaderboardURL = getLeaderboardURL(leaderboardType);
