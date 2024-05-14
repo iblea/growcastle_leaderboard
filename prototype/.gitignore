@@ -1,3 +1,13 @@
 
+# venv
 gcleaderboard/
+
+# ide
 .vscode/
+
+# pycache
+**/__pycache__/
+
+# config
+conf/parser.json
+
