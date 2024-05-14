@@ -40,6 +40,9 @@ source "$VENV_NAME/bin/activate"
 echo "venv activate"
 cd "$curpath/src/"
 "$curpath/$VENV_NAME/bin/python" "$MAIN_SCRIPT"
+ret_code=$?
 
 deactivate
 echo "venv deactivate"
+
+exit $ret_code
