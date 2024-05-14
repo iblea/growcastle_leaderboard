@@ -1,0 +1,5 @@
+
+MAIN_SCRIPT="main.py"
+VENV_NAME="gcleaderboard"
+# pip3 freeze > requirements_freeze.txt
+FREEZE_PATH="requirements_freeze.txt"
