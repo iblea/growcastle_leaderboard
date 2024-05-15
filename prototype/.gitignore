@@ -3,7 +3,8 @@
 gcleaderboard/
 
 # ide
-.vscode/
+.vscode/**
+!.vscode/*.code-workspace
 
 # pycache
 **/__pycache__/
