@@ -202,6 +202,7 @@ class ParsePlayer:
     def parse_leaderboard(self, curr_time, url=get_parse_url()) -> bool:
         """API를 파싱하여 crash 난 사람들의 리스트를 획득한다.
         """
+        print("url : {}".format(url))
         self.alert_list = []
         self.response = None
         self.apidict = None

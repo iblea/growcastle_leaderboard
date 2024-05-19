@@ -3,6 +3,7 @@ import sys
 import config
 # from bot import DiscordBot
 import bot
+import telegram_bot
 
 def start_bot(conf) -> bot.DiscordBot:
 
@@ -25,6 +26,8 @@ def main() -> int:
     if conf is None:
         print("error: cannot parse conf")
         return 1
+
+    telegram_bot.start_telegram_bot(conf)
 
     start_bot(
         conf=conf

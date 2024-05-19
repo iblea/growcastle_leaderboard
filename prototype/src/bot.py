@@ -6,10 +6,13 @@ from discord import app_commands
 import botcommand
 
 import time
+import datetime
+from json import dumps
+
 import parse
 from config import set_config
+import telegram_bot
 
-from json import dumps
 
 
 class DiscordBot(discord.Client):
@@ -25,6 +28,9 @@ class DiscordBot(discord.Client):
     alert_interval = 3
     alert_list: list = []
     alert_channel: Optional[int] = None
+    last_end_season: str = ""
+    last_season_expire_start: int = 0
+    last_season_expire_end: int = 0
 
     def __init__(self,
             config: dict,
@@ -43,6 +49,36 @@ class DiscordBot(discord.Client):
 
         super().__init__(intents=intents)
         self.tree = app_commands.CommandTree(self)
+
+    def set_alert_ignore_time(self):
+        spdate = self.last_end_season.split("-")
+        specific_time = datetime.datetime(
+            year=int(spdate[0]),
+            month=int(spdate[1]),
+            day=int(spdate[2]),
+            hour=23,
+            minute=45,
+            second=0)
+        unix_time = int(time.mktime(specific_time.timetuple()))
+        self.last_season_expire_start = unix_time
+
+        specific_time = datetime.datetime(
+            year=int(spdate[0]),
+            month=int(spdate[1]),
+            day=int(spdate[2]),
+            hour=23,
+            minute=55,
+            second=0)
+        unix_time = int(time.mktime(specific_time.timetuple()))
+        self.last_season_expire_end = unix_time
+
+
+    def get_alert_ignore_time(self, cur_time) -> bool:
+        """시즌 마지막 날의 23시 45 ~ 23시 55분 사이에는 검사하지 않는다.
+        """
+        if cur_time >= self.last_season_expire_start and cur_time < self.last_season_expire_end:
+            return True
+        return False
 
 
     async def setup_hook(self) -> None:
@@ -145,6 +181,24 @@ class DiscordBot(discord.Client):
         self.run(self.discord_bot_token)
 
 
+    def parse_growcastle_api(self):
+        parser = parse.ParsePlayer(bot=self.alert_channel, config=self.config)
+        parse_stat: bool = parser.parse_leaderboard(curr_time=time.time())
+        print("parse_stat : {}".format(parse_stat))
+
+        if parse_stat != True:
+            return
+
+        self.alert_list = parser.get_alert_list()
+        self.config = parser.get_config()
+        set_config(config_dict=self.config)
+        if self.last_end_season != self.config["data"]["end_season"]:
+            self.last_end_season = self.config["data"]["end_season"]
+            self.set_alert_ignore_time()
+        # parse guild
+        # guild alarm (guild alarm은 길드 파싱한 후 최초 1회에 한에서만 동작함)
+
+
     # n초마다 돌면서 crash 상태인지 확인
     # @tasks.loop(seconds=5.0)
     @tasks.loop(seconds=1)
@@ -158,13 +212,7 @@ class DiscordBot(discord.Client):
             self.next_parse_time = curr_time + self.config.get("schedule")
 
             # parse initialize
-            parser = parse.ParsePlayer(bot=self.alert_channel, config=self.config)
-            parse_stat: bool = parser.parse_leaderboard(curr_time=time.time())
-            print("parse_stat : {}".format(parse_stat))
-            if parse_stat == True:
-                self.alert_list = parser.get_alert_list()
-                self.config = parser.get_config()
-                set_config(config_dict=self.config)
+            self.parse_growcastle_api()
             return
 
         # set alert channel
@@ -177,24 +225,17 @@ class DiscordBot(discord.Client):
         if curr_time >= self.next_parse_time:
             print("parse")
             # parse player
-            parser = parse.ParsePlayer(bot=self.alert_channel, config=self.config)
-            parse_stat = parser.parse_leaderboard(curr_time=time.time())
-            print("parse_stat : {}".format(parse_stat))
-            if parse_stat == True:
-                self.alert_list = parser.get_alert_list()
-                self.config = parser.get_config()
-                set_config(config_dict=self.config)
-
-            # parse guild
-
-            # guild alarm (guild alarm은 길드 파싱한 후 최초 1회에 한에서만 동작함)
+            self.parse_growcastle_api()
 
             self.next_parse_time = curr_time + self.config.get("schedule")
 
         if curr_time < self.next_alert_time:
             return
 
-        print("alert")
+        # if self.get_alert_ignore_time(cur_time=curr_time) == True:
+        #     return
+
+        # print("alert")
         telegram_use: bool = self.config["telegram_use"]
         # alarm
         for user in self.alert_list:
@@ -204,12 +245,16 @@ class DiscordBot(discord.Client):
 
             msg: str = "user : {} is crashed\ncurrent_wave : {}\nago_wave : {}" \
                 .format(user["username"], user["cur_wave"], user["ago_wave"])
-            print(msg)
+            # print(msg)
             await self.alert_channel.send("<@"+ user["user"] + "> " + msg)
 
             if telegram_use == True:
-                # TODO: telegram alert
-                continue
+                telegram_bot.tg_lock.acquire()
+                telegram_bot.tg_user[user["username"]] = {
+                    "cur_wave": user["cur_wave"],
+                    "ago_wave": user["ago_wave"]
+                }
+                telegram_bot.tg_lock.release()
 
 
         self.next_alert_time = time.time() + self.alert_interval

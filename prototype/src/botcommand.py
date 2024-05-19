@@ -54,4 +54,18 @@ async def user_ok(interaction: discord.Interaction,
     config.set_config(conf)
     await interaction.response.send_message(f'"{username}" check stat change True')
 
+async def user_notok(interaction: discord.Interaction,
+        conf: dict,
+        username: str) -> None:
+
+    current_check: bool = conf["monitoring"]["player"][username]["check"]
+    if current_check == False:
+        await interaction.response.send_message(f'already "{username}" check is False')
+        return
+
+    conf["monitoring"]["player"][username]["check"] = False
+    config.set_config(conf)
+    await interaction.response.send_message(f'"{username}" check stat change False')
+
+
 
