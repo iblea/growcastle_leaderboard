@@ -6,10 +6,10 @@
     "alert_repeat": 1,
     "schedule": 150,
     "debug_mode": false,
-    "telegram_use": false,
     "crash_wave": 155,
     "full_jump_wave": 270,
     "parse_stop": false,
+    "telegram_use": false,
     "telegram": {
         "bot_token": "",
         "chat_id": 0,
