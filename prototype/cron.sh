@@ -7,12 +7,12 @@ curpath=$(dirname $(realpath $0))
 CONF_PATH="$curpath/conf"
 
 if [ -z "$curpath" ]; then
-    echo "a"
+    echo "curpath is None"
     exit 1
 fi
 
 if [ ! -f "$CONF_PATH/$SH_CONFIG" ]; then
-    echo "b"
+    echo "sh script not found"
     exit 1
 fi
 
@@ -25,10 +25,12 @@ if [ -z "$MAIN_SCRIPT" ]; then
 fi
 
 proc=$(ps -aef | grep "$MAIN_SCRIPT" | grep -v "grep")
-if [ "$proc" = "" ]; then
+if [ -z "$proc" ]; then
     if [ -x $BOT_PATH ]; then
         cd "$curpath"
         nohup $BOT_PATH &
         # $BOT_PATH
     fi
+else
+    echo "already running"
 fi
