@@ -267,7 +267,7 @@ class DiscordBot(discord.Client):
             self.next_parse_time = curr_time + self.config.get("schedule")
 
             # parse initialize
-            self.parse_growcastle_api()
+            await self.parse_growcastle_api()
             return
 
         # set alert channel
@@ -280,7 +280,7 @@ class DiscordBot(discord.Client):
         if curr_time >= self.next_parse_time:
             print("parse")
             # parse player
-            self.parse_growcastle_api()
+            await self.parse_growcastle_api()
 
             self.next_parse_time = curr_time + self.config.get("schedule")
 
