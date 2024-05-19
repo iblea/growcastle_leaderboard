@@ -32,6 +32,8 @@ class DiscordBot(discord.Client):
     last_season_expire_start: int = 0
     last_season_expire_end: int = 0
 
+    parse_fail_count = 0
+
     def __init__(self,
             config: dict,
             schedule_second: int = 1,
@@ -172,6 +174,25 @@ class DiscordBot(discord.Client):
                 return
             await interaction.response.send_message(dumps(self.config, indent=4))
 
+        @self.tree.command()
+        async def parse_stop(interaction: discord.Interaction):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.parse_stat(interaction=interaction, conf=self.config, stat=True)
+
+        @self.tree.command()
+        async def parse_start(interaction: discord.Interaction):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.parse_stat(interaction=interaction, conf=self.config, stat=False)
+
+
 
         print("command set done")
 
@@ -181,20 +202,34 @@ class DiscordBot(discord.Client):
         self.run(self.discord_bot_token)
 
 
-    def parse_growcastle_api(self):
-        parser = parse.ParsePlayer(bot=self.alert_channel, config=self.config)
-        parse_stat: bool = parser.parse_leaderboard(curr_time=time.time())
-        print("parse_stat : {}".format(parse_stat))
-
-        if parse_stat != True:
+    async def parse_growcastle_api(self):
+        if self.config.get("parse_stop") == True:
             return
 
+        parser = parse.ParsePlayer(bot=self.alert_channel, config=self.config)
+        parse_stat: bool = parser.parse_leaderboard(curr_time=time.time())
+        # print("parse_stat : {}".format(parse_stat))
+
+        if parse_stat != True:
+            self.parse_fail_count +=  1
+            if self.parse_fail_count > 4:
+                await self.alert_channel.send("parse growcastle api fail {} count".format(self.parse_fail_count))
+
+            if self.parse_fail_count > 8:
+                self.config["parse_stop"] = True
+                self.alert_list = []
+                set_config(config_dict=self.config)
+                await self.alert_channel.send("parse stop")
+            return
+
+        self.parse_fail_count = 0
         self.alert_list = parser.get_alert_list()
         self.config = parser.get_config()
         set_config(config_dict=self.config)
         if self.last_end_season != self.config["data"]["end_season"]:
             self.last_end_season = self.config["data"]["end_season"]
             self.set_alert_ignore_time()
+
         # parse guild
         # guild alarm (guild alarm은 길드 파싱한 후 최초 1회에 한에서만 동작함)
 

@@ -19,13 +19,17 @@ def start_bot(conf) -> bot.DiscordBot:
 
 
 def main() -> int:
-    print("Hello")
+    print("GrowCastle Crash Alarm Script Start")
 
     config_file_path = config.get_config_file_path()
     conf: dict= config.get_config_opt(config_file_path)
     if conf is None:
         print("error: cannot parse conf")
         return 1
+
+    if conf["parse_stop"] == True:
+        conf["parse_stop"] = False
+        config.set_config(conf)
 
     telegram_bot.start_telegram_bot(conf)
 

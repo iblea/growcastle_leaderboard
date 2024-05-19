@@ -68,4 +68,18 @@ async def user_notok(interaction: discord.Interaction,
     await interaction.response.send_message(f'"{username}" check stat change False')
 
 
+async def parse_stat(interaction: discord.Interaction,
+        conf: dict,
+        stat: bool) -> None:
+
+    current_check: bool = conf.get("parse_stop")
+    if current_check == stat:
+        await interaction.response.send_message("parse_stop object is already {}".format(current_check))
+        return
+
+    conf["parse_stop"] = stat
+    config.set_config(conf)
+    await interaction.response.send_message("parse_stop object change to {}".format(current_check))
+
+
 
