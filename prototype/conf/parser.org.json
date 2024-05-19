@@ -1,0 +1,39 @@
+{
+    "bot_token": "",
+    "bot_server": 0,
+    "bot_channel": 0,
+    "retry_count": 3,
+    "alert_repeat": 1,
+    "schedule": 150,
+    "debug_mode": false,
+    "telegram_use": false,
+    "crash_wave": 155,
+    "full_jump_wave": 270,
+    "parse_stop": false,
+    "telegram": {
+        "bot_token": "",
+        "chat_id": 0,
+        "alert_repeat": 0
+    },
+    "monitoring": {
+        "player": {
+            "Ib": {
+                "rank_monitoring": true,
+                "alert_user_id": "",
+                "check": false
+            }
+        },
+        "guild": {
+            "name": "Underdog",
+            "alert_user_id": ""
+        }
+    },
+    "data": {
+        "end_season": "",
+        "player_hash": "",
+        "leaderboard": {
+        },
+        "users": {
+        }
+    }
+}
