@@ -28,7 +28,8 @@ proc=$(ps -aef | grep "$MAIN_SCRIPT" | grep -v "grep")
 if [ -z "$proc" ]; then
     if [ -x $BOT_PATH ]; then
         cd "$curpath"
-        nohup $BOT_PATH &
+        export PYTHONUNBUFFERED=1
+        nohup $BOT_PATH > output.log &
         # $BOT_PATH
     fi
 else
