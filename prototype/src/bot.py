@@ -33,6 +33,7 @@ class DiscordBot(discord.Client):
     last_season_expire_end: int = 0
 
     parse_fail_count = 0
+    my_username: str = "Ib"
 
     def __init__(self,
             config: dict,
@@ -113,32 +114,51 @@ class DiscordBot(discord.Client):
     def apply_command(self) -> None:
         @self.tree.command()
         async def userinfo(interaction: discord.Interaction) -> None:
-            await interaction.response.send_message(f'Hi, {interaction.user.mention}')
-
-        @self.tree.command()
-        @app_commands.describe(
-            user='Add Monitoring User'
-        )
-        async def useradd(interaction: discord.Interaction, user: str):
             if botcommand.channel_check(
                 interaction=interaction,
                 chat_id=self.discord_response_chat_id
             ) == False:
                 return
 
-            await botcommand.todo(interaction=interaction)
+            conf_data: Optional[dict] = self.config.get("data")
+            if conf_data is None:
+                await interaction.response.send_message(f'no {interaction.user.mention} userdata')
+            if "users" not in conf_data:
+                await interaction.response.send_message(f'no {interaction.user.mention} userdata')
+            users_data: Optional[dict] = conf_data.get("users")
+            if users_data is None:
+                await interaction.response.send_message(f'no {interaction.user.mention} userdata')
 
-        @self.tree.command()
-        @app_commands.describe(
-            user='Delete Monitoring User',
-        )
-        async def userdel(interaction: discord.Interaction, user: str):
-            if botcommand.channel_check(
-                interaction=interaction,
-                chat_id=self.discord_response_chat_id
-            ) == False:
-                return
-            await botcommand.todo(interaction=interaction)
+            if self.my_username not in users_data:
+                await interaction.response.send_message(f'no {interaction.user.mention} userdata')
+
+            my_data = users_data[self.my_username]
+            msg = "```\nPlayer name : {}\nScore: {}\nRank: {}\n```".format(self.my_username, my_data["score"], my_data["rank"])
+            await interaction.response.send_message(msg)
+
+        # @self.tree.command()
+        # @app_commands.describe(
+        #     user='Add Monitoring User'
+        # )
+        # async def useradd(interaction: discord.Interaction, user: str):
+        #     if botcommand.channel_check(
+        #         interaction=interaction,
+        #         chat_id=self.discord_response_chat_id
+        #     ) == False:
+        #         return
+        #     await botcommand.todo(interaction=interaction)
+
+        # @self.tree.command()
+        # @app_commands.describe(
+        #     user='Delete Monitoring User',
+        # )
+        # async def userdel(interaction: discord.Interaction, user: str):
+        #     if botcommand.channel_check(
+        #         interaction=interaction,
+        #         chat_id=self.discord_response_chat_id
+        #     ) == False:
+        #         return
+        #     await botcommand.todo(interaction=interaction)
 
         @self.tree.command()
         async def ok(interaction: discord.Interaction):
@@ -147,7 +167,7 @@ class DiscordBot(discord.Client):
                 chat_id=self.discord_response_chat_id
             ) == False:
                 return
-            await botcommand.user_ok(interaction=interaction, conf=self.config, username="Ib")
+            await botcommand.user_ok(interaction=interaction, conf=self.config, username=self.my_username)
 
         @self.tree.command()
         async def reboot(interaction: discord.Interaction):
