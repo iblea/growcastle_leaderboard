@@ -124,6 +124,16 @@ class DiscordBot(discord.Client):
 
             await botcommand.print_user_info(interaction=interaction, conf=self.config, username=self.my_username)
 
+        @self.tree.command()
+        async def info(interaction: discord.Interaction) -> None:
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+
+            await botcommand.print_user_info(interaction=interaction, conf=self.config, username=self.my_username)
+
         # @self.tree.command()
         # @app_commands.describe(
         #     user='Add Monitoring User'
