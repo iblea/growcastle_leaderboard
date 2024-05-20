@@ -1,6 +1,7 @@
 
 import discord
 import config
+from typing import Optional
 
 
 def channel_check(interaction: discord.Interaction, chat_id: int) -> bool:
@@ -40,6 +41,72 @@ async def user_del(interaction: discord.Interaction, user: str) -> bool:
 
     await interaction.response.send_message(f'delete monitoring "{user}" success')
     return True
+
+async def print_user_info(interaction: discord.Interaction,
+        conf: dict,
+        username: str) -> None:
+
+    conf_data: Optional[dict] = conf.get("data")
+    if conf_data is None:
+        await interaction.response.send_message(f'no {interaction.user.mention} userdata')
+    if "users" not in conf_data:
+        await interaction.response.send_message(f'no {interaction.user.mention} userdata')
+    users_data: Optional[dict] = conf_data.get("users")
+    if users_data is None:
+        await interaction.response.send_message(f'no {interaction.user.mention} userdata')
+
+    if username not in users_data:
+        await interaction.response.send_message(f'no {interaction.user.mention} userdata')
+
+    my_data: str = users_data[username]
+    current_score = my_data["score"]
+    current_rank = my_data["rank"]
+    msg: str = "```\nPlayer name : {}\nScore: {}\nRank: {}\n".format(username, current_score, current_rank)
+
+    if "leaderboard" not in conf_data:
+        msg += "```"
+        await interaction.response.send_message(msg)
+        return
+
+    leaderboards = conf_data["leaderboard"]
+    obj: int = 0
+    if current_rank <= 3:
+        obj = leaderboards.get("1")
+        msg += "1st : {} ({})\n".format(obj, obj - current_rank)
+        obj = leaderboards.get("2")
+        msg += "2nd: {} ({})\n".format(obj, obj - current_rank)
+        obj = leaderboards.get("3")
+        msg += "3rd: {} ({})\n".format(obj, obj - current_rank)
+        obj = leaderboards.get("5")
+        msg += "5th: {} ({})\n".format(obj, obj - current_rank)
+    elif current_rank <= 5:
+        obj = leaderboards.get("3")
+        msg += "3rd: {} ({})\n".format(obj, obj - current_rank)
+        obj = leaderboards.get("5")
+        msg += "5th: {} ({})\n".format(obj, obj - current_rank)
+        obj = leaderboards.get("6")
+        msg += "6th: {} ({})\n".format(obj, obj - current_rank)
+        obj = leaderboards.get("10")
+        msg += "10th: {} ({})\n".format(obj, obj - current_rank)
+    elif current_rank <= 10:
+        obj = leaderboards.get("5")
+        msg += "5th: {} ({})\n".format(obj, obj - current_rank)
+        obj = leaderboards.get("6")
+        msg += "6th: {} ({})\n".format(obj, obj - current_rank)
+        obj = leaderboards.get("10")
+        msg += "10th: {} ({})\n".format(obj, obj - current_rank)
+        obj = leaderboards.get("11")
+        msg += "11th: {} ({})\n".format(obj, obj - current_rank)
+    else:
+        obj = leaderboards.get("10")
+        msg += "10th: {} ({})\n".format(obj, obj - current_rank)
+        obj = leaderboards.get("50")
+        msg += "10th: {} ({})\n".format(obj, obj - current_rank)
+        obj = leaderboards.get("51")
+        msg += "10th: {} ({})\n".format(obj, obj - current_rank)
+    msg += "```"
+    await interaction.response.send_message(msg)
+
 
 async def user_ok(interaction: discord.Interaction,
         conf: dict,

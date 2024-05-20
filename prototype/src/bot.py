@@ -122,21 +122,7 @@ class DiscordBot(discord.Client):
             ) == False:
                 return
 
-            conf_data: Optional[dict] = self.config.get("data")
-            if conf_data is None:
-                await interaction.response.send_message(f'no {interaction.user.mention} userdata')
-            if "users" not in conf_data:
-                await interaction.response.send_message(f'no {interaction.user.mention} userdata')
-            users_data: Optional[dict] = conf_data.get("users")
-            if users_data is None:
-                await interaction.response.send_message(f'no {interaction.user.mention} userdata')
-
-            if self.my_username not in users_data:
-                await interaction.response.send_message(f'no {interaction.user.mention} userdata')
-
-            my_data = users_data[self.my_username]
-            msg = "```\nPlayer name : {}\nScore: {}\nRank: {}\n```".format(self.my_username, my_data["score"], my_data["rank"])
-            await interaction.response.send_message(msg)
+            await botcommand.print_user_info(interaction=interaction, conf=self.config, username=self.my_username)
 
         # @self.tree.command()
         # @app_commands.describe(
