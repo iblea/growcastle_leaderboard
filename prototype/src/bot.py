@@ -191,7 +191,7 @@ class DiscordBot(discord.Client):
                 chat_id=self.discord_response_chat_id
             ) == False:
                 return
-            print_dict = self.config
+            print_dict = copy.deepcopy(self.config)
             del print_dict["bot_token"]
             del print_dict["bot_server"]
             del print_dict["bot_channel"]
