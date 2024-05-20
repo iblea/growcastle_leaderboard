@@ -168,8 +168,9 @@ def set_data_initialize(config: dict) -> dict:
 
 def set_leaderboard_data(cfg_data: dict, userdata: dict) -> dict:
     user_rank = userdata.get("rank")
+    rank_format = "r{}"
     if user_rank in [1, 2, 3, 4, 5, 6, 10, 11, 50, 51]:
-        cfg_data["leaderboard"][user_rank] = userdata.get("score")
+        cfg_data["leaderboard"][rank_format.format(user_rank)] = userdata.get("score")
     return cfg_data
 
 
