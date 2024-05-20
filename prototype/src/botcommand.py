@@ -101,9 +101,9 @@ async def print_user_info(interaction: discord.Interaction,
         obj = leaderboards.get("r10")
         msg += "10th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r50")
-        msg += "10th: {} ({})\n".format(obj, obj - current_score)
+        msg += "50th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r51")
-        msg += "10th: {} ({})\n".format(obj, obj - current_score)
+        msg += "51th: {} ({})\n".format(obj, obj - current_score)
     msg += "```"
     await interaction.response.send_message(msg)
 
