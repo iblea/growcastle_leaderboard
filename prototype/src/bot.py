@@ -177,7 +177,7 @@ class DiscordBot(discord.Client):
             ) == False:
                 return
             await interaction.response.send_message("봇을 재부팅합니다.")
-            if set_config() == False:
+            if set_config(config_dict=self.config) == False:
                 await interaction.response.send_message("저장에 실패했습니다.")
                 await self.close()
                 await exit(1)
