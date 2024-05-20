@@ -12,3 +12,5 @@ gcleaderboard/
 # config
 conf/parser.json
 
+# log
+output.log

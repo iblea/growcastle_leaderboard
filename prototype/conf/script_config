@@ -1,5 +1,5 @@
 
-MAIN_SCRIPT="main.py"
+MAIN_SCRIPT="prototype_bot_main.py"
 VENV_NAME="gcleaderboard"
 # pip3 freeze > requirements_freeze.txt
 FREEZE_PATH="requirements_freeze.txt"
