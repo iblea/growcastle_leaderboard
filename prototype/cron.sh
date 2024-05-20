@@ -29,7 +29,7 @@ if [ -z "$proc" ]; then
     if [ -x $BOT_PATH ]; then
         cd "$curpath"
         export PYTHONUNBUFFERED=1
-        nohup $BOT_PATH > output.log &
+        nohup $BOT_PATH &
         # $BOT_PATH
     fi
 else
