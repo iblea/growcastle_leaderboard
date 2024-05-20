@@ -176,13 +176,13 @@ class DiscordBot(discord.Client):
                 chat_id=self.discord_response_chat_id
             ) == False:
                 return
+            await interaction.response.send_message("봇을 재부팅합니다.")
             if set_config() == False:
                 await interaction.response.send_message("저장에 실패했습니다.")
                 await self.close()
                 await exit(1)
 
             print("reboot bot")
-            await interaction.response.send_message("봇을 재부팅합니다.")
             await self.close()
             await exit(0)
 
