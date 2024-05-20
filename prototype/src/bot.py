@@ -13,6 +13,8 @@ import parse
 from config import set_config
 import telegram_bot
 
+import copy
+
 
 
 class DiscordBot(discord.Client):
@@ -193,7 +195,12 @@ class DiscordBot(discord.Client):
                 chat_id=self.discord_response_chat_id
             ) == False:
                 return
-            await interaction.response.send_message("```\n" + dumps(self.config, indent=4) + "\n```")
+            print_dict = self.config
+            del print_dict["bot_token"]
+            del print_dict["bot_server"]
+            del print_dict["bot_channel"]
+            del print_dict["telegram"]
+            await interaction.response.send_message("```\n" + dumps(print_dict, indent=4) + "\n```")
 
         @self.tree.command()
         async def parse_stop(interaction: discord.Interaction):
