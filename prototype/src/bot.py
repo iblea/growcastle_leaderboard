@@ -193,7 +193,7 @@ class DiscordBot(discord.Client):
                 chat_id=self.discord_response_chat_id
             ) == False:
                 return
-            await interaction.response.send_message(dumps(self.config, indent=4))
+            await interaction.response.send_message("```\n" + dumps(self.config, indent=4) + "\n```")
 
         @self.tree.command()
         async def parse_stop(interaction: discord.Interaction):
