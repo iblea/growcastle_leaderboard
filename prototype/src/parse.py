@@ -305,7 +305,11 @@ class ParsePlayer:
 
         # crash
         # 시즌이 바뀌면 ago_wave가 curr_wave보다 클 수 있다.
-        if ago_wave >= curr_wave - check_crash_wave and curr_wave >= ago_wave:
+        # 시즌이 바뀌는 시각에는 alarm을 잠시 중단한다.
+        if curr_wave < ago_wave:
+            return
+
+        if ago_wave >= curr_wave - check_crash_wave:
 
             alert_user: str = player_monitoring.get("alert_user_id")
             self.alert_list.append({
