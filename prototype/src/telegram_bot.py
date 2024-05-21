@@ -74,7 +74,7 @@ def start_telegram_bot(config: dict):
     tg_alert_repeat = config["telegram"]["alert_repeat"]
     print("init telegram")
 
-    tg_user["initialize"] = {"cur_wave": 0, "ago_wave": 0}
+    tg_user["telegram bot initialize. this is init check message"] = {"cur_wave": 0, "ago_wave": 0}
 
     tg_thread = threading.Thread(target=telegram_thread)
     tg_thread.daemon = True
