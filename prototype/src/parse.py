@@ -23,7 +23,8 @@ def get_current_kst() -> datetime:
     return curr_time
 
 def get_current_kst_date(curr_time: datetime) -> str:
-    return curr_time.strftime('%Y-%m-%d')
+    return "now"
+    # return curr_time.strftime('%Y-%m-%d')
 
 def get_parse_url(curr_time: datetime = get_current_kst()) -> str:
     return API_BASE_URL + get_current_kst_date(curr_time) + "/players"
