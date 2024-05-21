@@ -216,9 +216,8 @@ class DiscordBot(discord.Client):
                 return
             await botcommand.parse_stat(interaction=interaction, conf=self.config, stat=False)
 
-
-
         print("command set done")
+
 
 
     def start_bot(self):

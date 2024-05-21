@@ -281,7 +281,8 @@ class ParsePlayer:
             return
 
         # crash
-        if ago_wave >= curr_wave - check_crash_wave:
+        # 시즌이 바뀌면 ago_wave가 curr_wave보다 클 수 있다.
+        if ago_wave >= curr_wave - check_crash_wave and curr_wave >= ago_wave:
 
             alert_user: str = player_monitoring.get("alert_user_id")
             self.alert_list.append({
