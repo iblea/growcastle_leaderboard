@@ -166,11 +166,32 @@ def set_data_initialize(config: dict) -> dict:
     return config
 
 
-def set_leaderboard_data(cfg_data: dict, userdata: dict) -> dict:
-    user_rank = userdata.get("rank")
-    rank_format = "r{}"
-    if user_rank in [1, 2, 3, 4, 5, 6, 10, 11, 50, 51]:
-        cfg_data["leaderboard"][rank_format.format(user_rank)] = userdata.get("score")
+def set_leaderboard_data(cfg_data: dict, userlist: list) -> dict:
+
+    # 순위는 51위까지만 저장한다.
+    userlist_len: int = min(len(userlist), 51)
+
+    rank_monitoring_list: list[int] = [1, 2, 3, 4, 5, 6, 10, 11, 50, 51]
+
+    # 리스트를 순회하여 순위를 파싱하는 이유는
+    # 동일한 웨이브일 경우, 순위가 중복되기 때문이다.
+    # 예를들어 3위와 4위가 100 웨이브로 같을 경우,
+    # rank에서는 두 플레이어 모두 다 3위로 표기한다.
+    # 시즌 초에 동일한 웨이브로 인한 rank 값 세팅 오류가 많으므로 각별한 주의를 요한다.
+    for i in range(userlist_len):
+        userdata: dict = userlist[i]
+        user_rank: int = i + 1
+        rank_format = "r{}"
+        if user_rank in rank_monitoring_list:
+            cfg_data["leaderboard"][rank_format.format(user_rank)] = userdata.get("score")
+
+
+    leaderboards: dict= cfg_data["leaderboard"]
+    for i in rank_monitoring_list:
+        if rank_format.format(i) in leaderboards:
+            continue
+        cfg_data["leaderboard"][rank_format.format(user_rank)] = -1
+
     return cfg_data
 
 
@@ -248,9 +269,10 @@ class ParsePlayer:
         # parse user and set alarm data
         cfg_data["leaderboard"] = {}
         cfg_user_data: dict = {}
-        for userdata in userlist:
-            cfg_data = set_leaderboard_data(cfg_data=cfg_data, userdata=userdata)
+        cfg_data = set_leaderboard_data(cfg_data=cfg_data, userlist=userlist)
 
+        for i in range(len(userlist)):
+            userdata: dict = userlist[i]
             username: str = userdata.get("name")
             if username not in player_monitoring:
                 continue
@@ -260,7 +282,8 @@ class ParsePlayer:
 
             cfg_user_data[username] = {
                 "score": userdata.get("score"),
-                "rank": userdata.get("rank"),
+                # "rank": userdata.get("rank"),
+                "rank": i + 1 # rank 값이 중복될 수 있음을 확인했기에 내부적으로 for문을 돌려 rank 임의값을 구함.
             }
 
         cfg_data["users"] = cfg_user_data
