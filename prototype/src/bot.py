@@ -21,7 +21,7 @@ class DiscordBot(discord.Client):
     discord_guild_object: Optional[discord.Object] = None
     discord_response_chat_id: int = -1
     discord_bot_token: str = ""
-    schedule_second: int = 1
+    schedule_second: int = 3
 
     next_alert_time: int = 0
     next_parse_time = 0
@@ -39,7 +39,7 @@ class DiscordBot(discord.Client):
 
     def __init__(self,
             config: dict,
-            schedule_second: int = 1,
+            schedule_second: int = 3,
             # intents: discord.Intents = discord.Intents.default()
             intents = discord.Intents().all()
     ) -> None:
@@ -230,7 +230,7 @@ class DiscordBot(discord.Client):
             return
 
         parser = parse.ParsePlayer(bot=self.alert_channel, config=self.config)
-        parse_stat: bool = parser.parse_leaderboard(curr_time=time.time())
+        parse_stat: bool = await parser.parse_leaderboard(curr_time=time.time())
         # print("parse_stat : {}".format(parse_stat))
 
         if parse_stat != True:
@@ -259,7 +259,7 @@ class DiscordBot(discord.Client):
 
     # n초마다 돌면서 crash 상태인지 확인
     # @tasks.loop(seconds=5.0)
-    @tasks.loop(seconds=1)
+    @tasks.loop(seconds=3)
     async def schedular(self):
         curr_time = time.time()
 

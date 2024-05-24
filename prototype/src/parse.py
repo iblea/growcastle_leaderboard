@@ -45,7 +45,7 @@ def request_api(url: str) -> Response:
     )
     return response
 
-def request_api_retry(url: str, retry_count: int, bot_alarm) -> Response:
+async def request_api_retry(url: str, retry_count: int, bot_alarm) -> Response:
 
     for i in range(retry_count):
         try:
@@ -59,7 +59,7 @@ def request_api_retry(url: str, retry_count: int, bot_alarm) -> Response:
             return response
         except Exception as e:
             errmsg: str = "retry {} count\nError: [{}]".format(i, str(e))
-            bot_alarm.send(errmsg)
+            await bot_alarm.send(errmsg)
 
 
 def get_context_to_json(response: Response) -> dict:
@@ -222,7 +222,7 @@ class ParsePlayer:
     def get_alert_list(self):
         return self.alert_list
 
-    def parse_leaderboard(self, curr_time, url=get_parse_url()) -> bool:
+    async def parse_leaderboard(self, curr_time, url=get_parse_url()) -> bool:
         """API를 파싱하여 crash 난 사람들의 리스트를 획득한다.
         """
         print("url : {}".format(url))
@@ -239,11 +239,11 @@ class ParsePlayer:
                 self.response = None
                 errmsg: str = "retry {} count\nError: [{}]".format(i, str(e))
                 print(errmsg)
-                self.send_bot_msg(errmsg)
+                await self.send_bot_msg(errmsg)
 
         if i >= retry_count:
             print("api request error")
-            self.send_bot_msg("api request error")
+            await self.send_bot_msg("api request error")
             return False
 
         userlist: list  = get_leaderboard_userlist(apidict=self.apidict)
