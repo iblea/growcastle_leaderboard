@@ -20,12 +20,82 @@ import org.json.simple.parser.ParseException;
 
 import parser.telegram.TelegramBot;
 
+
 public class ParseAPI {
     TelegramBot bot;
     final private String APIBASEURL = "https://raongames.com/growcastle/restapi/season/";
 
     public ParseAPI(TelegramBot bot) {
         this.bot = bot;
+    }
+
+    /**
+     * kst 타임을 조합하여 요청할 URL을 리턴한다.
+     * 해당 URL에 최종적으로 요청할 path를 조합한다.
+     *
+     * @return String
+     */
+    public String getCurrentURL() {
+        // 특정 날짜에 대한 API 요청
+        // return APIBASEURL + getCurrentKST();
+        // 현재 시간에 대한 API 요청
+        return APIBASEURL + getNow();
+    }
+
+    /**
+     * API 요청 후 응답 헤더를 검증, payload를 리턴한다.
+     * 응답 헤더는 200OK가 아닐 경우 에러를 리턴한다.
+     *
+     * @param urlString - 요청할 URL
+     * @return String - 응답된 payload
+     */
+    public String requestURL(String urlString)
+        throws IOException, Not200OK
+    {
+        HttpURLConnection conn = setConnection(new URL(urlString));
+        int responseCode = conn.getResponseCode();
+        if (responseCode != 200) {
+            String errMsg = "HTTP Response Code is not 200 OK [" + String.valueOf(responseCode) + "]";
+            throw new Not200OK(errMsg);
+        }
+        return parseResponse(conn.getInputStream());
+    }
+
+    /**
+     * 응답 payload에서 json을 파싱하여 원하는 정보만 추출해 리턴한다.
+     *
+     * @param responseData - 응답 payload
+     * @return JSONArray - 리더보드/유저 리스트
+     */
+    public JSONArray getAPIResponseData(String responseData)
+        throws ParseException, NullPointerException, WrongJsonType
+    {
+        if (responseData == null) {
+            throw new NullPointerException("responseData is NULL");
+        }
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject = (JSONObject)jsonParser.parse(responseData);
+        validateAPIData(jsonObject);
+
+        JSONObject results = (JSONObject)jsonObject.get("result");
+        if (results == null) {
+            throw new NullPointerException("cannot find result object");
+        }
+        JSONArray apiDataList = (JSONArray)results.get("list");
+        if (apiDataList == null) {
+            throw new NullPointerException("cannot find list array");
+        }
+        if (apiDataList.size() == 0) {
+            throw new WrongJsonType("no playerList Array data");
+        }
+        return apiDataList;
+    }
+
+
+
+
+    public String getNow() {
+        return "now";
     }
 
     /**
@@ -40,16 +110,6 @@ public class ParseAPI {
         // "yyyy-MM-dd" 형식으로 포맷팅
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return currentTimeKST.format(formatter);
-    }
-
-    /**
-     * kst 타임을 조합하여 요청할 URL을 리턴한다.
-     * 해당 URL에 최종적으로 요청할 path를 조합한다.
-     *
-     * @return String
-     */
-    public String getCurrentKSTURL() {
-        return APIBASEURL + getCurrentKST();
     }
 
     /**
@@ -90,27 +150,10 @@ public class ParseAPI {
     }
 
     /**
-     * API 요청 후 응답 헤더를 검증, payload를 리턴한다.
-     * 응답 헤더는 200OK가 아닐 경우 에러를 리턴한다.
-     *
-     * @param urlString - 요청할 URL
-     * @return String - 응답된 payload
-     */
-    public String requestURL(String urlString)
-        throws IOException, Not200OK
-    {
-        HttpURLConnection conn = setConnection(new URL(urlString));
-        int responseCode = conn.getResponseCode();
-        if (responseCode != 200) {
-            String errMsg = "HTTP Response Code is not 200 OK [" + String.valueOf(responseCode) + "]";
-            throw new Not200OK(errMsg);
-        }
-        return parseResponse(conn.getInputStream());
-    }
-
-    /**
      * Json의 정상 유무를 검증한다.
      * 비정상 시 에러를 생성한다.
+     * { "code": 200, "message": "ok" ... } 는
+     * growcastle API의 요청에 대한 정상 응답 시 항상 포함되는 구문이다.
      *
      * @param apiData - payload로부터 파싱된 jsonObject
      */
@@ -133,36 +176,6 @@ public class ParseAPI {
         if (!messageObj.equals("ok")) {
             throw new WrongJsonType("json message is " + messageObj);
         }
-    }
-
-    /**
-     * 응답 payload에서 json을 파싱하여 원하는 정보만 추출해 리턴한다.
-     *
-     * @param responseData - 응답 payload
-     * @return JSONArray - 리더보드/유저 리스트
-     */
-    public JSONArray getAPIResponseData(String responseData)
-        throws ParseException, NullPointerException, WrongJsonType
-    {
-        if (responseData == null) {
-            throw new NullPointerException("responseData is NULL");
-        }
-        JSONParser jsonParser = new JSONParser();
-        JSONObject jsonObject = (JSONObject)jsonParser.parse(responseData);
-        validateAPIData(jsonObject);
-
-        JSONObject results = (JSONObject)jsonObject.get("result");
-        if (results == null) {
-            throw new NullPointerException("cannot find result object");
-        }
-        JSONArray apiDataList = (JSONArray)results.get("list");
-        if (apiDataList == null) {
-            throw new NullPointerException("cannot find list array");
-        }
-        if (apiDataList.size() == 0) {
-            throw new WrongJsonType("no playerList Array data");
-        }
-        return apiDataList;
     }
 
     protected void sendErrMsg(String errMsg) {

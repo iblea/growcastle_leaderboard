@@ -63,7 +63,7 @@ public class ParseGuild extends ParseAPI {
      * @return String
      */
     private String getGuildURL(String guildName) {
-        return getCurrentKSTURL() + "/guilds/" + guildName;
+        return getCurrentURL() + "/guilds/" + guildName;
     }
 
     /**
