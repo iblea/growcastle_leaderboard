@@ -27,9 +27,9 @@ public class ParseSchedular {
         System.out.println("initialize Wait");
         while (true) {
             LocalDateTime now = LocalDateTime.now();
-            if (true) {
-                break;
-            }
+            // test code
+            // if (true) { break; }
+
             if (now.getMinute() % 5 != 0) {
                 Thread.sleep(500);
                 continue;
