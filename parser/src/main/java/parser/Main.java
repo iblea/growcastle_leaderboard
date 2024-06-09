@@ -3,7 +3,6 @@
  */
 package parser;
 
-import org.apache.commons.lang3.ObjectUtils.Null;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -12,37 +11,20 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 // import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import parser.db.Database;
-import parser.parser.ParseSchedular;
+import parser.schedule.ParseSchedular;
 import parser.telegram.TelegramBot;
 
 public class Main {
 
-    public static void main(String[] args)
-        throws NullPointerException, TelegramApiException, InterruptedException
-    {
-        TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication();
 
-        Database db = new Database("growcastle");
-        db.connectEntityManagerFactory();
+	static class HookThread extends Thread {
+		@Override
+		public void run() {
+			System.out.println("ShutDown Hook Run");
+		}
+	}
 
-        TelegramBot telegramBot = new TelegramBot(db, "telegram");
-        botsApplication.registerBot(telegramBot.getAPIBotToken(), telegramBot);
-        System.out.println("TelegramBot successfully started!");
-
-        // telegramBot.sendMsg("connect success");
-        // System.out.println("msg send success!");
-
-
-        // Parse Schedular
-        ParseSchedular schedular = new ParseSchedular();
-        // ParseSchedular schedular = new ParseSchedular(30, 1);
-        schedular.start();
-        System.out.println("start parse schedular");
-
-        // 모든 작업이 끝나면 아래 내용 진행
-        Thread.currentThread().join();
-        // Thread.sleep(1000);
-
+    private static void closeConnect(TelegramBotsLongPollingApplication botsApplication, Database db) {
         // Ensure this process wait forever
         try {
             botsApplication.close();
@@ -52,7 +34,36 @@ public class Main {
         }
         db.disconnectEntityManagerFactory();
         System.out.println("disconnect Database");
+        System.out.println("End Done");
+    }
 
+
+    public static void main(String[] args)
+        throws NullPointerException, TelegramApiException, InterruptedException
+    {
+        TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication();
+
+        // Database 연결
+        Database db = new Database("growcastle");
+        db.connectEntityManagerFactory();
+
+        // 파싱 알림용 Telegram Bot 연결
+        TelegramBot telegramBot = new TelegramBot(db, "telegram");
+        botsApplication.registerBot(telegramBot.getAPIBotToken(), telegramBot);
+
+        // 스케쥴러 강제종료에 대한 이벤트 추가
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> closeConnect(botsApplication, db)));
+        System.out.println("Ready Done!");
+
+        // Scheduler 등록 및 시작
+        ParseSchedular schedular = new ParseSchedular(telegramBot, db);
+        schedular.start();
+        System.out.println("parse schedular start");
+
+        // 모든 작업이 끝나면 아래 내용 진행
+        Thread.currentThread().join();
+        System.out.println("End");
+        closeConnect(botsApplication, db);
     }
 
 }
