@@ -20,9 +20,25 @@ import parser.entity.Leaderboard;
  */
 public class ParseLeaderboard extends ParseAPI {
 
-    public ParseLeaderboard(TelegramBot bot) {
+    String leaderboardType = "";
+
+    private ParseLeaderboard(TelegramBot bot, String type) {
         super(bot);
+        this.leaderboardType = type;
     }
+
+    public static ParseLeaderboard player(TelegramBot bot) {
+        return new ParseLeaderboard(bot, "players");
+    }
+
+    public static ParseLeaderboard guild(TelegramBot bot) {
+        return new ParseLeaderboard(bot, "guilds");
+    }
+
+    public static ParseLeaderboard hellmode(TelegramBot bot) {
+        return new ParseLeaderboard(bot, "hell");
+    }
+
 
     /**
      * 리더보드 정보를 가져와 LeaderBoard Entity 형식으로 리턴한다.
@@ -30,16 +46,16 @@ public class ParseLeaderboard extends ParseAPI {
      * @param leaderboardType
      * @return
      */
-    public List<Leaderboard> parseLeaderboards(String leaderboardType)
+    public List<Leaderboard> parseLeaderboards()
     {
-        String leaderboardURL = getLeaderboardURL(leaderboardType);
+        String leaderboardURL = getLeaderboardURL();
         String leaderboardData = null;
         try {
             leaderboardData = requestURL(leaderboardURL);
         } catch(Not200OK | IOException e) {
             e.printStackTrace();
             // alarm
-            sendErrMsg("Leaderboard (" + leaderboardType + ") Request Error : " + e.getMessage());
+            sendErrMsg("Leaderboard (" + this.leaderboardType + ") Request Error : " + e.getMessage());
             return null;
         }
 
@@ -48,19 +64,10 @@ public class ParseLeaderboard extends ParseAPI {
             leaderboards = leaderboardJsonParser(leaderboardData);
         } catch (ParseException | NullPointerException | WrongJsonType e) {
             e.printStackTrace();
-            sendErrMsg("Leaderboard (" + leaderboardType + ") Parse Error : " + e.getMessage());
+            sendErrMsg("Leaderboard (" + this.leaderboardType + ") Parse Error : " + e.getMessage());
             return null;
         }
         return leaderboards;
-    }
-
-    /**
-     * 요청할 API URL을 만든다.
-     * @param leaderboardType - 요청할 URL 타입 ( players / guilds )
-     * @return String
-     */
-    private String getLeaderboardURL(String leaderboardType) {
-        return getCurrentURL() + "/" + leaderboardType;
     }
 
     /**
@@ -83,6 +90,15 @@ public class ParseLeaderboard extends ParseAPI {
     }
 
     /**
+     * 요청할 API URL을 만든다.
+     * @param leaderboardType - 요청할 URL 타입 ( players / guilds )
+     * @return String
+     */
+    private String getLeaderboardURL() {
+        return getCurrentURL() + "/" + this.leaderboardType;
+    }
+
+    /**
      * 리더보드 Json 엔티티 형식을 Leaderboard JDO 로 변환한다.
      * 랭크는 불가피하게 for문을 순회해가며 순위를 매긴다.
      * 동일한 웨이브의 경우 이를 동일한 순위로 부여한다.
@@ -94,9 +110,10 @@ public class ParseLeaderboard extends ParseAPI {
      * @param rank - 리더보드 순위
      * @return Leaderboard - 리더보드 JDO Entity
      */
-    Leaderboard getLeaderboardInJson(JSONObject rankObject, int rank) {
+    private Leaderboard getLeaderboardInJson(JSONObject rankObject, int rank) {
         // Integer rank = (Integer)rankObject.get("rank");
-        Integer score = (Integer)rankObject.get("score");
+        // Integer 시 Class Cast Exception 발생
+        Long score = (Long)rankObject.get("score");
         return new Leaderboard(
             rank + 1,
             (String)rankObject.get("name"),
