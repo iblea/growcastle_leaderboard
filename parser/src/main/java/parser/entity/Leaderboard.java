@@ -23,6 +23,14 @@ public class Leaderboard {
         this.parseTime = -1;
     }
 
+    public Leaderboard(int rank, String name, int score, int parseTime)
+    {
+        this.rank = rank;
+        this.name = name;
+        this.score = score;
+        this.parseTime = parseTime;
+    }
+
     public int getRank() {
         return this.rank;
     }
