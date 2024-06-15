@@ -1,11 +1,8 @@
 package parser.db;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
-import parser.entity.Token;
 
 public class Database {
     private EntityManagerFactory emf;
@@ -34,26 +31,8 @@ public class Database {
         this.emf = null;
     }
 
-    public Token selectByBotName(String botName) {
-        if (this.emf == null) {
-            throw new NullPointerException("EntityManagerFactory is null");
-        }
-        if (botName == null) {
-            throw new NullPointerException("botName is null");
-        }
-
-        EntityManager em = emf.createEntityManager();
-        // EntityTransaction tx = em.getTransaction();
-        // tx.begin();
-        Token token = null;
-        try {
-            token = em.find(Token.class, botName);
-            // tx.commit();
-        } catch (Exception e) {
-            // tx.rollback();
-        } finally {
-            em.close();
-        }
-        return token;
+    public EntityManagerFactory getEntityManagerFactory() {
+        return this.emf;
     }
+
 }

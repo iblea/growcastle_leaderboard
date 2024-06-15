@@ -3,12 +3,17 @@ package parser.telegram;
 import parser.db.Database;
 import parser.entity.Token;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
+
+import java.util.Optional;
 
 public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
     // private final String BOTNAME = "Telegram Alarm Bot";
@@ -22,7 +27,7 @@ public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
         this.telegramClient = null;
     }
 
-    public TelegramBot(Database db, String botTokenName) {
+    public TelegramBot(Database db, Optional<String> botTokenName) {
         this.token = null;
         this.defaultChannel = -1;
         this.telegramClient = null;
@@ -76,15 +81,38 @@ public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
      * @param db
      * @param botTokenName
      */
-    public void setBotToken(Database db, String botTokenName) {
-        this.token = db.selectByBotName(botTokenName);
+    public void setBotToken(Database db, Optional<String> botTokenName) {
+        this.token = this.selectByBotName(db, botTokenName);
 
         if (token == null) {
-            System.out.println("token is NULL");
-            throw new NullPointerException(botTokenName + " token is NULL");
+            System.out.println(botTokenName.get() + " token is NULL");
+            throw new NullPointerException(botTokenName.get() + " token is NULL");
         }
 
         this.telegramClient = new OkHttpTelegramClient(this.getAPIBotToken());
         this.defaultChannel = Long.valueOf(this.token.getBotChannel());
     }
+
+    public Token selectByBotName(Database db, Optional<String> botName) {
+        EntityManagerFactory emf = db.getEntityManagerFactory();
+        if (emf == null) {
+            throw new NullPointerException("EntityManagerFactory is null");
+        }
+
+        EntityManager em = emf.createEntityManager();
+        // EntityTransaction tx = em.getTransaction();
+        // tx.begin();
+        Token token = null;
+        try {
+            token = em.find(Token.class, botName);
+            // tx.commit();
+        } catch (Exception e) {
+            // tx.rollback();
+        } finally {
+            em.close();
+        }
+        return token;
+    }
+
+
 }

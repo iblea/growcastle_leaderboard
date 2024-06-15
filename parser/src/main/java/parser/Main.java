@@ -6,6 +6,8 @@ package parser;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.Optional;
+
 // import org.telegram.telegrambots.meta.TelegramBotsApi;
 // import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 // import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
@@ -48,7 +50,7 @@ public class Main {
         db.connectEntityManagerFactory();
 
         // 파싱 알림용 Telegram Bot 연결
-        TelegramBot telegramBot = new TelegramBot(db, "telegram");
+        TelegramBot telegramBot = new TelegramBot(db, Optional.of("telegram"));
         botsApplication.registerBot(telegramBot.getAPIBotToken(), telegramBot);
 
         // 스케쥴러 강제종료에 대한 이벤트 추가
