@@ -11,47 +11,43 @@ import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Players")
+@Table(name = "LEADERBOARD_PLAYER")
 @SecondaryTables({
-    @SecondaryTable(name = "Guilds"),
-    @SecondaryTable(name = "Hellmode")
+    @SecondaryTable(name = "LEADERBOARD_GUILD"),
+    @SecondaryTable(name = "LEADERBOARD_HELL")
 })
 public class Leaderboard {
+
+    @Id
+    LeaderboardPK leaderboardPK;
 
     @Column(name = "rank")
     private int rank;
 
-    @Id
-    @Column(name = "name")
-    private String name;
-
     @Column(name = "score")
     private int score;
 
-    @Id
-    @Column(name = "parseTime")
-    private LocalDateTime parseTime;
-    // private long parseTime;
-
     public Leaderboard() {
+        this.leaderboardPK = new LeaderboardPK();
         this.rank = -1;
-        this.name = "";
         this.score = -1;
-        // this.parseTime = System.currentTimeMillis() / 1000;
     }
 
     public Leaderboard(int rank, String name, int score)
     {
+        this.leaderboardPK = new LeaderboardPK();
         this.rank = rank;
-        this.name = name;
         this.score = score;
+        this.leaderboardPK.setName(name);
     }
 
     public Leaderboard(int rank, String name, int score, LocalDateTime parseTime)
     {
+        this.leaderboardPK = new LeaderboardPK();
         this.rank = rank;
-        this.name = name;
         this.score = score;
+        this.leaderboardPK.setName(name);
+        this.leaderboardPK.setParseTime(parseTime);
     }
 
     public int getRank() {
@@ -63,11 +59,11 @@ public class Leaderboard {
     }
 
     public String getName() {
-        return this.name;
+        return this.leaderboardPK.getName();
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.leaderboardPK.setName(name);
     }
 
     public int getScore() {
@@ -79,10 +75,12 @@ public class Leaderboard {
     }
 
     public LocalDateTime getParseTime() {
-        return this.parseTime;
+        return this.leaderboardPK.getParseTime();
     }
 
     public void setParseTime(LocalDateTime parseTime) {
-        this.parseTime = parseTime;
+        this.leaderboardPK.setParseTime(parseTime);
     }
+
 }
+

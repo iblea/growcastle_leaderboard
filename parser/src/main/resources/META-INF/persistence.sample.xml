@@ -6,6 +6,7 @@
     <persistence-unit name="growcastle">
         <!-- https://sweetburble.tistory.com/6 -->
         <class>parser.entity.Token</class>
+        <class>parser.entity.Leaderboard</class>
         <properties>
             <!-- 필수 속성 -->
             <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>
@@ -19,7 +20,9 @@
             <property name="hibernate.format_sql" value="true"/>
             <property name="hibernate.use_sql_comments" value="false"/>
             <property name="hibernate.id.new_generator_mappings" value="false"/>
-            <!--<property name="hibernate.hbm2ddl.auto" value="create" />-->
+            <!-- <property name="hibernate.hbm2ddl.auto" value="create-drop"/> -->
+            <!-- <property name="hibernate.hbm2ddl.auto" value="update"/> -->
+            <!-- <property name="hibernate.hbm2ddl.auto" value="create" /> -->
         </properties>
     </persistence-unit>
 </persistence>
