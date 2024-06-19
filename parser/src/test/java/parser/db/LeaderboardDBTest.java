@@ -9,9 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.annotation.Testable;
 
-import com.google.common.base.Optional;
-
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
