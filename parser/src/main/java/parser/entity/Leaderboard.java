@@ -4,18 +4,17 @@ package parser.entity;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.SecondaryTable;
-import javax.persistence.SecondaryTables;
+import javax.persistence.MappedSuperclass;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.BatchSize;
+
+import kotlin.OverloadResolutionByLambdaReturnType;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "LEADERBOARD_PLAYER")
-@SecondaryTables({
-    @SecondaryTable(name = "LEADERBOARD_GUILD"),
-    @SecondaryTable(name = "LEADERBOARD_HELL")
-})
+@BatchSize(size = 100)
+@MappedSuperclass
 public class Leaderboard {
 
     @Id
@@ -82,5 +81,8 @@ public class Leaderboard {
         this.leaderboardPK.setParseTime(parseTime);
     }
 
+    public Leaderboard getLeaderboard() {
+        return this;
+    }
 }
 

@@ -5,11 +5,16 @@ import java.util.Optional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 import parser.entity.Leaderboard;
+import parser.entity.LeaderboardGuild;
 import parser.entity.LeaderboardPK;
+import parser.entity.LeaderboardPlayer;
+import parser.entity.LeaderboardHell;
+import parser.parser.LeaderboardType;
 
 // 5분마다 800건
 // 1일 = 24시간 = 1440분 = 288개
@@ -23,7 +28,7 @@ public class LeaderboardDB {
         this.db = db;
     }
 
-    public void insertLeaderboards(List<Leaderboard> data, Optional<String> type) {
+    public void insertLeaderboards(List<Leaderboard> data, LeaderboardType type) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
         if (emf == null) {
             throw new NullPointerException("EntityManagerFactory is null");
@@ -31,10 +36,27 @@ public class LeaderboardDB {
 
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
-        for (Leaderboard leaderboard : data) {
-            em.persist(leaderboard);
+
+        switch (type) {
+            case PLAYER:
+                for (Leaderboard leaderboard : data) {
+                    em.persist(new LeaderboardPlayer(leaderboard));
+                }
+                break;
+            case GUILD:
+                for (Leaderboard leaderboard : data) {
+                    em.persist(new LeaderboardGuild(leaderboard));
+                }
+                break;
+            case HELL:
+                for (Leaderboard leaderboard : data) {
+                    em.persist(new LeaderboardHell(leaderboard));
+                }
+                break;
+            default:
+                break;
         }
-        try{
+        try {
             em.getTransaction().commit();
         } catch (Exception e) {
             em.getTransaction().rollback();
@@ -43,7 +65,7 @@ public class LeaderboardDB {
         }
     }
 
-    public void deleteLeaderboards(List<Leaderboard> data, Optional<String> type) {
+    public void deleteLeaderboards(List<Leaderboard> data, LeaderboardType type) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
         if (emf == null) {
             throw new NullPointerException("EntityManagerFactory is null");
@@ -52,10 +74,24 @@ public class LeaderboardDB {
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
         for (Leaderboard leaderboard : data) {
-            em.remove(em.contains(leaderboard) ? leaderboard : em.merge(leaderboard));
-            // em.remove(leaderboard);
+            Object entity;
+            switch (type) {
+                case PLAYER:
+                    entity = new LeaderboardPlayer(leaderboard);
+                    break;
+                case GUILD:
+                    entity = new LeaderboardGuild(leaderboard);
+                    break;
+                case HELL:
+                    entity = new LeaderboardHell(leaderboard);
+                    break;
+                default:
+                    entity = null;
+                    break;
+            }
+            em.remove(em.contains(entity) ? entity: em.merge(entity));
         }
-        try{
+        try {
             em.getTransaction().commit();
         } catch (Exception e) {
             em.getTransaction().rollback();
@@ -64,21 +100,46 @@ public class LeaderboardDB {
         }
     }
 
-    public Leaderboard findLeaderboardPK(String name, LocalDateTime parseTime) {
+    public Leaderboard findLeaderboardPK(String name, LocalDateTime parseTime, LeaderboardType type) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
         if (emf == null) {
             throw new NullPointerException("EntityManagerFactory is null");
         }
 
         LeaderboardPK pk = new LeaderboardPK(name, parseTime);
-        Leaderboard leaderboard = null;
+        Object leaderboard = null;
         EntityManager em = emf.createEntityManager();
         try {
-            leaderboard = em.find(Leaderboard.class, pk);
+            switch (type) {
+                case PLAYER:
+                    leaderboard = em.find(LeaderboardPlayer.class, pk);
+                    break;
+                case GUILD:
+                    leaderboard = em.find(LeaderboardGuild.class, pk);
+                    break;
+                case HELL:
+                    leaderboard = em.find(LeaderboardHell.class, pk);
+                    break;
+                default:
+                    break;
+            }
         } finally {
             em.close();
         }
-        return leaderboard;
+        if (leaderboard == null) {
+            return null;
+        }
+
+        switch (type) {
+            case PLAYER:
+                return ((LeaderboardPlayer) leaderboard).getLeaderboard();
+            case GUILD:
+                return ((LeaderboardGuild) leaderboard).getLeaderboard();
+            case HELL:
+                return ((LeaderboardHell) leaderboard).getLeaderboard();
+            default:
+                return null;
+        }
     }
 
 

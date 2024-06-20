@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import parser.entity.Leaderboard;
+import parser.parser.LeaderboardType;
 
 
 @Testable
@@ -57,9 +58,9 @@ class LeaderboardDBTest {
 
         List<Leaderboard> data = new ArrayList<Leaderboard>();
         data.add(leaderboard);
-        dml.insertLeaderboards(data, Optional.of("Player"));
+        dml.insertLeaderboards(data, LeaderboardType.PLAYER);
 
-        Leaderboard find = dml.findLeaderboardPK(name, parseTime);
+        Leaderboard find = dml.findLeaderboardPK(name, parseTime, LeaderboardType.PLAYER);
 
         assertThatCode(() -> {
             assertThat(find.getRank()).isEqualTo(1);
@@ -68,7 +69,10 @@ class LeaderboardDBTest {
             assertThat(find.getParseTime()).isEqualTo(parseTime);
         }).doesNotThrowAnyException();
 
-        dml.deleteLeaderboards(data, Optional.of("Player"));
+        dml.deleteLeaderboards(data, LeaderboardType.PLAYER);
+
+        Leaderboard remove_find = dml.findLeaderboardPK(name, parseTime, LeaderboardType.PLAYER);
+        assertThat(remove_find).isNull();
     }
 
 }
