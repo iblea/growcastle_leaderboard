@@ -26,7 +26,7 @@ public class Main {
 		}
 	}
 
-    private static void closeConnect(TelegramBotsLongPollingApplication botsApplication, Database db) {
+    private static void closeTelegramConnect(TelegramBotsLongPollingApplication botsApplication) {
         // Ensure this process wait forever
         try {
             botsApplication.close();
@@ -34,6 +34,11 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static void closeConnect(TelegramBotsLongPollingApplication botsApplication, Database db) {
+        // Ensure this process wait forever
+        closeTelegramConnect(botsApplication);
         db.disconnectEntityManagerFactory();
         System.out.println("disconnect Database");
         System.out.println("End Done");
@@ -43,29 +48,39 @@ public class Main {
     public static void main(String[] args)
         throws NullPointerException, TelegramApiException, InterruptedException
     {
-        TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication();
+        try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
+            // Database 연결
+            Database db = new Database("growcastle");
+            if (!db.connectEntityManagerFactory()) {
+                System.out.println("Database Connection Fail");
+                closeTelegramConnect(botsApplication);
+                return;
+            }
 
-        // Database 연결
-        Database db = new Database("growcastle");
-        db.connectEntityManagerFactory();
+            // 파싱 알림용 Telegram Bot 연결
+            TelegramBot telegramBot = new TelegramBot(db, Optional.of("telegram"));
+            botsApplication.registerBot(telegramBot.getAPIBotToken(), telegramBot);
 
-        // 파싱 알림용 Telegram Bot 연결
-        TelegramBot telegramBot = new TelegramBot(db, Optional.of("telegram"));
-        botsApplication.registerBot(telegramBot.getAPIBotToken(), telegramBot);
+            // 스케쥴러 강제종료에 대한 이벤트 추가
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> closeConnect(botsApplication, db)));
+            System.out.println("Ready Done!");
 
-        // 스케쥴러 강제종료에 대한 이벤트 추가
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> closeConnect(botsApplication, db)));
-        System.out.println("Ready Done!");
+            // Scheduler 등록 및 시작
+            ParseSchedular schedular = new ParseSchedular(telegramBot, db);
+            schedular.start();
+            System.out.println("parse schedular start");
 
-        // Scheduler 등록 및 시작
-        ParseSchedular schedular = new ParseSchedular(telegramBot, db);
-        schedular.start();
-        System.out.println("parse schedular start");
-
-        // 모든 작업이 끝나면 아래 내용 진행
-        Thread.currentThread().join();
-        System.out.println("End");
-        closeConnect(botsApplication, db);
+            // 모든 작업이 끝나면 아래 내용 진행
+            Thread.currentThread().join();
+            System.out.println("End");
+        } catch (NullPointerException e) {
+            throw e;
+        } catch (InterruptedException e) {
+            System.out.println("Interrupted Exception");
+            Thread.currentThread().interrupt();
+        } catch ( Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

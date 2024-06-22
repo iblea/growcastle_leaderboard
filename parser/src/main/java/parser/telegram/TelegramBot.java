@@ -82,7 +82,13 @@ public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
      * @param botTokenName
      */
     public void setBotToken(Database db, Optional<String> botTokenName) {
-        this.token = this.selectByBotName(db, botTokenName);
+
+        if (botTokenName.isPresent() == false) {
+            System.out.println("botTokenName is NULL");
+            throw new NullPointerException("botTokenName is NULL");
+        }
+
+        this.token = this.selectByBotName(db, botTokenName.get());
 
         if (token == null) {
             System.out.println(botTokenName.get() + " token is NULL");
@@ -93,7 +99,7 @@ public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
         this.defaultChannel = Long.valueOf(this.token.getBotChannel());
     }
 
-    public Token selectByBotName(Database db, Optional<String> botName) {
+    public Token selectByBotName(Database db, String botName) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
         if (emf == null) {
             throw new NullPointerException("EntityManagerFactory is null");
@@ -102,16 +108,19 @@ public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
         EntityManager em = emf.createEntityManager();
         // EntityTransaction tx = em.getTransaction();
         // tx.begin();
-        Token token = null;
+        Token tok = null;
         try {
-            token = em.find(Token.class, botName);
+            tok = em.find(Token.class, botName);
             // tx.commit();
         } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error in selectByBotName.");
+            System.out.println(botName + " is not found in Token table.");
             // tx.rollback();
         } finally {
             em.close();
         }
-        return token;
+        return tok;
     }
 
 

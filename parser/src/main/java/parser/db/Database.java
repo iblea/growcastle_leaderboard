@@ -6,20 +6,26 @@ import javax.persistence.PersistenceException;
 
 public class Database {
     private EntityManagerFactory emf;
-    private String persistance_name;
+    private String persistanceName;
 
-    public Database(String persistance_name) {
-        this.persistance_name = persistance_name;
+    public Database(String persistanceName) {
+        this.persistanceName = persistanceName;
         this.emf = null;
     }
 
     public String getPersistanceName() {
-        return this.persistance_name;
+        return this.persistanceName;
     }
 
-    public void connectEntityManagerFactory()
-        throws PersistenceException {
-        this.emf = Persistence.createEntityManagerFactory(this.persistance_name);
+    public boolean connectEntityManagerFactory() {
+        try {
+            this.emf = Persistence.createEntityManagerFactory(this.persistanceName);
+        } catch (PersistenceException e) {
+            e.printStackTrace();
+            System.out.println("Error: cannot connect to Database");
+            return false;
+        }
+        return true;
     }
 
     public void disconnectEntityManagerFactory()
