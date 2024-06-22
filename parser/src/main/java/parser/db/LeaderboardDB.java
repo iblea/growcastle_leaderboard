@@ -1,11 +1,9 @@
 package parser.db;
 
 import java.util.List;
-import java.util.Optional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
@@ -37,6 +35,17 @@ public class LeaderboardDB {
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
 
+        insertLeaderboardsByType(data, type, em);
+        try {
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            em.getTransaction().rollback();
+        } finally {
+            em.close();
+        }
+    }
+
+    private void insertLeaderboardsByType(List<Leaderboard> data, LeaderboardType type, EntityManager em) {
         switch (type) {
             case PLAYER:
                 for (Leaderboard leaderboard : data) {
@@ -53,15 +62,6 @@ public class LeaderboardDB {
                     em.persist(new LeaderboardHell(leaderboard));
                 }
                 break;
-            default:
-                break;
-        }
-        try {
-            em.getTransaction().commit();
-        } catch (Exception e) {
-            em.getTransaction().rollback();
-        } finally {
-            em.close();
         }
     }
 
@@ -73,30 +73,37 @@ public class LeaderboardDB {
 
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
-        for (Leaderboard leaderboard : data) {
-            Object entity;
-            switch (type) {
-                case PLAYER:
-                    entity = new LeaderboardPlayer(leaderboard);
-                    break;
-                case GUILD:
-                    entity = new LeaderboardGuild(leaderboard);
-                    break;
-                case HELL:
-                    entity = new LeaderboardHell(leaderboard);
-                    break;
-                default:
-                    entity = null;
-                    break;
-            }
-            em.remove(em.contains(entity) ? entity: em.merge(entity));
-        }
+
+        deleteLeaderboardsByType(data, type, em);
         try {
             em.getTransaction().commit();
         } catch (Exception e) {
             em.getTransaction().rollback();
         } finally {
             em.close();
+        }
+    }
+
+    private void deleteLeaderboardsByType(List<Leaderboard> data, LeaderboardType type, EntityManager em) {
+        switch (type) {
+            case PLAYER:
+                for (Leaderboard leaderboard : data) {
+                    LeaderboardPlayer player = new LeaderboardPlayer(leaderboard);
+                    em.remove(em.contains(player) ? player : em.merge(player));
+                }
+                break;
+            case GUILD:
+                for (Leaderboard leaderboard : data) {
+                    LeaderboardGuild guild = new LeaderboardGuild(leaderboard);
+                    em.remove(em.contains(guild) ? guild : em.merge(guild));
+                }
+                break;
+            case HELL:
+                for (Leaderboard leaderboard : data) {
+                    LeaderboardHell hell = new LeaderboardHell(leaderboard);
+                    em.remove(em.contains(hell) ? hell : em.merge(hell));
+                }
+                break;
         }
     }
 
@@ -120,8 +127,6 @@ public class LeaderboardDB {
                 case HELL:
                     leaderboard = em.find(LeaderboardHell.class, pk);
                     break;
-                default:
-                    break;
             }
         } finally {
             em.close();
@@ -137,9 +142,8 @@ public class LeaderboardDB {
                 return ((LeaderboardGuild) leaderboard).getLeaderboard();
             case HELL:
                 return ((LeaderboardHell) leaderboard).getLeaderboard();
-            default:
-                return null;
         }
+        return null;
     }
 
 
