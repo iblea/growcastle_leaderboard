@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "leaderboard_hell")
-public class LeaderboardHell extends Leaderboard {
+public class LeaderboardHell extends LeaderboardBaseEntity {
 
     public LeaderboardHell() {
         super();
@@ -21,7 +21,7 @@ public class LeaderboardHell extends Leaderboard {
         super(rank, name, score, parseTime);
     }
 
-    public LeaderboardHell(Leaderboard leaderboard) {
+    public LeaderboardHell(LeaderboardBaseEntity leaderboard) {
         super(leaderboard.getRank(), leaderboard.getName(), leaderboard.getScore(), leaderboard.getParseTime());
     }
 

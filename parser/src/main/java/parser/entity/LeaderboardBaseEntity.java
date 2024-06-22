@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 @BatchSize(size = 100)
 @MappedSuperclass
-public class Leaderboard {
+public class LeaderboardBaseEntity {
 
     @Id
     LeaderboardPK leaderboardPK;
@@ -22,13 +22,13 @@ public class Leaderboard {
     @Column(name = "score")
     private int score;
 
-    public Leaderboard() {
+    public LeaderboardBaseEntity() {
         this.leaderboardPK = new LeaderboardPK();
         this.rank = -1;
         this.score = -1;
     }
 
-    public Leaderboard(int rank, String name, int score)
+    public LeaderboardBaseEntity(int rank, String name, int score)
     {
         this.leaderboardPK = new LeaderboardPK();
         this.rank = rank;
@@ -36,7 +36,7 @@ public class Leaderboard {
         this.leaderboardPK.setName(name);
     }
 
-    public Leaderboard(int rank, String name, int score, LocalDateTime parseTime)
+    public LeaderboardBaseEntity(int rank, String name, int score, LocalDateTime parseTime)
     {
         this.leaderboardPK = new LeaderboardPK();
         this.rank = rank;
@@ -77,7 +77,7 @@ public class Leaderboard {
         this.leaderboardPK.setParseTime(parseTime);
     }
 
-    public Leaderboard getLeaderboard() {
+    public LeaderboardBaseEntity getLeaderboard() {
         return this;
     }
 }

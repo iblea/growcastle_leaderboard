@@ -9,7 +9,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.parser.ParseException;
 import org.junit.jupiter.api.Test;
 
-import parser.entity.Leaderboard;
+import parser.entity.LeaderboardBaseEntity;
 
 public class ParseAPITest {
 
@@ -164,7 +164,7 @@ public class ParseAPITest {
         throws ParseException, NullPointerException, WrongJsonType
     {
         ParseLeaderboard leaderboard = ParseLeaderboard.player(null);
-        List<Leaderboard> data = leaderboard.leaderboardJsonParser(jsonNormalData);
+        List<LeaderboardBaseEntity> data = leaderboard.leaderboardJsonParser(jsonNormalData);
         for (int i = 0; i < data.size(); i++) {
             assertThat(data.get(i).getRank()).isEqualTo(i + 1);
         }

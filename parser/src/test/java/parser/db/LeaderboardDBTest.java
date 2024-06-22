@@ -16,7 +16,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
-import parser.entity.Leaderboard;
+import parser.entity.LeaderboardBaseEntity;
 import parser.parser.LeaderboardType;
 
 
@@ -44,7 +44,7 @@ class LeaderboardDBTest {
     void InsertOne() {
         LeaderboardDB dml = new LeaderboardDB(database);
 
-        Leaderboard leaderboard = new Leaderboard();
+        LeaderboardBaseEntity leaderboard = new LeaderboardBaseEntity();
 
         String name = "test";
         LocalDateTime parseTime = dml.getParseTime();
@@ -55,11 +55,11 @@ class LeaderboardDBTest {
         leaderboard.setParseTime(parseTime);
         // leaderboard.setParseTime(0);
 
-        List<Leaderboard> data = new ArrayList<Leaderboard>();
+        List<LeaderboardBaseEntity> data = new ArrayList<LeaderboardBaseEntity>();
         data.add(leaderboard);
         dml.insertLeaderboards(data, LeaderboardType.PLAYER);
 
-        Leaderboard find = dml.findLeaderboardPK(name, parseTime, LeaderboardType.PLAYER);
+        LeaderboardBaseEntity find = dml.findLeaderboardPK(name, parseTime, LeaderboardType.PLAYER);
 
         assertThatCode(() -> {
             assertThat(find.getRank()).isEqualTo(1);
@@ -70,7 +70,7 @@ class LeaderboardDBTest {
 
         dml.deleteLeaderboards(data, LeaderboardType.PLAYER);
 
-        Leaderboard remove_find = dml.findLeaderboardPK(name, parseTime, LeaderboardType.PLAYER);
+        LeaderboardBaseEntity remove_find = dml.findLeaderboardPK(name, parseTime, LeaderboardType.PLAYER);
         assertThat(remove_find).isNull();
     }
 

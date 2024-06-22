@@ -10,7 +10,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
-import parser.entity.Leaderboard;
+import parser.entity.LeaderboardBaseEntity;
 
 
 /**
@@ -46,7 +46,7 @@ public class ParseLeaderboard extends ParseAPI {
      * @param leaderboardType
      * @return
      */
-    public List<Leaderboard> parseLeaderboards()
+    public List<LeaderboardBaseEntity> parseLeaderboards()
     {
         String leaderboardURL = getLeaderboardURL();
         String leaderboardData = null;
@@ -59,7 +59,7 @@ public class ParseLeaderboard extends ParseAPI {
             return null;
         }
 
-        List<Leaderboard> leaderboards = null;
+        List<LeaderboardBaseEntity> leaderboards = null;
         try {
             leaderboards = leaderboardJsonParser(leaderboardData);
         } catch (ParseException | NullPointerException | WrongJsonType e) {
@@ -74,14 +74,14 @@ public class ParseLeaderboard extends ParseAPI {
      * 리턴된 Json을 파싱한다.
      *
      * @param leaderboardDataString
-     * @return List<Leaderboard>
+     * @return List<LeaderboardBaseEntity>
      */
-    public List<Leaderboard> leaderboardJsonParser(String leaderboardDataString)
+    public List<LeaderboardBaseEntity> leaderboardJsonParser(String leaderboardDataString)
         throws ParseException, NullPointerException, WrongJsonType
     {
         JSONArray leaderboardlist = getAPIResponseData(leaderboardDataString);
 
-        List<Leaderboard> leaderboards = new ArrayList<Leaderboard>();
+        List<LeaderboardBaseEntity> leaderboards = new ArrayList<LeaderboardBaseEntity>();
         for (int i = 0; i < leaderboardlist.size(); i++) {
             JSONObject rankObject = (JSONObject)leaderboardlist.get(i);
             leaderboards.add(getLeaderboardInJson(rankObject, i));
@@ -99,7 +99,7 @@ public class ParseLeaderboard extends ParseAPI {
     }
 
     /**
-     * 리더보드 Json 엔티티 형식을 Leaderboard JDO 로 변환한다.
+     * 리더보드 Json 엔티티 형식을 LeaderboardBaseEntity JDO 로 변환한다.
      * 랭크는 불가피하게 for문을 순회해가며 순위를 매긴다.
      * 동일한 웨이브의 경우 이를 동일한 순위로 부여한다.
      * ex: A유저 100wave, B유저 80wave, C유저 80wave 일 때 B,C 유저의 랭크를 모두 2로 부여한다.
@@ -108,13 +108,13 @@ public class ParseLeaderboard extends ParseAPI {
      *
      * @param rankObject - rank json object
      * @param rank - 리더보드 순위
-     * @return Leaderboard - 리더보드 JDO Entity
+     * @return LeaderboardBaseEntity - 리더보드 JDO Entity
      */
-    private Leaderboard getLeaderboardInJson(JSONObject rankObject, int rank) {
+    private LeaderboardBaseEntity getLeaderboardInJson(JSONObject rankObject, int rank) {
         // Integer rank = (Integer)rankObject.get("rank");
         // Integer 시 Class Cast Exception 발생
         Long score = (Long)rankObject.get("score");
-        return new Leaderboard(
+        return new LeaderboardBaseEntity(
             rank + 1,
             (String)rankObject.get("name"),
             score.intValue()

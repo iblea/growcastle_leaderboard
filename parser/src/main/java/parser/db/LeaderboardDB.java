@@ -7,7 +7,7 @@ import java.time.ZoneId;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
-import parser.entity.Leaderboard;
+import parser.entity.LeaderboardBaseEntity;
 import parser.entity.LeaderboardGuild;
 import parser.entity.LeaderboardPK;
 import parser.entity.LeaderboardPlayer;
@@ -26,7 +26,7 @@ public class LeaderboardDB {
         this.db = db;
     }
 
-    public void insertLeaderboards(List<Leaderboard> data, LeaderboardType type) {
+    public void insertLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
         if (emf == null) {
             throw new NullPointerException("EntityManagerFactory is null");
@@ -45,27 +45,27 @@ public class LeaderboardDB {
         }
     }
 
-    private void insertLeaderboardsByType(List<Leaderboard> data, LeaderboardType type, EntityManager em) {
+    private void insertLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
         switch (type) {
             case PLAYER:
-                for (Leaderboard leaderboard : data) {
+                for (LeaderboardBaseEntity leaderboard : data) {
                     em.persist(new LeaderboardPlayer(leaderboard));
                 }
                 break;
             case GUILD:
-                for (Leaderboard leaderboard : data) {
+                for (LeaderboardBaseEntity leaderboard : data) {
                     em.persist(new LeaderboardGuild(leaderboard));
                 }
                 break;
             case HELL:
-                for (Leaderboard leaderboard : data) {
+                for (LeaderboardBaseEntity leaderboard : data) {
                     em.persist(new LeaderboardHell(leaderboard));
                 }
                 break;
         }
     }
 
-    public void deleteLeaderboards(List<Leaderboard> data, LeaderboardType type) {
+    public void deleteLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
         if (emf == null) {
             throw new NullPointerException("EntityManagerFactory is null");
@@ -84,22 +84,22 @@ public class LeaderboardDB {
         }
     }
 
-    private void deleteLeaderboardsByType(List<Leaderboard> data, LeaderboardType type, EntityManager em) {
+    private void deleteLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
         switch (type) {
             case PLAYER:
-                for (Leaderboard leaderboard : data) {
+                for (LeaderboardBaseEntity leaderboard : data) {
                     LeaderboardPlayer player = new LeaderboardPlayer(leaderboard);
                     em.remove(em.contains(player) ? player : em.merge(player));
                 }
                 break;
             case GUILD:
-                for (Leaderboard leaderboard : data) {
+                for (LeaderboardBaseEntity leaderboard : data) {
                     LeaderboardGuild guild = new LeaderboardGuild(leaderboard);
                     em.remove(em.contains(guild) ? guild : em.merge(guild));
                 }
                 break;
             case HELL:
-                for (Leaderboard leaderboard : data) {
+                for (LeaderboardBaseEntity leaderboard : data) {
                     LeaderboardHell hell = new LeaderboardHell(leaderboard);
                     em.remove(em.contains(hell) ? hell : em.merge(hell));
                 }
@@ -107,7 +107,7 @@ public class LeaderboardDB {
         }
     }
 
-    public Leaderboard findLeaderboardPK(String name, LocalDateTime parseTime, LeaderboardType type) {
+    public LeaderboardBaseEntity findLeaderboardPK(String name, LocalDateTime parseTime, LeaderboardType type) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
         if (emf == null) {
             throw new NullPointerException("EntityManagerFactory is null");
