@@ -13,10 +13,10 @@ public class ParseSchedular {
 
     private TelegramBot tgBot;
     private Database db;
-    private final int parseSecDuringStart = 20;
-    private final int parseSecDuringEnd = 30;
-    // private final int repeatSec = 300;
-    private final int repeatSec = 3;
+    private static final int PARSERSECDURINGSTART = 20;
+    private static final int PARSESECDURINGEND = 30;
+    // private static final int REPEATSEC = 300;
+    private static final int REPEATSEC = 3;
 
     public ParseSchedular(TelegramBot tgBot, Database db) {
         this.tgBot = tgBot;
@@ -35,8 +35,8 @@ public class ParseSchedular {
                 continue;
             }
 
-            if (now.getSecond() >= this.parseSecDuringStart &&
-                now.getSecond() < this.parseSecDuringEnd) {
+            if (now.getSecond() >= PARSERSECDURINGSTART &&
+                now.getSecond() < PARSESECDURINGEND) {
                 break;
             }
 
@@ -45,12 +45,23 @@ public class ParseSchedular {
         System.out.println("initialize Wait Done");
     }
 
+    private void showTime() {
+        LocalDateTime now = LocalDateTime.now();
+        System.out.printf("current : %d:%d:%d%n",
+            now.getHour(), now.getMinute(), now.getSecond());
+    }
+
     // Existing code...
     public void testFunc() {
-        LocalDateTime now = LocalDateTime.now();
         System.out.println("Hello Test!");
-        System.out.printf("current : %d:%d:%d\n",
-            now.getHour(), now.getMinute(), now.getSecond());
+        showTime();
+        try{
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        }
+        showTime();
     }
 
     public void getGrowCastleData() {
@@ -66,10 +77,11 @@ public class ParseSchedular {
             e.printStackTrace();
             System.out.println("initializeWait error");
             tgBot.sendMsg("initializeWait error\n\n" + e.getMessage());
+            Thread.currentThread().interrupt();
             return ;
         }
         tgBot.sendMsg("bot scheduler start");
-        executor.scheduleAtFixedRate(this::testFunc, 0, repeatSec, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(this::testFunc, 0, REPEATSEC, TimeUnit.SECONDS);
     }
 
 }

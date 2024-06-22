@@ -2,14 +2,10 @@ package parser.entity;
 
 
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
-import javax.persistence.Table;
 
 import org.hibernate.annotations.BatchSize;
-
-import kotlin.OverloadResolutionByLambdaReturnType;
 
 import java.time.LocalDateTime;
 
