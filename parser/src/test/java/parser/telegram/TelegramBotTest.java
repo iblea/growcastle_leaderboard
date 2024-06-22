@@ -38,7 +38,7 @@ class TelegramBotTest {
         TelegramBot bot = spy(TelegramBot.class);
         // BDDMockito.given(bot.selectByBotName(dbMock, Optional.of("telegram"))).willReturn(token);
         // Mockito.when(bot.selectByBotName()).thenReturn(token);
-        Mockito.doReturn(token).when(bot).selectByBotName(dbMock, Optional.of("telegram"));
+        Mockito.doReturn(token).when(bot).selectByBotName(dbMock, "telegram");
 
         // TelegramBot bot = new TelegramBot();
         bot.setBotToken(dbMock, Optional.of("telegram"));
@@ -49,7 +49,7 @@ class TelegramBotTest {
     void selectByBotNameNullReturn() {
 
         TelegramBot bot = spy(TelegramBot.class);
-        Mockito.doReturn(null).when(bot).selectByBotName(dbMock, Optional.of("telegram"));
+        Mockito.doReturn(null).when(bot).selectByBotName(dbMock, "telegram");
 
         // TelegramBot bot = new TelegramBot();
         assertThatThrownBy(() -> {
