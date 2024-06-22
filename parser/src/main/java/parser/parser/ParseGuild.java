@@ -13,7 +13,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
-import parser.entity.LeaderboardBaseEntity;
+import parser.entity.GuildMember;
 
 
 public class ParseGuild extends ParseAPI {
@@ -28,32 +28,26 @@ public class ParseGuild extends ParseAPI {
      * score 별로 정렬해 rank 값을 직접 세팅한다.
      *
      * @param leaderboardDataString - API 응답받은 Json
-     * @return List<LeaderboardBaseEntity>
+     * @return List<GuildMembers>
      */
-    public List<LeaderboardBaseEntity> guildJsonParser(String leaderboardDataString)
+    public List<GuildMember> guildJsonParser(String leaderboardDataString)
         throws ParseException, NullPointerException, WrongJsonType
     {
         JSONArray leaderboardlist = getAPIResponseData(leaderboardDataString);
 
-        List<LeaderboardBaseEntity> leaderboards = new ArrayList<LeaderboardBaseEntity>();
+        List<GuildMember> leaderboards = new ArrayList<>();
         for (int i = 0; i < leaderboardlist.size(); i++) {
             JSONObject rankObject = (JSONObject)leaderboardlist.get(i);
 
             // Guild의 Player 정보에는 길드별 Rank에 대한 정보가 없다.
             Integer score = (Integer)rankObject.get("score");
-            LeaderboardBaseEntity leaderboard = new LeaderboardBaseEntity(
-                -1,
+            GuildMember leaderboard = new GuildMember(
                 (String)rankObject.get("name"),
                 score.intValue()
             );
             leaderboards.add(leaderboard);
         }
 
-        // 길드별 Rank 임의 세팅
-        Collections.sort(leaderboards, Comparator.comparing(LeaderboardBaseEntity::getScore));
-        for (int i = 0; i < leaderboards.size(); i++) {
-            leaderboards.get(i).setRank(i + 1);
-        }
         return leaderboards;
     }
 
@@ -68,12 +62,12 @@ public class ParseGuild extends ParseAPI {
 
     /**
      * 길드 내 길드원들의 이름(name), 웨이브(score) 를 파싱해
-     * LeaderBoardBaseEntity Entity 형식으로 리턴한다.
+     * GuildMembers Entity 형식으로 리턴한다.
      *
      * @param guildName - 파싱할 Guild Name
-     * @return List<LeaderboardBaseEntity>
+     * @return List<GuildMembers>
      */
-    public List<LeaderboardBaseEntity> parseGuildByName(String guildName)
+    public List<GuildMember> parseGuildByName(String guildName)
     {
         String leaderboardURL = getGuildURL(guildName);
         String leaderboardData = null;
@@ -86,7 +80,7 @@ public class ParseGuild extends ParseAPI {
             return null;
         }
 
-        List<LeaderboardBaseEntity> leaderboards = null;
+        List<GuildMember> leaderboards = null;
         try {
             leaderboards = guildJsonParser(leaderboardData);
         } catch (ParseException | NullPointerException | WrongJsonType e) {
