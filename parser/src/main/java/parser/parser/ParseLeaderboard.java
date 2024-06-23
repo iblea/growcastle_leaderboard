@@ -81,7 +81,7 @@ public class ParseLeaderboard extends ParseAPI {
     {
         JSONArray leaderboardlist = getAPIResponseData(leaderboardDataString);
 
-        List<LeaderboardBaseEntity> leaderboards = new ArrayList<LeaderboardBaseEntity>();
+        List<LeaderboardBaseEntity> leaderboards = new ArrayList<>();
         for (int i = 0; i < leaderboardlist.size(); i++) {
             JSONObject rankObject = (JSONObject)leaderboardlist.get(i);
             leaderboards.add(getLeaderboardInJson(rankObject, i));

@@ -23,7 +23,7 @@ import parser.telegram.TelegramBot;
 
 public class ParseAPI {
     TelegramBot bot;
-    final private String APIBASEURL = "https://raongames.com/growcastle/restapi/season/";
+    private static final String APIBASEURL = "https://raongames.com/growcastle/restapi/season/";
 
     public ParseAPI(TelegramBot bot) {
         this.bot = bot;
@@ -55,7 +55,7 @@ public class ParseAPI {
         HttpURLConnection conn = setConnection(new URL(urlString));
         int responseCode = conn.getResponseCode();
         if (responseCode != 200) {
-            String errMsg = "HTTP Response Code is not 200 OK [" + String.valueOf(responseCode) + "]";
+            String errMsg = "HTTP Response Code is not 200 OK [" + responseCode + "]";
             throw new Not200OK(errMsg);
         }
         return parseResponse(conn.getInputStream());
@@ -85,7 +85,7 @@ public class ParseAPI {
         if (apiDataList == null) {
             throw new NullPointerException("cannot find list array");
         }
-        if (apiDataList.size() == 0) {
+        if (apiDataList.isEmpty()) {
             throw new WrongJsonType("no playerList Array data");
         }
         return apiDataList;
