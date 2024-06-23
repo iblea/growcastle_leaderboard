@@ -23,6 +23,37 @@ public class ParseGuild extends ParseAPI {
     }
 
     /**
+     * 길드 내 길드원들의 이름(name), 웨이브(score) 를 파싱해
+     * GuildMembers Entity 형식으로 리턴한다.
+     *
+     * @param guildName - 파싱할 Guild Name
+     * @return List<GuildMembers>
+     */
+    public List<GuildMember> parseGuildByName(String guildName)
+    {
+        String leaderboardURL = getGuildURL(guildName);
+        String leaderboardData = null;
+        try {
+            leaderboardData = requestURL(leaderboardURL);
+        } catch(Not200OK | IOException e) {
+            e.printStackTrace();
+            // alarm
+            sendErrMsg("Guild (" + guildName + ") Request Error : " + e.getMessage());
+            return null;
+        }
+
+        List<GuildMember> leaderboards = null;
+        try {
+            leaderboards = guildJsonParser(leaderboardData);
+        } catch (ParseException | NullPointerException | WrongJsonType e) {
+            e.printStackTrace();
+            sendErrMsg("Guild (" + guildName + ") Parse Error : " + e.getMessage());
+            return null;
+        }
+        return leaderboards;
+    }
+
+    /**
      * 리턴된 Json을 파싱한다.
      * Guild별 길드원 조회 결과에는 rank 값이 없기 때문에
      * score 별로 정렬해 rank 값을 직접 세팅한다.
@@ -58,37 +89,6 @@ public class ParseGuild extends ParseAPI {
      */
     private String getGuildURL(String guildName) {
         return getCurrentURL() + "/guilds/" + guildName;
-    }
-
-    /**
-     * 길드 내 길드원들의 이름(name), 웨이브(score) 를 파싱해
-     * GuildMembers Entity 형식으로 리턴한다.
-     *
-     * @param guildName - 파싱할 Guild Name
-     * @return List<GuildMembers>
-     */
-    public List<GuildMember> parseGuildByName(String guildName)
-    {
-        String leaderboardURL = getGuildURL(guildName);
-        String leaderboardData = null;
-        try {
-            leaderboardData = requestURL(leaderboardURL);
-        } catch(Not200OK | IOException e) {
-            e.printStackTrace();
-            // alarm
-            sendErrMsg("Guild (" + guildName + ") Request Error : " + e.getMessage());
-            return null;
-        }
-
-        List<GuildMember> leaderboards = null;
-        try {
-            leaderboards = guildJsonParser(leaderboardData);
-        } catch (ParseException | NullPointerException | WrongJsonType e) {
-            e.printStackTrace();
-            sendErrMsg("Guild (" + guildName + ") Parse Error : " + e.getMessage());
-            return null;
-        }
-        return leaderboards;
     }
 
 }
