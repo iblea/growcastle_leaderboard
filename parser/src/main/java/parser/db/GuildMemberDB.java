@@ -12,7 +12,7 @@ import javax.persistence.Query;
 
 import parser.entity.GuildMember;
 
-class GuildMemberDB {
+public class GuildMemberDB {
 
     Database db;
 
