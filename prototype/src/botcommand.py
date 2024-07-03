@@ -148,7 +148,7 @@ async def parse_stat(interaction: discord.Interaction,
 
     conf["parse_stop"] = stat
     config.set_config(conf)
-    await interaction.response.send_message("parse_stop object change to {}".format(current_check))
+    await interaction.response.send_message("parse_stop object change to {}".format(stat))
 
 
 
