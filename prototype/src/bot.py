@@ -279,6 +279,8 @@ class DiscordBot(discord.Client):
             self.alert_channel = super().get_channel(self.config["bot_channel"])
             await self.alert_channel.send("initialize")
 
+        if self.config.get("parse_stop") == True:
+            return
 
         if curr_time >= self.next_parse_time:
             print("parse")
