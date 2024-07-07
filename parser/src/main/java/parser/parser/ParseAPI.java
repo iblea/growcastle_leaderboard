@@ -84,6 +84,26 @@ public class ParseAPI {
     public String requestURL(String urlString)
         throws IOException, Not200OK
     {
+        String responseData = null;
+        for (int try_count = 1; try_count <= MAXTRY; try_count++) {
+            try {
+                responseData = requestURLOnce(urlString);
+                if (responseData != null) {
+                    break;
+                }
+            } catch(Not200OK | IOException e) {
+                // logging
+                if (try_count == MAXTRY) {
+                    throw new Not200OK("requestURL failed : " + e.getMessage());
+                }
+            }
+        }
+        return responseData;
+    }
+
+    public String requestURLOnce(String urlString)
+        throws IOException, Not200OK
+    {
         HttpURLConnection conn = setConnection(new URL(urlString));
         int responseCode = conn.getResponseCode();
         if (responseCode != 200) {
