@@ -26,6 +26,12 @@ public class ParseSchedular {
     private static final int REPEATSEC = 300;
     // private static final int REPEATSEC = 3;
 
+    // TODO: 길드는 이후 DB에서 가져오는 것으로 변경할 예정
+    private String[] guilds = {"underdog", "sayonara", "RedBridge",
+                "Paragonia", "Droplet", "777",
+                "SKELETON_SKL", "ShaLom" };
+
+
     public ParseSchedular(TelegramBot tgBot, Database db) {
         this.tgBot = tgBot;
         this.db = db;
@@ -110,12 +116,8 @@ public class ParseSchedular {
         // leaderboardDB.insertLeaderboards(leaderboardData, LeaderboardType.HELL);
 
         // guild (우선 순위권 길드만 파싱한다.) 동일 길드의 2군이하 길드는 제외
-        String[] guilds = {"underdog", "sayonara", "RedBridge",
-                "Paragonia", "Droplet", "777",
-                "SKELETON_SKL", "ShaLom" };
-
-        ParseGuild parseGuild = new ParseGuild(tgBot);
         GuildMemberDB guildMemberDB = new GuildMemberDB(db);
+        ParseGuild parseGuild = new ParseGuild(tgBot);
         for (String guildName : guilds) {
             List<GuildMember> guildData = parseGuild.parseGuildByName(guildName);
             if (guildData == null) {
