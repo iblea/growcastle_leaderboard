@@ -31,6 +31,32 @@ public class ParseSchedular {
         this.db = db;
     }
 
+    public void start() {
+        // Runnable scheduleRunnable = new ScheduleRunner();
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        try {
+            this.initializeWait();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.out.println("initializeWait error");
+            tgBot.sendMsg("initializeWait error\n\n" + e.getMessage());
+            Thread.currentThread().interrupt();
+            return ;
+        }
+        tgBot.sendMsg("bot scheduler start");
+
+        executor.scheduleAtFixedRate(this::getGrowCastleData, 0, REPEATSEC, TimeUnit.SECONDS);
+        // executor.scheduleAtFixedRate(this::testFunc, 0, REPEATSEC, TimeUnit.SECONDS);
+        // thread logic
+        // executor.scheduleAtFixedRate(() -> {
+        //     Thread t = new Thread(this::testFunc);
+        //     t.start();
+        // }, 0, REPEATSEC, TimeUnit.SECONDS);
+
+    }
+
+
+
     private void initializeWait() throws InterruptedException {
         System.out.println("initialize Wait");
         while (true) {
@@ -51,25 +77,6 @@ public class ParseSchedular {
             Thread.sleep(500);
         }
         System.out.println("initialize Wait Done");
-    }
-
-    private void showTime(String msg) {
-        LocalDateTime now = LocalDateTime.now();
-        System.out.printf("%s | current : %d:%d:%d%n",
-            msg, now.getHour(), now.getMinute(), now.getSecond());
-    }
-
-    // Existing code...
-    private void testFunc() {
-        System.out.println("Hello Test!");
-        showTime("ago");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            Thread.currentThread().interrupt();
-        }
-        showTime("after");
     }
 
     public void getGrowCastleData() {
@@ -121,28 +128,23 @@ public class ParseSchedular {
         }
     }
 
-    public void start() {
-        // Runnable scheduleRunnable = new ScheduleRunner();
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+    private void showTime(String msg) {
+        LocalDateTime now = LocalDateTime.now();
+        System.out.printf("%s | current : %d:%d:%d%n",
+            msg, now.getHour(), now.getMinute(), now.getSecond());
+    }
+
+    // Existing code...
+    private void testFunc() {
+        System.out.println("Hello Test!");
+        showTime("ago");
         try {
-            this.initializeWait();
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
-            System.out.println("initializeWait error");
-            tgBot.sendMsg("initializeWait error\n\n" + e.getMessage());
             Thread.currentThread().interrupt();
-            return ;
         }
-        tgBot.sendMsg("bot scheduler start");
-
-        executor.scheduleAtFixedRate(this::getGrowCastleData, 0, REPEATSEC, TimeUnit.SECONDS);
-        // executor.scheduleAtFixedRate(this::testFunc, 0, REPEATSEC, TimeUnit.SECONDS);
-        // thread logic
-        // executor.scheduleAtFixedRate(() -> {
-        //     Thread t = new Thread(this::testFunc);
-        //     t.start();
-        // }, 0, REPEATSEC, TimeUnit.SECONDS);
-
+        showTime("after");
     }
 
 }
