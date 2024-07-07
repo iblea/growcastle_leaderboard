@@ -1,6 +1,8 @@
 package parser.parser;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -21,24 +23,48 @@ import parser.entity.LeaderboardBaseEntity;
 public class ParseLeaderboard extends ParseAPI {
 
     String leaderboardType = "";
+    LocalDateTime parseTime;
 
     private ParseLeaderboard(TelegramBot bot, String type) {
         super(bot);
         this.leaderboardType = type;
+        this.parseTime = getCurrentTimeKST();
     }
+
+    private ParseLeaderboard(TelegramBot bot, String type, LocalDateTime parseTime) {
+        super(bot);
+        this.leaderboardType = type;
+        this.parseTime = parseTime;
+    }
+
 
     public static ParseLeaderboard player(TelegramBot bot) {
         return new ParseLeaderboard(bot, "players");
     }
 
+    public static ParseLeaderboard player(TelegramBot bot, LocalDateTime parseTime) {
+        return new ParseLeaderboard(bot, "players", parseTime);
+    }
+
     public static ParseLeaderboard guild(TelegramBot bot) {
         return new ParseLeaderboard(bot, "guilds");
+    }
+    public static ParseLeaderboard guild(TelegramBot bot, LocalDateTime parseTime) {
+        return new ParseLeaderboard(bot, "guilds", parseTime);
     }
 
     public static ParseLeaderboard hellmode(TelegramBot bot) {
         return new ParseLeaderboard(bot, "hell");
     }
+    public static ParseLeaderboard hellmode(TelegramBot bot, LocalDateTime parseTime) {
+        return new ParseLeaderboard(bot, "hell", parseTime);
+    }
 
+
+    public LocalDateTime getCurrentTimeKST() {
+        ZoneId kstZoneId = ZoneId.of("Asia/Seoul");
+        return LocalDateTime.now(kstZoneId);
+    }
 
     /**
      * 리더보드 정보를 가져와 LeaderBoard Entity 형식으로 리턴한다.
@@ -117,7 +143,8 @@ public class ParseLeaderboard extends ParseAPI {
         return new LeaderboardBaseEntity(
             rank + 1,
             (String)rankObject.get("name"),
-            score.intValue()
+            score.intValue(),
+            this.parseTime
         );
     }
 

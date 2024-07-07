@@ -1,6 +1,7 @@
 package parser.schedule;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -88,13 +89,21 @@ public class ParseSchedular {
         System.out.println("initialize Wait Done");
     }
 
+    private LocalDateTime getNow5Minutes() {
+        ZoneId kstZoneId = ZoneId.of("Asia/Seoul");
+        LocalDateTime now = LocalDateTime.now(kstZoneId);
+        int minute = ((now.getMinute() / 5) * 5);
+        return now.withMinute(minute).withSecond(0).withNano(0);
+    }
+
     public void getGrowCastleData() {
-        System.out.println("Hello World!");
-        if (checkSeasonEnd()) {
+
+        LocalDateTime now = getNow5Minutes();
+        if (checkSeasonEnd(now)) {
             return;
         }
-        getParseLeaderboards();
-        getParseGuilds();
+        getParseLeaderboards(now);
+        getParseGuilds(now);
     }
 
     /**
@@ -102,11 +111,11 @@ public class ParseSchedular {
      * 시즌종료일의 23시 50분 부터는 파싱하지 않는다.
      * @return
      */
-    public Boolean checkSeasonEnd() {
+    public Boolean checkSeasonEnd(LocalDateTime now) {
 
         if (this.startSeasonDate == null || this.endSeasonDate == null) {
             System.out.println("End Season Date is null");
-            ParseLeaderboard parseAPI = ParseLeaderboard.player(tgBot);
+            ParseLeaderboard parseAPI = ParseLeaderboard.player(tgBot, now);
             parseAPI.parseLeaderboards();
             this.startSeasonDate = parseAPI.getStartSeasonDate();
             this.endSeasonDate = parseAPI.getEndSeasonDate();
@@ -115,7 +124,6 @@ public class ParseSchedular {
         // 혹시 지워지지 않은 데이터가 있을 수 있으므로, 시즌 시작 이전의 데이터는 삭제한다.
         deleteDatabaseUntilDate(this.startSeasonDate);
 
-        LocalDateTime now = LocalDateTime.now();
         if (now.getYear() != this.endSeasonDate.getYear()) {
             return false;
         }
@@ -128,10 +136,8 @@ public class ParseSchedular {
         if (now.getHour() != this.endSeasonDate.getHour()) {
             return false;
         }
-
         // 5분 단위로 체크 (53분이면 (53 / 5) * 5 = 50)
-        int minute = ((now.getMinute() / 5) * 5);
-        if (minute < this.endSeasonDate.getMinute()) {
+        if (now.getMinute() < this.endSeasonDate.getMinute()) {
             return false;
         }
 
@@ -153,11 +159,11 @@ public class ParseSchedular {
         // }
     }
 
-    public void getParseLeaderboards() {
+    public void getParseLeaderboards(LocalDateTime now) {
         LeaderboardDB leaderboardDB = new LeaderboardDB(db);
 
         // parse Leaderboard player data
-        List<LeaderboardBaseEntity> leaderboardData = ParseLeaderboard.player(tgBot).parseLeaderboards();
+        List<LeaderboardBaseEntity> leaderboardData = ParseLeaderboard.player(tgBot, now).parseLeaderboards();
         if (leaderboardData == null) {
             System.out.println("Leaderboard Player Data Parse Error");
             tgBot.sendMsg("Leaderboard Player Data Parse Error");
@@ -168,7 +174,7 @@ public class ParseSchedular {
 
         // parse Leaderboard guild data
         leaderboardData.clear();
-        leaderboardData = ParseLeaderboard.guild(tgBot).parseLeaderboards();
+        leaderboardData = ParseLeaderboard.guild(tgBot, now).parseLeaderboards();
         if (leaderboardData == null) {
             System.out.println("Leaderboard Guild Data Parse Error");
             tgBot.sendMsg("Leaderboard Guild Data Parse Error");
@@ -179,12 +185,12 @@ public class ParseSchedular {
 
         // parse Leaderboard hell data (not implemented yet)
         // leaderboardData.clear();
-        // leaderboardData = ParseLeaderboard.hellmode(tgBot).parseLeaderboards();
+        // leaderboardData = ParseLeaderboard.hellmode(tgBot, now).parseLeaderboards();
         // leaderboardDB.insertLeaderboards(leaderboardData, LeaderboardType.HELL);
     }
 
     // guild는 30분 단위로 파싱한다.
-    public void getParseGuilds() {
+    public void getParseGuilds(LocalDateTime now) {
         // guild (우선 순위권 길드만 파싱한다.) 동일 길드의 2군이하 길드는 제외
         GuildMemberDB guildMemberDB = new GuildMemberDB(db);
         ParseGuild parseGuild = new ParseGuild(tgBot);
