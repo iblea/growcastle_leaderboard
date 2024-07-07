@@ -1,5 +1,6 @@
 package parser.parser;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,10 +24,41 @@ import parser.telegram.TelegramBot;
 
 public class ParseAPI {
     TelegramBot bot;
+
+    private LocalDateTime startSeasonDate;
+    private LocalDateTime endSeasonDate;
     private static final String APIBASEURL = "https://raongames.com/growcastle/restapi/season/";
+    private static final int MAXTRY = 3;
 
     public ParseAPI(TelegramBot bot) {
         this.bot = bot;
+    }
+
+    public LocalDateTime getStartSeasonDate() {
+        return startSeasonDate;
+    }
+    public LocalDateTime getEndSeasonDate() {
+        return endSeasonDate;
+    }
+
+    public void setStartSeasonDateWithString(String startSeason) {
+        // yyyy-mm-ddThh:mm:ss (UTC) -> KST
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        LocalDateTime dateTime = LocalDateTime.parse(startSeason, formatter);
+        dateTime = dateTime.withHour(0).withMinute(0).withSecond(0);
+        ZonedDateTime utcDateTime = dateTime.atZone(ZoneId.of("UTC"));
+        ZonedDateTime kstDateTime = utcDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+        this.startSeasonDate = kstDateTime.toLocalDateTime();
+    }
+
+    public void setEndSeasonDateWithString(String endSeason) {
+        // yyyy-mm-ddThh:mm:ss (UTC) -> KST
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        LocalDateTime dateTime = LocalDateTime.parse(endSeason, formatter);
+        dateTime = dateTime.withHour(23).withMinute(55).withSecond(0);
+        ZonedDateTime utcDateTime = dateTime.atZone(ZoneId.of("UTC"));
+        ZonedDateTime kstDateTime = utcDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+        this.endSeasonDate = kstDateTime.toLocalDateTime();
     }
 
     /**
@@ -81,6 +113,16 @@ public class ParseAPI {
         if (results == null) {
             throw new NullPointerException("cannot find result object");
         }
+
+        // endseason date 정보를 저장한다.
+        JSONObject seasonDate = (JSONObject)results.get("date");
+        // yyyy-mm-ddThh:mm:ss (UTC)
+        String startSeason = (String)seasonDate.get("start");
+        String endSeason = (String)seasonDate.get("end");
+
+        setStartSeasonDateWithString(startSeason);
+        setEndSeasonDateWithString(endSeason);
+
         JSONArray apiDataList = (JSONArray)results.get("list");
         if (apiDataList == null) {
             throw new NullPointerException("cannot find list array");
