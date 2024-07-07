@@ -31,10 +31,13 @@ public class ParseSchedular {
                 "Paragonia", "Droplet", "777",
                 "SKELETON_SKL", "ShaLom" };
 
+    private LocalDateTime startSeasonDate;
+    private LocalDateTime endSeasonDate;
 
     public ParseSchedular(TelegramBot tgBot, Database db) {
         this.tgBot = tgBot;
         this.db = db;
+        this.endSeasonDate = null;
     }
 
     public void start() {
@@ -87,6 +90,70 @@ public class ParseSchedular {
 
     public void getGrowCastleData() {
         System.out.println("Hello World!");
+        if (checkSeasonEnd()) {
+            return;
+        }
+        getParseLeaderboards();
+        getParseGuilds();
+    }
+
+    /**
+     * 시즌 종료 시간을 체크한다.
+     * 시즌종료일의 23시 50분 부터는 파싱하지 않는다.
+     * @return
+     */
+    public Boolean checkSeasonEnd() {
+
+        if (this.startSeasonDate == null || this.endSeasonDate == null) {
+            System.out.println("End Season Date is null");
+            ParseLeaderboard parseAPI = ParseLeaderboard.player(tgBot);
+            parseAPI.parseLeaderboards();
+            this.startSeasonDate = parseAPI.getStartSeasonDate();
+            this.endSeasonDate = parseAPI.getEndSeasonDate();
+        }
+
+        // 혹시 지워지지 않은 데이터가 있을 수 있으므로, 시즌 시작 이전의 데이터는 삭제한다.
+        deleteDatabaseUntilDate(this.startSeasonDate);
+
+        LocalDateTime now = LocalDateTime.now();
+        if (now.getYear() != this.endSeasonDate.getYear()) {
+            return false;
+        }
+        if (now.getMonth() != this.endSeasonDate.getMonth()) {
+            return false;
+        }
+        if (now.getDayOfMonth() != this.endSeasonDate.getDayOfMonth()) {
+            return false;
+        }
+        if (now.getHour() != this.endSeasonDate.getHour()) {
+            return false;
+        }
+
+        // 5분 단위로 체크 (53분이면 (53 / 5) * 5 = 50)
+        int minute = ((now.getMinute() / 5) * 5);
+        if (minute < this.endSeasonDate.getMinute()) {
+            return false;
+        }
+
+        deleteDatabaseUntilDate(this.endSeasonDate);
+        // +5 계산해서 다음 시즌을 체크해도 되지만,
+        // 서버로부터 정확한 데이터를 체크하기 위해 null로 데이터를 초기화하고 다시 파싱해 가져온다.
+        this.startSeasonDate = null;
+        this.endSeasonDate = null;
+        return true;
+    }
+
+    public void deleteDatabaseUntilDate(LocalDateTime date) {
+        // LeaderboardDB leaderboardDB = new LeaderboardDB(db);
+        // leaderboardDB.deleteLeaderboardsUntilDate(date);
+
+        // GuildMemberDB guildMemberDB = new GuildMemberDB(db);
+        // for (String guildName : guilds) {
+        //     guildMemberDB.deleteGuildDataUntilDate(date, guildName);
+        // }
+    }
+
+    public void getParseLeaderboards() {
         LeaderboardDB leaderboardDB = new LeaderboardDB(db);
 
         // parse Leaderboard player data
@@ -114,7 +181,10 @@ public class ParseSchedular {
         // leaderboardData.clear();
         // leaderboardData = ParseLeaderboard.hellmode(tgBot).parseLeaderboards();
         // leaderboardDB.insertLeaderboards(leaderboardData, LeaderboardType.HELL);
+    }
 
+    // guild는 30분 단위로 파싱한다.
+    public void getParseGuilds() {
         // guild (우선 순위권 길드만 파싱한다.) 동일 길드의 2군이하 길드는 제외
         GuildMemberDB guildMemberDB = new GuildMemberDB(db);
         ParseGuild parseGuild = new ParseGuild(tgBot);
