@@ -11,6 +11,7 @@ public class LeaderboardPK implements Serializable {
 
     @Column(name = "name", nullable = false)
     private String name;
+    @Column(name = "parsetime", nullable = false)
     private LocalDateTime parseTime;
 
     public LeaderboardPK() { }
@@ -20,7 +21,6 @@ public class LeaderboardPK implements Serializable {
         this.parseTime = parseTime;
     }
 
-    @Column(name = "parsetime")
     public String getName() {
         return this.name;
     }
