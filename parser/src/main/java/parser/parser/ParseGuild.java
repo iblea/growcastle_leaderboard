@@ -1,6 +1,7 @@
 package parser.parser;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import java.util.ArrayList;
@@ -79,10 +80,11 @@ public class ParseGuild extends ParseAPI {
             JSONObject rankObject = (JSONObject)leaderboardlist.get(i);
 
             // Guild의 Player 정보에는 길드별 Rank에 대한 정보가 없다.
-            Integer score = (Integer)rankObject.get("score");
+            Long score = (Long)rankObject.get("score");
             GuildMember leaderboard = new GuildMember(
                 (String)rankObject.get("name"),
-                score.intValue()
+                score.intValue(),
+                this.parseTime
             );
             leaderboards.add(leaderboard);
         }
