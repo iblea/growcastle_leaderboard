@@ -6,6 +6,8 @@ import java.time.ZoneId;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
+import javax.persistence.Query;
 
 import parser.entity.LeaderboardBaseEntity;
 import parser.entity.LeaderboardGuild;
@@ -63,6 +65,39 @@ public class LeaderboardDB {
                 }
                 break;
         }
+    }
+
+    public void deleteLeaderboardsUntilDate(LocalDateTime date) {
+        deleteLeaderboardsUntilDateWithType(date, "LEADERBOARD_PLAYER");
+        deleteLeaderboardsUntilDateWithType(date, "LEADERBOARD_GUILD");
+        deleteLeaderboardsUntilDateWithType(date, "LEADERBOARD_HELL");
+    }
+
+    public void deleteLeaderboardsUntilDateWithType(LocalDateTime date, String tableName) {
+        EntityManagerFactory emf = db.getEntityManagerFactory();
+
+        if (emf == null) {
+            throw new NullPointerException("EntityManagerFactory is null");
+        }
+
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            String sql = "DELETE FROM `" + tableName + "` WHERE parseTime < :date";
+            Query query = em.createNativeQuery(sql);
+            query.setParameter("date", date);
+            query.executeUpdate();
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+        } finally {
+            em.close();
+        }
+
     }
 
     public void deleteLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
