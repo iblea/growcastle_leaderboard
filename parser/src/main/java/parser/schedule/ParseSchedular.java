@@ -28,9 +28,11 @@ public class ParseSchedular {
     // private static final int REPEATSEC = 3;
 
     // TODO: 길드는 이후 DB에서 가져오는 것으로 변경할 예정
-    private String[] guilds = {"underdog", "sayonara", "RedBridge",
-                "Paragonia", "Droplet", "777",
-                "SKELETON_SKL", "ShaLom" };
+    private String[] guilds = { "underdog", "sayonara", "redbridge",
+                "paragonia", "droplet", "777",
+                "skeleton_skl", "shalom" };
+    // private String[] guilds = { "underdog" };
+
 
     private LocalDateTime startSeasonDate;
     private LocalDateTime endSeasonDate;
@@ -97,12 +99,15 @@ public class ParseSchedular {
     }
 
     public void getGrowCastleData() {
-
         LocalDateTime now = getNow5Minutes();
         if (checkSeasonEnd(now)) {
             return;
         }
-        getParseLeaderboards(now);
+        if (this.startSeasonDate != null) {
+            System.out.println("Delete ago Start Season Date : " + this.startSeasonDate);
+            deleteDatabaseUntilDate(this.startSeasonDate);
+        }
+        // getParseLeaderboards(now);
         getParseGuilds(now);
     }
 
@@ -120,9 +125,6 @@ public class ParseSchedular {
             this.startSeasonDate = parseAPI.getStartSeasonDate();
             this.endSeasonDate = parseAPI.getEndSeasonDate();
         }
-
-        // 혹시 지워지지 않은 데이터가 있을 수 있으므로, 시즌 시작 이전의 데이터는 삭제한다.
-        deleteDatabaseUntilDate(this.startSeasonDate);
 
         if (now.getYear() != this.endSeasonDate.getYear()) {
             return false;
