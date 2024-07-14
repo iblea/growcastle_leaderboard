@@ -45,10 +45,12 @@ public class ParseAPI {
         // yyyy-mm-ddThh:mm:ss (UTC) -> KST
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         LocalDateTime dateTime = LocalDateTime.parse(startSeason, formatter);
-        dateTime = dateTime.withHour(0).withMinute(0).withSecond(0);
+        // dateTime 에 1일 더하기
+        dateTime = dateTime.plusDays(1).withHour(0).withMinute(0).withSecond(0);
         ZonedDateTime utcDateTime = dateTime.atZone(ZoneId.of("UTC"));
-        ZonedDateTime kstDateTime = utcDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
-        this.startSeasonDate = kstDateTime.toLocalDateTime();
+        // ZonedDateTime kstDateTime = utcDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+        // this.startSeasonDate = kstDateTime.toLocalDateTime();
+        this.startSeasonDate = utcDateTime.toLocalDateTime();
     }
 
     public void setEndSeasonDateWithString(String endSeason) {
@@ -57,9 +59,11 @@ public class ParseAPI {
         LocalDateTime dateTime = LocalDateTime.parse(endSeason, formatter);
         dateTime = dateTime.withHour(23).withMinute(55).withSecond(0);
         ZonedDateTime utcDateTime = dateTime.atZone(ZoneId.of("UTC"));
-        ZonedDateTime kstDateTime = utcDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
-        this.endSeasonDate = kstDateTime.toLocalDateTime();
+        // ZonedDateTime kstDateTime = utcDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+        // this.endSeasonDate = kstDateTime.toLocalDateTime();
+        this.endSeasonDate = utcDateTime.toLocalDateTime();
     }
+
 
     /**
      * kst 타임을 조합하여 요청할 URL을 리턴한다.
