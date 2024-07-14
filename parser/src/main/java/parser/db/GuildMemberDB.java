@@ -105,6 +105,32 @@ public class GuildMemberDB {
         }
     }
 
+    public void deleteGuildDataUntilDate(LocalDateTime date, String guildName) {
+        EntityManagerFactory emf = db.getEntityManagerFactory();
+
+        if (emf == null) {
+            throw new NullPointerException("EntityManagerFactory is null");
+        }
+
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            String sql = "DELETE FROM `" + guildName + "` WHERE parseTime < :parseTime";
+            Query query = em.createNativeQuery(sql);
+            query.setParameter("date", date);
+            query.executeUpdate();
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+        } finally {
+            em.close();
+        }
+    }
+
     private void sqlBatch(List<GuildMember> data, String sql, EntityManager em) {
         int sqlCount = 0;
         for (GuildMember member : data) {

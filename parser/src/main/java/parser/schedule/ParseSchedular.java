@@ -150,13 +150,13 @@ public class ParseSchedular {
     }
 
     public void deleteDatabaseUntilDate(LocalDateTime date) {
-        // LeaderboardDB leaderboardDB = new LeaderboardDB(db);
-        // leaderboardDB.deleteLeaderboardsUntilDate(date);
+        LeaderboardDB leaderboardDB = new LeaderboardDB(db);
+        leaderboardDB.deleteLeaderboardsUntilDate(date);
 
-        // GuildMemberDB guildMemberDB = new GuildMemberDB(db);
-        // for (String guildName : guilds) {
-        //     guildMemberDB.deleteGuildDataUntilDate(date, guildName);
-        // }
+        GuildMemberDB guildMemberDB = new GuildMemberDB(db);
+        for (String guildName : guilds) {
+            guildMemberDB.deleteGuildDataUntilDate(date, guildName);
+        }
     }
 
     public void getParseLeaderboards(LocalDateTime now) {
