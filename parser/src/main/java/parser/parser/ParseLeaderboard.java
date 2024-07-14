@@ -61,11 +61,6 @@ public class ParseLeaderboard extends ParseAPI {
     }
 
 
-    public LocalDateTime getCurrentTimeKST() {
-        ZoneId kstZoneId = ZoneId.of("Asia/Seoul");
-        return LocalDateTime.now(kstZoneId);
-    }
-
     /**
      * 리더보드 정보를 가져와 LeaderBoard Entity 형식으로 리턴한다.
      *

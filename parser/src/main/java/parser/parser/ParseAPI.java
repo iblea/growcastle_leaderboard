@@ -64,6 +64,11 @@ public class ParseAPI {
         this.endSeasonDate = utcDateTime.toLocalDateTime();
     }
 
+    public LocalDateTime getCurrentTimeKST() {
+        ZoneId kstZoneId = ZoneId.of("Asia/Seoul");
+        return LocalDateTime.now(kstZoneId);
+    }
+
 
     /**
      * kst 타임을 조합하여 요청할 URL을 리턴한다.

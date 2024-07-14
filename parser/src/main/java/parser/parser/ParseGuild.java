@@ -18,8 +18,16 @@ import parser.entity.GuildMember;
 
 public class ParseGuild extends ParseAPI {
 
+    LocalDateTime parseTime;
+
     public ParseGuild(TelegramBot bot) {
         super(bot);
+        this.parseTime = getCurrentTimeKST();
+    }
+
+    public ParseGuild(TelegramBot bot, LocalDateTime parseTime) {
+        super(bot);
+        this.parseTime = parseTime;
     }
 
     /**
