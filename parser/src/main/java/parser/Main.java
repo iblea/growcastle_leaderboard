@@ -3,6 +3,8 @@
  */
 package parser;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -18,19 +20,13 @@ import parser.telegram.TelegramBot;
 
 public class Main {
 
-
-	static class HookThread extends Thread {
-		@Override
-		public void run() {
-			System.out.println("ShutDown Hook Run");
-		}
-	}
+    static Logger logger = LogManager.getLogger(Main.class);
 
     private static void closeTelegramConnect(TelegramBotsLongPollingApplication botsApplication) {
         // Ensure this process wait forever
         try {
             botsApplication.close();
-            System.out.println("disconnect Telegram");
+            logger.debug("disconnect Telegram");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -40,19 +36,21 @@ public class Main {
         // Ensure this process wait forever
         closeTelegramConnect(botsApplication);
         db.disconnectEntityManagerFactory();
-        System.out.println("disconnect Database");
-        System.out.println("End Done");
+        logger.debug("disconnect Database");
+        logger.debug("End Done");
     }
 
 
     public static void main(String[] args)
         throws NullPointerException, TelegramApiException, InterruptedException
     {
+        logger.info("start");
+        System.out.println("start");
         try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
             // Database 연결
             Database db = new Database("growcastle");
             if (!db.connectEntityManagerFactory()) {
-                System.out.println("Database Connection Fail");
+                logger.error("Database Connection Fail");
                 closeTelegramConnect(botsApplication);
                 return;
             }
@@ -63,20 +61,20 @@ public class Main {
 
             // 스케쥴러 강제종료에 대한 이벤트 추가
             Runtime.getRuntime().addShutdownHook(new Thread(() -> closeConnect(botsApplication, db)));
-            System.out.println("Ready Done!");
+            logger.debug("Ready Done!");
 
             // Scheduler 등록 및 시작
             ParseSchedular schedular = new ParseSchedular(telegramBot, db);
             schedular.start();
-            System.out.println("parse schedular start");
+            logger.debug("parse schedular start");
 
             // 모든 작업이 끝나면 아래 내용 진행
             Thread.currentThread().join();
-            System.out.println("End");
+            logger.debug("end");
         } catch (NullPointerException e) {
             throw e;
         } catch (InterruptedException e) {
-            System.out.println("Interrupted Exception");
+            logger.warn("Interrupted Exception");
             Thread.currentThread().interrupt();
         } catch ( Exception e) {
             e.printStackTrace();
