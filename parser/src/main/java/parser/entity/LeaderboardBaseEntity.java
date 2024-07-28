@@ -8,6 +8,7 @@ import javax.persistence.MappedSuperclass;
 import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @BatchSize(size = 100)
 @MappedSuperclass
@@ -80,5 +81,38 @@ public class LeaderboardBaseEntity {
     public LeaderboardBaseEntity getLeaderboard() {
         return this;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof LeaderboardBaseEntity)) {
+            return false;
+        }
+        LeaderboardBaseEntity that = (LeaderboardBaseEntity) o;
+
+        if (! this.leaderboardPK.equals(that.leaderboardPK)) {
+            return false;
+        }
+        if (this.rank != that.rank) {
+            return false;
+        }
+        if (this.score != that.score) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+            this.leaderboardPK.getName(),
+            this.leaderboardPK.getParseTime(),
+            this.rank,
+            this.score
+        );
+    }
+
 }
 

@@ -3,8 +3,10 @@ package parser.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Embeddable
 public class LeaderboardPK implements Serializable {
@@ -37,5 +39,28 @@ public class LeaderboardPK implements Serializable {
         this.parseTime = parseTime;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof LeaderboardPK)) {
+            return false;
+        }
+        LeaderboardPK that = (LeaderboardPK) o;
+
+        if (this.name != that.name) {
+            return false;
+        }
+        if (this.parseTime != that.parseTime) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.name, this.parseTime);
+    }
 }
 

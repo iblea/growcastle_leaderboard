@@ -1,6 +1,7 @@
 package parser.entity;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 public class GuildMember {
 
@@ -46,4 +47,34 @@ public class GuildMember {
         return this.parseTime;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof GuildMember)) {
+            return false;
+        }
+        GuildMember that = (GuildMember) o;
+
+        if (this.name != that.name) {
+            return false;
+        }
+        if (this.score != that.score) {
+            return false;
+        }
+        if (this.parseTime != that.parseTime) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+            this.name,
+            this.score,
+            this.parseTime
+        );
+    }
 }
