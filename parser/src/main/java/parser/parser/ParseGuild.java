@@ -5,8 +5,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 import parser.telegram.TelegramBot;
 
@@ -16,8 +14,13 @@ import org.json.simple.parser.ParseException;
 
 import parser.entity.GuildMember;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class ParseGuild extends ParseAPI {
+
+    private static Logger logger = LogManager.getLogger(ParseGuild.class);
 
     LocalDateTime parseTime;
 
@@ -45,7 +48,8 @@ public class ParseGuild extends ParseAPI {
         try {
             leaderboardData = requestURL(leaderboardURL);
         } catch(Not200OK | IOException e) {
-            e.printStackTrace();
+            logger.error("[" + guildName + "] Request API Error");
+            logger.error(e.getMessage());
             // alarm
             sendErrMsg("Guild (" + guildName + ") Request Error : " + e.getMessage());
             return null;
@@ -55,7 +59,8 @@ public class ParseGuild extends ParseAPI {
         try {
             leaderboards = guildJsonParser(leaderboardData);
         } catch (ParseException | NullPointerException | WrongJsonType e) {
-            e.printStackTrace();
+            logger.error("[" + guildName + "] Parse Json Error");
+            logger.error(e.getMessage());
             sendErrMsg("Guild (" + guildName + ") Parse Error : " + e.getMessage());
             return null;
         }

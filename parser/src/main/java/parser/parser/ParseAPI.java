@@ -17,6 +17,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 // import org.json.simple.parser.JSONParser;
 
 import parser.telegram.TelegramBot;
@@ -24,6 +27,7 @@ import parser.telegram.TelegramBot;
 
 public class ParseAPI {
     TelegramBot bot;
+    private static Logger logger = LogManager.getLogger(ParseAPI.class);
 
     private LocalDateTime startSeasonDate;
     private LocalDateTime endSeasonDate;
@@ -103,6 +107,8 @@ public class ParseAPI {
             } catch(Not200OK | IOException e) {
                 // logging
                 if (try_count == MAXTRY) {
+                    logger.error("requestURL failed");
+                    logger.error(e.getMessage());
                     throw new Not200OK("requestURL failed : " + e.getMessage());
                 }
             }
@@ -117,6 +123,7 @@ public class ParseAPI {
         int responseCode = conn.getResponseCode();
         if (responseCode != 200) {
             String errMsg = "HTTP Response Code is not 200 OK [" + responseCode + "]";
+            logger.error(errMsg);
             throw new Not200OK(errMsg);
         }
         return parseResponse(conn.getInputStream());
@@ -132,6 +139,7 @@ public class ParseAPI {
         throws ParseException, NullPointerException, WrongJsonType
     {
         if (responseData == null) {
+            logger.error("responseData is NULL");
             throw new NullPointerException("responseData is NULL");
         }
         JSONParser jsonParser = new JSONParser();
@@ -140,6 +148,7 @@ public class ParseAPI {
 
         JSONObject results = (JSONObject)jsonObject.get("result");
         if (results == null) {
+            logger.error("cannot find result object");
             throw new NullPointerException("cannot find result object");
         }
 
@@ -154,9 +163,11 @@ public class ParseAPI {
 
         JSONArray apiDataList = (JSONArray)results.get("list");
         if (apiDataList == null) {
+            logger.error("cannot find list array");
             throw new NullPointerException("cannot find list array");
         }
         if (apiDataList.isEmpty()) {
+            logger.error("no playerList Array data");
             throw new WrongJsonType("no playerList Array data");
         }
         return apiDataList;
@@ -250,7 +261,8 @@ public class ParseAPI {
     }
 
     protected void sendErrMsg(String errMsg) {
-        System.out.println(errMsg);
+        logger.error(errMsg);
+        // System.out.println(errMsg);
     }
 
 }

@@ -16,11 +16,16 @@ import parser.entity.LeaderboardPlayer;
 import parser.entity.LeaderboardHell;
 import parser.parser.LeaderboardType;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 // 5분마다 800건
 // 1일 = 24시간 = 1440분 = 288개
 // 288 * 800 * 5
 
 public class LeaderboardDB {
+
+    private static Logger logger = LogManager.getLogger(LeaderboardDB.class);
 
     Database db;
 
@@ -31,6 +36,7 @@ public class LeaderboardDB {
     public void insertLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
         if (emf == null) {
+            logger.error("EntityManagerFactory is null");
             throw new NullPointerException("EntityManagerFactory is null");
         }
 
@@ -41,10 +47,14 @@ public class LeaderboardDB {
         try {
             em.getTransaction().commit();
         } catch (Exception e) {
+            logger.error("insertLeaderboards error");
+            logger.error(e.getMessage());
             em.getTransaction().rollback();
         } finally {
             em.close();
         }
+        logger.debug("["+ type.getTypename() + "][" + data.size()
+            + "] leaderboards inserted");
     }
 
     private void insertLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
@@ -77,6 +87,7 @@ public class LeaderboardDB {
         EntityManagerFactory emf = db.getEntityManagerFactory();
 
         if (emf == null) {
+            logger.error("EntityManagerFactory is null");
             throw new NullPointerException("EntityManagerFactory is null");
         }
 
@@ -90,19 +101,22 @@ public class LeaderboardDB {
             query.executeUpdate();
             transaction.commit();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("deleteLeaderboardsUntilDateWithType error");
+            logger.error(e.getMessage());
             if (transaction.isActive()) {
                 transaction.rollback();
             }
         } finally {
             em.close();
         }
-
+        logger.debug("date : [" + date.toString() + "], tableName : [" + tableName + "]");
+        logger.debug("deleteLeaderboardsUntilDateWithType success");
     }
 
     public void deleteLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
         if (emf == null) {
+            logger.error("EntityManagerFactory is null");
             throw new NullPointerException("EntityManagerFactory is null");
         }
 
@@ -113,10 +127,14 @@ public class LeaderboardDB {
         try {
             em.getTransaction().commit();
         } catch (Exception e) {
+            logger.error("deleteLeaderboards error");
+            logger.error(e.getMessage());
             em.getTransaction().rollback();
         } finally {
             em.close();
         }
+        logger.debug("["+ type.getTypename() + "][" + data.size()
+            + "] leaderboards deleted");
     }
 
     private void deleteLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
@@ -145,6 +163,7 @@ public class LeaderboardDB {
     public LeaderboardBaseEntity findLeaderboardPK(String name, LocalDateTime parseTime, LeaderboardType type) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
         if (emf == null) {
+            logger.error("EntityManagerFactory is null");
             throw new NullPointerException("EntityManagerFactory is null");
         }
 
@@ -163,6 +182,9 @@ public class LeaderboardDB {
                     leaderboard = em.find(LeaderboardHell.class, pk);
                     break;
             }
+        } catch (Exception e) {
+            logger.error("findLeaderboardPK error");
+            logger.error(e.getMessage());
         } finally {
             em.close();
         }

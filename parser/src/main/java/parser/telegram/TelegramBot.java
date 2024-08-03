@@ -13,9 +13,15 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.Optional;
 
 public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
+
+    private static Logger logger = LogManager.getLogger(TelegramBot.class);
+
     // private final String BOTNAME = "Telegram Alarm Bot";
     private Token token;
     private long defaultChannel;
@@ -71,7 +77,8 @@ public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
         try {
             this.telegramClient.execute(message); // Sending our message object to user
         } catch (TelegramApiException | NullPointerException e) {
-            e.printStackTrace();
+            logger.error("Error sendMsg telegram");
+            logger.error(e.getMessage());
         }
     }
 
@@ -84,14 +91,14 @@ public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
     public void setBotToken(Database db, Optional<String> botTokenName) {
 
         if (botTokenName.isPresent() == false) {
-            System.out.println("botTokenName is NULL");
+            logger.error("botTokenName is NULL");
             throw new NullPointerException("botTokenName is NULL");
         }
 
         this.token = this.selectByBotName(db, botTokenName.get());
 
         if (token == null) {
-            System.out.println(botTokenName.get() + " token is NULL");
+            logger.error("[" + botTokenName.get() + "] token is NULL");
             throw new NullPointerException(botTokenName.get() + " token is NULL");
         }
 
@@ -102,6 +109,7 @@ public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
     public Token selectByBotName(Database db, String botName) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
         if (emf == null) {
+            logger.error("EntityManagerFactory is null");
             throw new NullPointerException("EntityManagerFactory is null");
         }
 
@@ -113,9 +121,9 @@ public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
             tok = em.find(Token.class, botName);
             // tx.commit();
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Error in selectByBotName.");
-            System.out.println(botName + " is not found in Token table.");
+            logger.error("Error in selectByBotName.");
+            logger.error(botName + " is not found in Token table.");
+            logger.error(e.getMessage());
             // tx.rollback();
         } finally {
             em.close();

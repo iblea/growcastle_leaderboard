@@ -28,7 +28,8 @@ public class Main {
             botsApplication.close();
             logger.debug("disconnect Telegram");
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("disconnect Telegram Error");
+            logger.error(e.getMessage());
         }
     }
 
@@ -77,6 +78,8 @@ public class Main {
             logger.warn("Interrupted Exception");
             Thread.currentThread().interrupt();
         } catch ( Exception e) {
+            logger.error("Main Method Error");
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
     }

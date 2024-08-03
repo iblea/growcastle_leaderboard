@@ -15,10 +15,16 @@ import parser.entity.LeaderboardBaseEntity;
 import parser.parser.LeaderboardType;
 import parser.parser.ParseGuild;
 import parser.parser.ParseLeaderboard;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 // import parser.schedule.ScheduleRunner;
 import parser.telegram.TelegramBot;
 
 public class ParseSchedular {
+
+    private static Logger logger = LogManager.getLogger(ParseSchedular.class);
 
     private TelegramBot tgBot;
     private Database db;
@@ -49,8 +55,8 @@ public class ParseSchedular {
         try {
             this.initializeWait();
         } catch (InterruptedException e) {
-            e.printStackTrace();
-            System.out.println("initializeWait error");
+            logger.error("initializeWait error");
+            logger.error(e.getMessage());
             tgBot.sendMsg("initializeWait error\n\n" + e.getMessage());
             Thread.currentThread().interrupt();
             return ;
@@ -70,7 +76,7 @@ public class ParseSchedular {
 
 
     private void initializeWait() throws InterruptedException {
-        System.out.println("initialize Wait");
+        logger.debug("initialize Wait");
         while (true) {
             LocalDateTime now = LocalDateTime.now();
             // test code
@@ -88,7 +94,7 @@ public class ParseSchedular {
 
             Thread.sleep(500);
         }
-        System.out.println("initialize Wait Done");
+        logger.debug("initialize Wait Done");
     }
 
     private LocalDateTime getNow5Minutes() {
@@ -104,7 +110,7 @@ public class ParseSchedular {
             return;
         }
         if (this.startSeasonDate != null) {
-            System.out.println("Delete ago Start Season Date : " + this.startSeasonDate);
+            logger.info("Delete ago Start Season Date : " + this.startSeasonDate);
             deleteDatabaseUntilDate(this.startSeasonDate);
         }
         // getParseLeaderboards(now);
@@ -119,7 +125,7 @@ public class ParseSchedular {
     public Boolean checkSeasonEnd(LocalDateTime now) {
 
         if (this.startSeasonDate == null || this.endSeasonDate == null) {
-            System.out.println("End Season Date is null");
+            logger.info("End Season Date is null");
             ParseLeaderboard parseAPI = ParseLeaderboard.player(tgBot, now);
             parseAPI.parseLeaderboards();
             this.startSeasonDate = parseAPI.getStartSeasonDate();
@@ -167,23 +173,23 @@ public class ParseSchedular {
         // parse Leaderboard player data
         List<LeaderboardBaseEntity> leaderboardData = ParseLeaderboard.player(tgBot, now).parseLeaderboards();
         if (leaderboardData == null) {
-            System.out.println("Leaderboard Player Data Parse Error");
+            logger.error("Leaderboard Player Data Parse Error");
             tgBot.sendMsg("Leaderboard Player Data Parse Error");
             return ;
         }
         leaderboardDB.insertLeaderboards(leaderboardData, LeaderboardType.PLAYER);
-        System.out.println("Player Leaderboard Data Inserted Successfully");
+        logger.debug("Player Leaderboard Data Inserted Successfully");
 
         // parse Leaderboard guild data
         leaderboardData.clear();
         leaderboardData = ParseLeaderboard.guild(tgBot, now).parseLeaderboards();
         if (leaderboardData == null) {
-            System.out.println("Leaderboard Guild Data Parse Error");
+            logger.error("Leaderboard Guild Data Parse Error");
             tgBot.sendMsg("Leaderboard Guild Data Parse Error");
             return ;
         }
         leaderboardDB.insertLeaderboards(leaderboardData, LeaderboardType.GUILD);
-        System.out.println("Guild Leaderboard Data Inserted Successfully");
+        logger.debug("Guild Leaderboard Data Inserted Successfully");
 
         // parse Leaderboard hell data (not implemented yet)
         // leaderboardData.clear();
@@ -199,32 +205,32 @@ public class ParseSchedular {
         for (String guildName : guilds) {
             List<GuildMember> guildData = parseGuild.parseGuildByName(guildName);
             if (guildData == null) {
-                System.out.println("Guild (" + guildName + ") Data Parse Error");
+                logger.error("Guild (" + guildName + ") Data Parse Error");
                 tgBot.sendMsg("Guild (" + guildName + ") Data Parse Error");
                 return ;
             }
             guildMemberDB.insertGuildMembers(guildData, guildName);
-            System.out.println("Guild (" + guildName + ") Data Inserted Successfully");
+            logger.debug("Guild (" + guildName + ") Data Inserted Successfully");
         }
     }
 
-    private void showTime(String msg) {
-        LocalDateTime now = LocalDateTime.now();
-        System.out.printf("%s | current : %d:%d:%d%n",
-            msg, now.getHour(), now.getMinute(), now.getSecond());
-    }
+    // private void showTime(String msg) {
+    //     LocalDateTime now = LocalDateTime.now();
+    //     logger.debug("%s | current : %d:%d:%d%n",
+    //         msg, now.getHour(), now.getMinute(), now.getSecond());
+    // }
 
     // Existing code...
-    private void testFunc() {
-        System.out.println("Hello Test!");
-        showTime("ago");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            Thread.currentThread().interrupt();
-        }
-        showTime("after");
-    }
+    // private void testFunc() {
+    //     System.out.println("Hello Test!");
+    //     showTime("ago");
+    //     try {
+    //         Thread.sleep(1000);
+    //     } catch (InterruptedException e) {
+    //         e.printStackTrace();
+    //         Thread.currentThread().interrupt();
+    //     }
+    //     showTime("after");
+    // }
 
 }

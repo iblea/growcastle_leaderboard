@@ -4,7 +4,13 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class Database {
+
+    private static Logger logger = LogManager.getLogger(Database.class);
+
     private EntityManagerFactory emf;
     private String persistanceName;
 
@@ -21,8 +27,9 @@ public class Database {
         try {
             this.emf = Persistence.createEntityManagerFactory(this.persistanceName);
         } catch (PersistenceException e) {
+            logger.error("cannot connect to Database");
+            logger.error(e.getMessage());
             e.printStackTrace();
-            System.out.println("Error: cannot connect to Database");
             return false;
         }
         return true;

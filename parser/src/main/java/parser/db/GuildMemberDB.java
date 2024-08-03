@@ -12,7 +12,12 @@ import javax.persistence.Query;
 
 import parser.entity.GuildMember;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class GuildMemberDB {
+
+    private static Logger logger = LogManager.getLogger(GuildMemberDB.class);
 
     Database db;
 
@@ -28,6 +33,7 @@ public class GuildMemberDB {
         EntityManagerFactory emf = db.getEntityManagerFactory();
 
         if (emf == null) {
+            logger.error("EntityManagerFactory is null");
             throw new NullPointerException("EntityManagerFactory is null");
         }
 
@@ -41,19 +47,23 @@ public class GuildMemberDB {
             sqlBatch(data, sql, em);
             transaction.commit();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("insertGuildMembers error, guildName : [" + guildName + "]");
+            logger.error(e.getMessage());
             if (transaction.isActive()) {
                 transaction.rollback();
             }
         } finally {
             em.close();
         }
+        logger.debug("guildName : [" + guildName + "]");
+        logger.debug("[" + data.size() + "] insertGuildMembers success");
     }
 
     public GuildMember findGuildMemberPK(String name, LocalDateTime parseTime, String guildName) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
 
         if (emf == null) {
+            logger.error("EntityManagerFactory is null");
             throw new NullPointerException("EntityManagerFactory is null");
         }
 
@@ -74,7 +84,10 @@ public class GuildMemberDB {
                 timestamp.toLocalDateTime());
             // member = (GuildMember) query.getSingleResult();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("findGuildMemberPK error");
+            logger.error("name : [" +  name + "], parseTime : ["
+                + parseTime + "], guildName : [" + guildName + "]");
+            logger.error(e.getMessage());
         } finally {
             em.close();
         }
@@ -85,6 +98,7 @@ public class GuildMemberDB {
         EntityManagerFactory emf = db.getEntityManagerFactory();
 
         if (emf == null) {
+            logger.error("EntityManagerFactory is null");
             throw new NullPointerException("EntityManagerFactory is null");
         }
 
@@ -96,19 +110,24 @@ public class GuildMemberDB {
             sqlBatch(data, sql, em);
             transaction.commit();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("deleteGuildMembers error");
+            logger.error("guildName : [" + guildName + "]");
+            logger.error(e.getMessage());
             if (transaction.isActive()) {
                 transaction.rollback();
             }
         } finally {
             em.close();
         }
+        logger.debug("guildName : [" + guildName + "]");
+        logger.debug("[" + data.size() + "] deleteGuildMembers success");
     }
 
     public void deleteGuildDataUntilDate(LocalDateTime date, String guildName) {
         EntityManagerFactory emf = db.getEntityManagerFactory();
 
         if (emf == null) {
+            logger.error("EntityManagerFactory is null");
             throw new NullPointerException("EntityManagerFactory is null");
         }
 
@@ -122,13 +141,16 @@ public class GuildMemberDB {
             query.executeUpdate();
             transaction.commit();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("deleteGuildDataUntilDate error, guildName : [" + guildName + "]");
+            logger.error(e.getMessage());
             if (transaction.isActive()) {
                 transaction.rollback();
             }
         } finally {
             em.close();
         }
+        logger.debug("date : [" + date.toString() + "], guildName : [" + guildName + "]");
+        logger.debug("deleteGuildDataUntilDate success");
     }
 
     private void sqlBatch(List<GuildMember> data, String sql, EntityManager em) {

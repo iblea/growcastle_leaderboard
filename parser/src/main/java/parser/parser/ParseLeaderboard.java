@@ -2,7 +2,6 @@ package parser.parser;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -14,6 +13,9 @@ import org.json.simple.parser.ParseException;
 
 import parser.entity.LeaderboardBaseEntity;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 /**
  * 리더보드 정보를 파싱하는 클래스
@@ -21,6 +23,8 @@ import parser.entity.LeaderboardBaseEntity;
  * 어느 타입이든, 리더보드 타입은 모두 rank, score, name 로 구성되어 있다.
  */
 public class ParseLeaderboard extends ParseAPI {
+
+    private static Logger logger = LogManager.getLogger(ParseLeaderboard.class);
 
     String leaderboardType = "";
     LocalDateTime parseTime;
@@ -74,7 +78,8 @@ public class ParseLeaderboard extends ParseAPI {
         try {
             leaderboardData = requestURL(leaderboardURL);
         } catch(Not200OK | IOException e) {
-            e.printStackTrace();
+            logger.error("Leaderboard Request API Error");
+            logger.error(e.getMessage());
             // alarm
             sendErrMsg("Leaderboard (" + this.leaderboardType + ") Request Error : " + e.getMessage());
             return null;
@@ -84,7 +89,8 @@ public class ParseLeaderboard extends ParseAPI {
         try {
             leaderboards = leaderboardJsonParser(leaderboardData);
         } catch (ParseException | NullPointerException | WrongJsonType e) {
-            e.printStackTrace();
+            logger.error("Leaderboard Parse Json Error");
+            logger.error(e.getMessage());
             sendErrMsg("Leaderboard (" + this.leaderboardType + ") Parse Error : " + e.getMessage());
             return null;
         }
