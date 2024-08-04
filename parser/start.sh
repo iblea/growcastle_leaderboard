@@ -1,6 +1,6 @@
 #!/bin/bash
 
-JAR_DIR="build/libs/"
+JAR_DIR="build/libs"
 JAR_NAME="parser.jar"
 LOG_DIR="/var/log/parser/"
 

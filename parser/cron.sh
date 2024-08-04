@@ -3,7 +3,7 @@
 curpath=$(dirname "$(realpath $0)")
 cd "$curpath"
 
-JAR_DIR="build/libs/"
+JAR_DIR="build/libs"
 JAR_NAME="parser.jar"
 
 if [ ! -f "${JAR_DIR}/${JAR_NAME}" ]; then
