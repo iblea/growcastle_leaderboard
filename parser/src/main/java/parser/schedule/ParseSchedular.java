@@ -113,7 +113,7 @@ public class ParseSchedular {
             logger.info("Delete ago Start Season Date : " + this.startSeasonDate);
             deleteDatabaseUntilDate(this.startSeasonDate);
         }
-        // getParseLeaderboards(now);
+        getParseLeaderboards(now);
         getParseGuilds(now);
     }
 
