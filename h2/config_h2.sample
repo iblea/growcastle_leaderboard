@@ -1,0 +1,11 @@
+
+H2_JAR_PATH="/path/to/h2/"
+H2_JAR_NAME="h2.jar"
+
+webPort="8082"
+tcpPort="9092"
+pgPort="5435"
+
+# h2_url="jdbc:h2:tcp://localhost:9092/~/data/growcastle"
+h2_url="jdbc:h2:tcp://<url>:<port>/<path/to/db>"
+h2_driver="org.h2.Driver"
