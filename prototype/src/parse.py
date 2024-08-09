@@ -96,6 +96,12 @@ def verify_api_json(apidict: dict) -> None:
     if "end" not in date_obj:
         raise Exception ("api response json context no date.end object")
 
+    if "result" not in result_obj:
+        raise Exception ("api response json context no result object")
+
+    if "list" not in result_obj["result"]:
+        raise Exception ("api response json context no result.list object")
+
 
 
 def parse_response(response: Response) -> dict:
