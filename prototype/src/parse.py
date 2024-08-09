@@ -236,16 +236,20 @@ class ParsePlayer:
         self.response = None
         self.apidict = None
         retry_count: int = self.config.get("retry_count")
-        for i in range(retry_count):
+        i = 0
+        while i < retry_count:
             try:
                 self.response = request_api(url=url)
                 self.apidict = parse_response(response=self.response)
+                break
             except Exception as e:
                 self.apidict = None
                 self.response = None
                 errmsg: str = "retry {} count\nError: [{}]".format(i, str(e))
                 print(errmsg)
                 await self.send_bot_msg(errmsg)
+
+            i += 1
 
         if i >= retry_count:
             print("api request error")
