@@ -82,25 +82,19 @@ def verify_api_json(apidict: dict) -> None:
     if "result" not in apidict:
         raise Exception ("api response json context no result object")
 
-    result_obj: dict = apidict.get("result")
+    result_obj: dict = apidict["result"]
     if "date" not in result_obj:
         raise Exception ("api response json context no date object")
 
     if "list" not in result_obj:
         raise Exception ("api response json context no userlist object")
 
-    date_obj: dict = result_obj.get("date")
+    date_obj: dict = result_obj["date"]
     if "start" not in date_obj:
         raise Exception ("api response json context no date.start object")
 
     if "end" not in date_obj:
         raise Exception ("api response json context no date.end object")
-
-    if "result" not in result_obj:
-        raise Exception ("api response json context no result object")
-
-    if "list" not in result_obj["result"]:
-        raise Exception ("api response json context no result.list object")
 
 
 
