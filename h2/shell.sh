@@ -16,6 +16,7 @@ if [ ! -f "$curpath/config_h2" ]; then
 fi
 
 
+source "$curpath/config_h2"
 # modify this
 h2_jar_full_path="$H2_JAR_PATH/$H2_JAR_NAME"
 # example
