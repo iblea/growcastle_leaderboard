@@ -36,6 +36,35 @@ CREATE TABLE Leaderboard_Hell
 );
 
 
+-- update 15 mins (history leaderboard data)
+CREATE TABLE History_Player
+(
+    rank        INT NOT NULL,
+    name        VARCHAR(32) NOT NULL,
+    score       INT NOT NULL,
+    parseTime   TIMESTAMP NOT NULL,
+    PRIMARY KEY (name, parseTime)
+);
+CREATE TABLE History_Guild
+(
+    rank        INT NOT NULL,
+    name        VARCHAR(32) NOT NULL,
+    score       INT NOT NULL,
+    parseTime   TIMESTAMP NOT NULL,
+    PRIMARY KEY (name, parseTime)
+);
+
+CREATE TABLE History_Hell
+(
+    rank        INT NOT NULL,
+    name        VARCHAR(32) NOT NULL,
+    score       INT NOT NULL,
+    parseTime   TIMESTAMP NOT NULL,
+    PRIMARY KEY (name, parseTime)
+);
+
+
+-- update 15 mins (history guild data)
 CREATE TABLE `underdog`
 (
     name        VARCHAR(32) NOT NULL,
