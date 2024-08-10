@@ -53,20 +53,26 @@ public class LeaderboardDB {
         }
     }
 
-    public void insertLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type, boolean isRealTime) {
+    public boolean insertLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type, boolean isRealTime) {
         EntityManager em = makeTransaction();
+        EntityTransaction transaction = em.getTransaction();
+        boolean result = true;
         try {
-            em.getTransaction().begin();
+            transaction.begin();
             insertQuery(data, type, isRealTime, em);
-            em.getTransaction().commit();
+            transaction.commit();
         } catch (Exception e) {
             logger.error("insertLeaderboards error");
             logger.error(e.getMessage());
-            em.getTransaction().rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            result = false;
         } finally {
             em.close();
         }
         logger.debug("[{}][{}][{}] leaderboards inserted", type.getTypename(), data.size(), isRealTime);
+        return result;
     }
 
     private void insertLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
@@ -146,19 +152,21 @@ public class LeaderboardDB {
 
     public void deleteLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type, boolean isRealTime) {
         EntityManager em = makeTransaction();
-        em.getTransaction().begin();
-
-        if (isRealTime) {
-            deleteLeaderboardsByType(data, type, em);
-        } else {
-            deleteLeaderboardsByTypeHistory(data, type, em);
-        }
+        EntityTransaction transaction = em.getTransaction();
         try {
-            em.getTransaction().commit();
+            transaction.begin();
+            if (isRealTime) {
+                deleteLeaderboardsByType(data, type, em);
+            } else {
+                deleteLeaderboardsByTypeHistory(data, type, em);
+            }
+            transaction.commit();
         } catch (Exception e) {
             logger.error("deleteLeaderboards error");
             logger.error(e.getMessage());
-            em.getTransaction().rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
         } finally {
             em.close();
         }
@@ -249,22 +257,27 @@ public class LeaderboardDB {
         return null;
     }
 
-    public void updateLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
+    public boolean updateLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
         EntityManager em = makeTransaction();
+        boolean result = true;
+        EntityTransaction transaction = em.getTransaction();
         try {
-            em.getTransaction().begin();
+            transaction.begin();
             deleteAllQuery(type.getRealTimeTableName(), em);
             insertQuery(data, type, true, em);
-            em.getTransaction().commit();
+            transaction.commit();
         } catch (Exception e) {
             logger.error("insertLeaderboards error");
             logger.error(e.getMessage());
-            em.getTransaction().rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            result = false;
         } finally {
             em.close();
         }
         logger.debug("[{}][{}] leaderboards inserted", type.getTypename(), data.size());
-
+        return result;
     }
 
     public LocalDateTime getParseTime() {

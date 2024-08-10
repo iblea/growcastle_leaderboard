@@ -28,7 +28,7 @@ public class GuildMemberDB {
     }
 
 
-    public void insertGuildMembers(List<GuildMember> data, String guildName) {
+    public boolean insertGuildMembers(List<GuildMember> data, String guildName) {
 
         EntityManagerFactory emf = db.getEntityManagerFactory();
 
@@ -37,6 +37,7 @@ public class GuildMemberDB {
             throw new NullPointerException("EntityManagerFactory is null");
         }
 
+        boolean insertStat = true;
 
         EntityManager em = emf.createEntityManager();
         EntityTransaction transaction = em.getTransaction();
@@ -52,10 +53,12 @@ public class GuildMemberDB {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
+            insertStat = false;
         } finally {
             em.close();
         }
         logger.debug("[{}][{}]  insertGuildMembers success", guildName, data.size());
+        return insertStat;
     }
 
     public GuildMember findGuildMemberPK(String name, LocalDateTime parseTime, String guildName) {
