@@ -47,7 +47,7 @@ public class GuildMemberDB {
             sqlBatch(data, sql, em);
             transaction.commit();
         } catch (Exception e) {
-            logger.error("insertGuildMembers error, guildName : [" + guildName + "]");
+            logger.error("insertGuildMembers error, guildName : [{}]", guildName);
             logger.error(e.getMessage());
             if (transaction.isActive()) {
                 transaction.rollback();
@@ -55,8 +55,7 @@ public class GuildMemberDB {
         } finally {
             em.close();
         }
-        logger.debug("guildName : [" + guildName + "]");
-        logger.debug("[" + data.size() + "] insertGuildMembers success");
+        logger.debug("[{}][{}]  insertGuildMembers success", guildName, data.size());
     }
 
     public GuildMember findGuildMemberPK(String name, LocalDateTime parseTime, String guildName) {
@@ -85,8 +84,7 @@ public class GuildMemberDB {
             // member = (GuildMember) query.getSingleResult();
         } catch (Exception e) {
             logger.error("findGuildMemberPK error");
-            logger.error("name : [" +  name + "], parseTime : ["
-                + parseTime + "], guildName : [" + guildName + "]");
+            logger.error("name : [{}], parseTime : [{}], guildName : [{}]", name, parseTime, guildName);
             logger.error(e.getMessage());
         } finally {
             em.close();
@@ -110,8 +108,7 @@ public class GuildMemberDB {
             sqlBatch(data, sql, em);
             transaction.commit();
         } catch (Exception e) {
-            logger.error("deleteGuildMembers error");
-            logger.error("guildName : [" + guildName + "]");
+            logger.error("deleteGuildMembers error guildName : [{}]", guildName);
             logger.error(e.getMessage());
             if (transaction.isActive()) {
                 transaction.rollback();
@@ -119,8 +116,7 @@ public class GuildMemberDB {
         } finally {
             em.close();
         }
-        logger.debug("guildName : [" + guildName + "]");
-        logger.debug("[" + data.size() + "] deleteGuildMembers success");
+        logger.debug("[{}][{}] deleteGuildMembers success", guildName, data.size());
     }
 
     public void deleteGuildDataUntilDate(LocalDateTime date, String guildName) {
@@ -141,7 +137,7 @@ public class GuildMemberDB {
             query.executeUpdate();
             transaction.commit();
         } catch (Exception e) {
-            logger.error("deleteGuildDataUntilDate error, guildName : [" + guildName + "]");
+            logger.error("deleteGuildDataUntilDate error, guildName : [{}]", guildName);
             logger.error(e.getMessage());
             if (transaction.isActive()) {
                 transaction.rollback();
@@ -149,7 +145,7 @@ public class GuildMemberDB {
         } finally {
             em.close();
         }
-        logger.debug("date : [" + date.toString() + "], guildName : [" + guildName + "]");
+        logger.debug("date : [{}], guildName : [{}]", date, guildName);
         logger.debug("deleteGuildDataUntilDate success");
     }
 

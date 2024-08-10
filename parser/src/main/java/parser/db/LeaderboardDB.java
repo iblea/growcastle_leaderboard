@@ -66,7 +66,7 @@ public class LeaderboardDB {
         } finally {
             em.close();
         }
-        logger.debug("[{}][{}] leaderboards inserted", type.getTypename(), data.size());
+        logger.debug("[{}][{}][{}] leaderboards inserted", type.getTypename(), data.size(), isRealTime);
     }
 
     private void insertLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
