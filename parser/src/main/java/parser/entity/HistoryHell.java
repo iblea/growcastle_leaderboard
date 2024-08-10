@@ -4,7 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "History_player")
+@Table(name = "History_hell")
 public class HistoryHell extends LeaderboardBaseEntity {
 
     public HistoryHell(LeaderboardBaseEntity entity) {
