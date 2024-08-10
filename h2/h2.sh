@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 curpath=$(dirname "$(realpath $0)")
 cd "$curpath"
