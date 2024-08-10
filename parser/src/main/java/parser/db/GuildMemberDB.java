@@ -137,7 +137,7 @@ public class GuildMemberDB {
             transaction.begin();
             String sql = "DELETE FROM `" + guildName + "` WHERE parseTime < :parseTime";
             Query query = em.createNativeQuery(sql);
-            query.setParameter("date", date);
+            query.setParameter("parseTime", date);
             query.executeUpdate();
             transaction.commit();
         } catch (Exception e) {
