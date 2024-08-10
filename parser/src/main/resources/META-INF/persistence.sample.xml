@@ -6,6 +6,7 @@
     <persistence-unit name="growcastle">
         <!-- https://sweetburble.tistory.com/6 -->
         <class>parser.entity.Token</class>
+        <class>parser.entity.SeasonData</class>
         <class>parser.entity.LeaderboardBaseEntity</class>
         <class>parser.entity.LeaderboardPlayer</class>
         <class>parser.entity.LeaderboardGuild</class>

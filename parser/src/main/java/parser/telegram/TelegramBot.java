@@ -98,7 +98,7 @@ public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
         this.token = this.selectByBotName(db, botTokenName.get());
 
         if (token == null) {
-            logger.error("[" + botTokenName.get() + "] token is NULL");
+            logger.error("[{}] token is NULL", botTokenName.get());
             throw new NullPointerException(botTokenName.get() + " token is NULL");
         }
 
@@ -122,9 +122,10 @@ public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
             // tx.commit();
         } catch (Exception e) {
             logger.error("Error in selectByBotName.");
-            logger.error(botName + " is not found in Token table.");
+            logger.error("{} is not found in Token table.", botName);
             logger.error(e.getMessage());
             // tx.rollback();
+            tok = null;
         } finally {
             em.close();
         }

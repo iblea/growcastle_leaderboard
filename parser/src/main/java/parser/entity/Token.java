@@ -5,6 +5,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "TOKEN")
 public class Token {
@@ -67,5 +69,15 @@ public class Token {
 
         return true;
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+            this.botName,
+            this.botToken,
+            this.botChannel
+        );
+    }
+
 
 }
