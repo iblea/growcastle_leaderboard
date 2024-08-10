@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import parser.telegram.TelegramBot;
 
@@ -77,12 +78,10 @@ public class ParseLeaderboard extends ParseAPI {
         String leaderboardData = null;
         try {
             leaderboardData = requestURL(leaderboardURL);
-        } catch(Not200OK | IOException e) {
+        } catch (Not200OK | IOException e) {
             logger.error("Leaderboard Request API Error");
             logger.error(e.getMessage());
-            // alarm
-            sendErrMsg("Leaderboard (" + this.leaderboardType + ") Request Error : " + e.getMessage());
-            return null;
+            return Collections.<LeaderboardBaseEntity>emptyList();
         }
 
         List<LeaderboardBaseEntity> leaderboards = null;
@@ -91,8 +90,7 @@ public class ParseLeaderboard extends ParseAPI {
         } catch (ParseException | NullPointerException | WrongJsonType e) {
             logger.error("Leaderboard Parse Json Error");
             logger.error(e.getMessage());
-            sendErrMsg("Leaderboard (" + this.leaderboardType + ") Parse Error : " + e.getMessage());
-            return null;
+            return Collections.<LeaderboardBaseEntity>emptyList();
         }
         return leaderboards;
     }

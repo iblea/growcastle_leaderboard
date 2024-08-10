@@ -3,6 +3,7 @@ package parser.parser;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Collections;
 
 import java.util.ArrayList;
 
@@ -48,21 +49,19 @@ public class ParseGuild extends ParseAPI {
         try {
             leaderboardData = requestURL(leaderboardURL);
         } catch(Not200OK | IOException e) {
-            logger.error("[" + guildName + "] Request API Error");
+            logger.error("[{}] Request API Error", guildName);
             logger.error(e.getMessage());
             // alarm
-            sendErrMsg("Guild (" + guildName + ") Request Error : " + e.getMessage());
-            return null;
+            return Collections.<GuildMember>emptyList();
         }
 
         List<GuildMember> leaderboards = null;
         try {
             leaderboards = guildJsonParser(leaderboardData);
         } catch (ParseException | NullPointerException | WrongJsonType e) {
-            logger.error("[" + guildName + "] Parse Json Error");
+            logger.error("[{}] Parse Json Error", guildName);
             logger.error(e.getMessage());
-            sendErrMsg("Guild (" + guildName + ") Parse Error : " + e.getMessage());
-            return null;
+            return Collections.<GuildMember>emptyList();
         }
         return leaderboards;
     }

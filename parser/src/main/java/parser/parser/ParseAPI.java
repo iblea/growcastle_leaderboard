@@ -298,9 +298,4 @@ public class ParseAPI {
         }
     }
 
-    protected void sendErrMsg(String errMsg) {
-        logger.error(errMsg);
-        // System.out.println(errMsg);
-    }
-
 }

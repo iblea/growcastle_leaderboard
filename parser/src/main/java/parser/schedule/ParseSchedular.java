@@ -190,29 +190,48 @@ public class ParseSchedular {
 
     public void getParseLeaderboards(boolean updateInform) {
         LeaderboardDB leaderboardDB = new LeaderboardDB(this.db);
+        boolean result;
 
         // parse Leaderboard player data
         List<LeaderboardBaseEntity> leaderboardData = ParseLeaderboard.player(this.tgBot, getNowKST()).parseLeaderboards();
-        if (leaderboardData == null) {
+        if (leaderboardData == null || leaderboardData.isEmpty()) {
             logger.error("Leaderboard Player Data Parse Error");
             this.tgBot.sendMsg("Leaderboard Player Data Parse Error");
             return ;
         }
-        leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.PLAYER);
+        result = leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.PLAYER);
+        if (! result) {
+            logger.error("Leaderboard Player Data Update Error");
+            this.tgBot.sendMsg("Leaderboard Player Data Update Error");
+            return ;
+        }
         if (updateInform) {
-            leaderboardDB.insertLeaderboards(leaderboardData, LeaderboardType.PLAYER, false);
+            result = leaderboardDB.insertLeaderboards(leaderboardData, LeaderboardType.PLAYER, false);
+            if (! result) {
+                logger.error("History Player Data Insert Error");
+                this.tgBot.sendMsg("History Player Data Insert Error");
+            }
         }
         // parse Leaderboard guild data
         leaderboardData.clear();
         leaderboardData = ParseLeaderboard.guild(this.tgBot, getNowKST()).parseLeaderboards();
-        if (leaderboardData == null) {
+        if (leaderboardData == null || leaderboardData.isEmpty()) {
             logger.error("Leaderboard Guild Data Parse Error");
             this.tgBot.sendMsg("Leaderboard Guild Data Parse Error");
             return ;
         }
-        leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.GUILD);
+        result = leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.GUILD);
+        if (! result) {
+            logger.error("Leaderboard Guild Data Update Error");
+            this.tgBot.sendMsg("Leaderboard Guild Data Update Error");
+            return ;
+        }
         if (updateInform) {
-            leaderboardDB.insertLeaderboards(leaderboardData, LeaderboardType.GUILD, false);
+            result = leaderboardDB.insertLeaderboards(leaderboardData, LeaderboardType.GUILD, false);
+            if (! result) {
+                logger.error("History Guild Data Insert Error");
+                this.tgBot.sendMsg("History Guild Data Insert Error");
+            }
         }
 
         // parse Leaderboard hell data (not implemented yet)
@@ -225,16 +244,26 @@ public class ParseSchedular {
         // guild (우선 순위권 길드만 파싱한다.) 동일 길드의 2군이하 길드는 제외
         ParseGuild parseGuild = new ParseGuild(this.tgBot);
 
+        boolean insertStat;
+        int failCount = 0;
         for (String guildName : guilds) {
             GuildMemberDB guildMemberDB = new GuildMemberDB(this.db);
             List<GuildMember> guildData = parseGuild.parseGuildByName(guildName);
-            if (guildData == null) {
+            if (guildData == null || guildData.isEmpty()) {
                 logger.error("Guild ({}) Data Parse Error", guildName);
                 this.tgBot.sendMsg("Guild (" + guildName + ") Data Parse Error");
                 continue;
             }
-            guildMemberDB.insertGuildMembers(guildData, guildName);
+            insertStat = guildMemberDB.insertGuildMembers(guildData, guildName);
+            if (! insertStat) {
+                logger.error("Guild ({}) Data Insert Error", guildName);
+                failCount++;
+                continue;
+            }
             logger.debug("Guild ({}) Data Inserted Successfully", guildName);
+        }
+        if (failCount > 0) {
+            this.tgBot.sendMsg("Guild Data Insert Error : " + failCount);
         }
     }
 
