@@ -38,6 +38,9 @@ dependencies {
     implementation("org.telegram:telegrambots-client:7.2.1")
     // implementation("org.telegram:telegrambots-abilities:7.2.1")
 
+    // okhttp3
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     // json
     // https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple
     implementation("com.googlecode.json-simple:json-simple:1.1.1")

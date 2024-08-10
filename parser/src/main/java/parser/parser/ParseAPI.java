@@ -5,12 +5,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -19,6 +14,18 @@ import org.json.simple.parser.ParseException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.ConnectionPool;
+import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
+import okhttp3.Request;
+import okhttp3.Response;
+
+
 
 // import org.json.simple.parser.JSONParser;
 
@@ -29,14 +36,75 @@ public class ParseAPI {
     TelegramBot bot;
     private static Logger logger = LogManager.getLogger(ParseAPI.class);
 
-    private LocalDateTime startSeasonDate;
-    private LocalDateTime endSeasonDate;
+    private static OkHttpClient okHttpClient = null;
+    private static List<Protocol> protocols = null;
+
+
+    private LocalDateTime startSeasonDate = null;
+    private LocalDateTime endSeasonDate = null;
     private static final String APIBASEURL = "https://raongames.com/growcastle/restapi/season/";
     private static final int MAXTRY = 3;
 
     public ParseAPI(TelegramBot bot) {
         this.bot = bot;
+        ParseAPI.create();
     }
+
+    public static void create()
+    {
+        if (protocols == null) {
+            logger.info("set OkHttp3 Protocols");
+            setProtocols();
+        }
+        if (okHttpClient == null) {
+            logger.info("set OkHttp3 Client");
+            okHttpClient = createHttpClient(10, 30000);   // 10개의 연결, 30초 유지
+        }
+    }
+
+    public static OkHttpClient getClient() {
+        return okHttpClient;
+    }
+
+    public static List<Protocol> getProtocols() {
+        return protocols;
+    }
+
+    private static void setProtocols() {
+        if (protocols != null) {
+            protocols = null;
+        }
+        protocols = new ArrayList<>();
+        // protocols.add(Protocol.H2_PRIOR_KNOWLEDGE);
+        protocols.add(Protocol.HTTP_2);
+        protocols.add(Protocol.HTTP_1_1);
+        logger.info("set OkHttp3 Protocols [HTTP/2, HTTP/1.1]");
+    }
+
+    private static OkHttpClient createHttpClient(int maxTotalConnections, long connectionKeepAliveTimeInMillis)
+    {
+        ConnectionPool connectionPool = new ConnectionPool(
+            maxTotalConnections,
+            connectionKeepAliveTimeInMillis,
+            TimeUnit.MILLISECONDS
+        );
+
+        // SSLSocketFactory sslSocketFactory = getSslSocketFactory();
+        // X509TrustManager trustManager = getDefaultTrustManager();
+
+        return new OkHttpClient.Builder()
+            .followRedirects(true)
+            .protocols(protocols)
+            .retryOnConnectionFailure(true)
+            .connectionPool(connectionPool)
+            .connectTimeout(5, TimeUnit.SECONDS)
+            .writeTimeout(5, TimeUnit.SECONDS)
+            .readTimeout(8, TimeUnit.SECONDS)
+            // .sslSocketFactory(sslSocketFactory, trustManager)
+            .build();
+    }
+
+
 
     public LocalDateTime getStartSeasonDate() {
         return startSeasonDate;
@@ -94,13 +162,13 @@ public class ParseAPI {
      * @param urlString - 요청할 URL
      * @return String - 응답된 payload
      */
-    public String requestURL(String urlString)
+    public String requestUrlRetry(String urlString)
         throws IOException, Not200OK
     {
         String responseData = null;
         for (int try_count = 1; try_count <= MAXTRY; try_count++) {
             try {
-                responseData = requestURLOnce(urlString);
+                responseData = requestURL(urlString);
                 if (responseData != null) {
                     break;
                 }
@@ -116,17 +184,23 @@ public class ParseAPI {
         return responseData;
     }
 
-    public String requestURLOnce(String urlString)
+    public String requestURL(String urlString)
         throws IOException, Not200OK
     {
-        HttpURLConnection conn = setConnection(new URL(urlString));
-        int responseCode = conn.getResponseCode();
-        if (responseCode != 200) {
-            String errMsg = "HTTP Response Code is not 200 OK [" + responseCode + "]";
+
+        Request request = new Request.Builder()
+            .url(urlString)
+            .header("User-Agent", "Mozilla/5.0")
+            .build();
+
+        OkHttpClient okClient = ParseAPI.getClient();
+        Response response = okClient.newCall(request).execute();
+        if (response.code() != 200) {
+            String errMsg = "HTTP Response Code is not 200 OK [" + response.code() + "]";
             logger.error(errMsg);
             throw new Not200OK(errMsg);
         }
-        return parseResponse(conn.getInputStream());
+        return response.body().string();
     }
 
     /**
@@ -194,42 +268,6 @@ public class ParseAPI {
         return currentTimeKST.format(formatter);
     }
 
-    /**
-     * API에 요청할 헤더, 메서드를 세탕한다.
-     *
-     * @param url - 요청할 URL
-     * @return HttpURLConnection - 요청할 객체
-     */
-    public HttpURLConnection setConnection(URL url)
-        throws IOException
-    {
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-        conn.setDoOutput(true);
-        return conn;
-    }
-
-    /**
-     * API 요청 후 응답받은 payload를 String 형태로 변환한다.
-     *
-     * @param inputStream - response 된 payload inputStream
-     * @return String
-     */
-    public String parseResponse(InputStream inputStream)
-        throws IOException
-    {
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-        StringBuffer stringBuffer = new StringBuffer();
-        String inputLine;
-
-        while ((inputLine = bufferedReader.readLine()) != null)  {
-            stringBuffer.append(inputLine);
-        }
-        String responseData = stringBuffer.toString();
-        bufferedReader.close();
-        return responseData;
-    }
 
     /**
      * Json의 정상 유무를 검증한다.
