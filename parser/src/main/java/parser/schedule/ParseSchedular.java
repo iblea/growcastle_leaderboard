@@ -3,9 +3,8 @@ package parser.schedule;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import parser.db.Database;
 import parser.db.LeaderboardDB;
@@ -28,69 +27,61 @@ public class ParseSchedular {
 
     private TelegramBot tgBot;
     private Database db;
-    private static final int REPEATSEC = 10;                   // 10초
-    // private static final int REPEATSEC = 3;
 
     // TODO: 길드는 이후 DB에서 가져오는 것으로 변경할 예정
-    private String[] guilds = { "underdog", "sayonara", "redbridge",
-                "paragonia", "droplet", "777",
-                "skeleton_skl", "shalom" };
-    // private String[] guilds = { "underdog" };
+    // private String[] guilds = { "underdog", "sayonara", "redbridge",
+    //             "paragonia", "droplet", "777",
+    //             "skeleton_skl", "shalom" };
+    private String[] guilds = { "underdog" };
 
 
-    private LocalDateTime startSeasonDate;
-    private LocalDateTime endSeasonDate;
+    private LocalDateTime startSeasonDate = null;
+    private LocalDateTime endSeasonDate = null;
 
-    private LocalDateTime nextParseTime;
+    private LocalDateTime nextParseTime = null;
     private static final int PARSE_TERM_SEC = 900;
 
     public ParseSchedular(TelegramBot tgBot, Database db) {
         this.tgBot = tgBot;
         this.db = db;
-        this.endSeasonDate = null;
         this.nextParseTime = getDivide15MinutesPlus15Minutes(getNowKST());
         logger.info("Next History Parse Time : {}", this.nextParseTime);
     }
 
     public void start() {
         // Runnable scheduleRunnable = new ScheduleRunner();
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        try {
-            this.initializeWait();
-        } catch (InterruptedException e) {
-            logger.error("initializeWait error");
-            logger.error(e.getMessage());
-            tgBot.sendMsg("initializeWait error\n\n" + e.getMessage());
-            Thread.currentThread().interrupt();
-            return ;
-        }
         tgBot.sendMsg("bot scheduler start");
 
-        executor.scheduleAtFixedRate(this::getGrowCastleData, 0, REPEATSEC, TimeUnit.SECONDS);
-        // executor.scheduleAtFixedRate(this::testFunc, 0, REPEATSEC, TimeUnit.SECONDS);
-        // thread logic
-        // executor.scheduleAtFixedRate(() -> {
-        //     Thread t = new Thread(this::testFunc);
-        //     t.start();
-        // }, 0, REPEATSEC, TimeUnit.SECONDS);
+        final Timer timer = new Timer();
+        TimerTask timerTask = new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                if (! isSecondDivide10()) {
+                    return ;
+                }
+                getGrowCastleData();
 
+                // try {
+                //     getGrowCastleData();
+                // } catch (Exception e) {
+                //     logger.error("Scheduler Error : {}", e.getMessage());
+                //     StackTraceElement[] s = e.getStackTrace();
+                //     for(StackTraceElement stack : s){
+                //         logger.error("\tat {}", stack);
+                //     }
+                //     System.exit(1);
+                // }
+            }
+        };
+        timer.scheduleAtFixedRate(timerTask, 0, 1000);
     }
 
 
-
-    private void initializeWait() throws InterruptedException {
-        logger.debug("initialize Wait");
-        while (true) {
-            LocalDateTime now = LocalDateTime.now();
-            // test code
-            // if (true) { break; }
-
-            if (now.getSecond() % 10 == 0) {
-                break;
-            }
-            Thread.sleep(1000);
-        }
-        logger.debug("initialize Wait Done");
+    private boolean isSecondDivide10() {
+        LocalDateTime now = LocalDateTime.now();
+        return (now.getSecond() % 10 == 0);
     }
 
     public LocalDateTime divide15Minutes(LocalDateTime timeobj) {
@@ -154,6 +145,11 @@ public class ParseSchedular {
             parseAPI.parseLeaderboards();
             this.startSeasonDate = parseAPI.getStartSeasonDate();
             this.endSeasonDate = parseAPI.getEndSeasonDate();
+            if (this.startSeasonDate == null || this.endSeasonDate == null) {
+                logger.error("Season Date Parse Error");
+                tgBot.sendMsg("Season Date Parse Error");
+                return false;
+            }
         }
 
         if (now.getYear() != this.endSeasonDate.getYear()) {
