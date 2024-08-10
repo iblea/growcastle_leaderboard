@@ -22,7 +22,7 @@ public class LeaderboardGuild extends LeaderboardBaseEntity {
     }
 
     public LeaderboardGuild(LeaderboardBaseEntity leaderboard) {
-        super(leaderboard.getRank(), leaderboard.getName(), leaderboard.getScore(), leaderboard.getParseTime());
+        super(leaderboard);
     }
 
 }

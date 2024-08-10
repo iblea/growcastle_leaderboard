@@ -46,6 +46,13 @@ public class LeaderboardBaseEntity {
         this.leaderboardPK.setParseTime(parseTime);
     }
 
+    public LeaderboardBaseEntity(LeaderboardBaseEntity entity)
+    {
+        this.leaderboardPK = new LeaderboardPK(entity.getName(), entity.getParseTime());
+        this.rank = entity.getRank();
+        this.score = entity.getScore();
+    }
+
     public int getRank() {
         return this.rank;
     }

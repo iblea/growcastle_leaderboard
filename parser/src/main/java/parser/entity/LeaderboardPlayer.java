@@ -22,6 +22,6 @@ public class LeaderboardPlayer extends LeaderboardBaseEntity {
     }
 
     public LeaderboardPlayer(LeaderboardBaseEntity leaderboard) {
-        super(leaderboard.getRank(), leaderboard.getName(), leaderboard.getScore(), leaderboard.getParseTime());
+        super(leaderboard);
     }
 }

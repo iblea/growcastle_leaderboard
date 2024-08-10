@@ -22,7 +22,7 @@ public class LeaderboardHell extends LeaderboardBaseEntity {
     }
 
     public LeaderboardHell(LeaderboardBaseEntity leaderboard) {
-        super(leaderboard.getRank(), leaderboard.getName(), leaderboard.getScore(), leaderboard.getParseTime());
+        super(leaderboard);
     }
 
 }

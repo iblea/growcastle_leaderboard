@@ -10,6 +10,9 @@
         <class>parser.entity.LeaderboardPlayer</class>
         <class>parser.entity.LeaderboardGuild</class>
         <class>parser.entity.LeaderboardHell</class>
+        <class>parser.entity.HistoryPlayer</class>
+        <class>parser.entity.HistoryGuild</class>
+        <class>parser.entity.HistoryHell</class>
 
         <properties>
             <!-- 필수 속성 -->
