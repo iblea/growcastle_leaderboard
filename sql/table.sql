@@ -6,6 +6,13 @@ CREATE TABLE token
     PRIMARY KEY     (token_name)
 );
 
+CREATE TABLE SeasonData
+(
+    start_date   TIMESTAMP,
+    end_date     TIMESTAMP,
+    PRIMARY KEY (start_date, end_date)
+);
+
 -- drop table Leaderboard_Player;
 -- show columns from LEADERBOARD_PLAYER;
 
