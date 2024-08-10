@@ -6,6 +6,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import parser.entity.SeasonData;
 
@@ -60,7 +61,7 @@ public class SeasonDataDB {
     }
 
     private void deleteQuery(EntityManager em) {
-        String sql = "DELETE FROM `SeasonData` WHERE parseTime < :date";
+        String sql = "DELETE FROM `SeasonData`";
         Query query = em.createNativeQuery(sql);
         query.executeUpdate();
     }
@@ -95,7 +96,8 @@ public class SeasonDataDB {
 
         List<SeasonData> dataList = null;
         try {
-            dataList = em.createQuery("SELECT s FROM SeasonData s", SeasonData.class).getResultList();
+            TypedQuery<SeasonData> query = em.createQuery("SELECT s FROM SeasonData s", SeasonData.class);
+            dataList = query.getResultList();
         } catch (Exception e) {
             logger.error("find SeasonData error");
             logger.error(e.getMessage());
@@ -104,7 +106,7 @@ public class SeasonDataDB {
             em.close();
         }
 
-        if (dataList == null || dataList.size() == 0) {
+        if (dataList == null || dataList.isEmpty()) {
             logger.info("SeasonData is empty");
             return null;
         }
@@ -112,6 +114,12 @@ public class SeasonDataDB {
         if (dataList.size() > 1) {
             logger.error("SeasonData is more than 1");
             return null;
+        }
+
+        for (SeasonData data : dataList) {
+            System.out.println(data.getStartDate());
+            System.out.println(data.getEndDate());
+            System.out.println();
         }
 
         return dataList.get(0);

@@ -8,9 +8,11 @@ import java.util.TimerTask;
 
 import parser.db.Database;
 import parser.db.LeaderboardDB;
+import parser.db.SeasonDataDB;
 import parser.db.GuildMemberDB;
 import parser.entity.GuildMember;
 import parser.entity.LeaderboardBaseEntity;
+import parser.entity.SeasonData;
 import parser.parser.LeaderboardType;
 import parser.parser.ParseGuild;
 import parser.parser.ParseLeaderboard;
@@ -29,14 +31,13 @@ public class ParseSchedular {
     private Database db;
 
     // TODO: 길드는 이후 DB에서 가져오는 것으로 변경할 예정
-    // private String[] guilds = { "underdog", "sayonara", "redbridge",
-    //             "paragonia", "droplet", "777",
-    //             "skeleton_skl", "shalom" };
-    private String[] guilds = { "underdog" };
+    private String[] guilds = { "underdog", "sayonara", "redbridge",
+                "paragonia", "droplet", "777",
+                "skeleton_skl", "shalom" };
+    // private String[] guilds = { "underdog" };
 
 
-    private LocalDateTime startSeasonDate = null;
-    private LocalDateTime endSeasonDate = null;
+    private SeasonData seasonData = null;
 
     private LocalDateTime nextParseTime = null;
     private static final int PARSE_TERM_SEC = 900;
@@ -44,6 +45,7 @@ public class ParseSchedular {
     public ParseSchedular(TelegramBot tgBot, Database db) {
         this.tgBot = tgBot;
         this.db = db;
+        this.seasonData = new SeasonData();
         this.nextParseTime = getDivide15MinutesPlus15Minutes(getNowKST());
         logger.info("Next History Parse Time : {}", this.nextParseTime);
     }
@@ -124,12 +126,70 @@ public class ParseSchedular {
             return ;
         }
 
-        if (this.startSeasonDate != null) {
-            logger.info("Delete ago Start Season Date : {}", this.startSeasonDate);
-            deleteDatabaseUntilDate(this.startSeasonDate);
+        if (this.seasonData.isNotNull()) {
+            logger.info("Delete ago Start Season Date : {}", this.seasonData.getStartDate());
+            deleteDatabaseUntilDate(this.seasonData.getStartDate());
         }
         getParseGuilds();
         this.nextParseTime = getDivide15MinutesPlus15Minutes(nowDivide15Minute);
+    }
+
+    public void parseSeasonData(LocalDateTime now) {
+        SeasonDataDB seasonDataDB = new SeasonDataDB(this.db);
+        if (this.seasonData.isNull()) {
+            SeasonData data = seasonDataDB.findSeasonData();
+            if (data != null) {
+                this.seasonData.setStartDate(data.getStartDate());
+                this.seasonData.setEndDate(data.getEndDate());
+                // 이미 파싱된 데이터가 시즌 종료 시간을 지나지 않았을 경우 다시 파싱하지 않는다.
+                if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
+                    return ;
+                }
+            }
+        } else {
+            if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
+                return ;
+            }
+        }
+
+        ParseLeaderboard parseAPI = ParseLeaderboard.player(tgBot, now);
+        parseAPI.parseLeaderboards();
+        this.seasonData.setStartDate(parseAPI.getStartSeasonDate());
+        this.seasonData.setEndDate(parseAPI.getEndSeasonDate());
+        if (this.seasonData.isNull()) {
+            logger.error("Season Date Parse Error");
+            tgBot.sendMsg("Season Date Parse Error");
+            return ;
+        }
+        if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
+            seasonDataDB.updateSeasonData(seasonData);
+        } else {
+            // 10분 단위로 계산을 진행하므로
+            // 파싱한 시각이 시즌 종료 시간을 지났을 수가 있다.
+            this.seasonData.setNull();
+        }
+
+    }
+
+    public boolean isAfterSeasonEnd(LocalDateTime now, LocalDateTime endSeasonDate) {
+        if (now.getYear() != endSeasonDate.getYear()) {
+            return false;
+        }
+        if (now.getMonth() != endSeasonDate.getMonth()) {
+            return false;
+        }
+        if (now.getDayOfMonth() != endSeasonDate.getDayOfMonth()) {
+            return false;
+        }
+        if (now.getHour() != endSeasonDate.getHour()) {
+            return false;
+        }
+
+        // 55분 시즌마감이면 50분부터 파싱하지 않는다.
+        if (now.getMinute() < ((endSeasonDate.getMinute() / 10) * 10)) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -139,42 +199,19 @@ public class ParseSchedular {
      */
     public boolean checkSeasonEnd(LocalDateTime now) {
 
-        if (this.startSeasonDate == null || this.endSeasonDate == null) {
-            logger.info("End Season Date is null");
-            ParseLeaderboard parseAPI = ParseLeaderboard.player(tgBot, now);
-            parseAPI.parseLeaderboards();
-            this.startSeasonDate = parseAPI.getStartSeasonDate();
-            this.endSeasonDate = parseAPI.getEndSeasonDate();
-            if (this.startSeasonDate == null || this.endSeasonDate == null) {
-                logger.error("Season Date Parse Error");
-                tgBot.sendMsg("Season Date Parse Error");
-                return false;
-            }
+        if (this.seasonData.isNull()) {
+            parseSeasonData(now);
         }
 
-        if (now.getYear() != this.endSeasonDate.getYear()) {
-            return false;
-        }
-        if (now.getMonth() != this.endSeasonDate.getMonth()) {
-            return false;
-        }
-        if (now.getDayOfMonth() != this.endSeasonDate.getDayOfMonth()) {
-            return false;
-        }
-        if (now.getHour() != this.endSeasonDate.getHour()) {
+        LocalDateTime endSeasonDate = this.seasonData.getEndDate();
+        if (! isAfterSeasonEnd(now, endSeasonDate)) {
             return false;
         }
 
-        // 55분 시즌마감이면 50분부터 파싱하지 않는다.
-        if (now.getMinute() < ((this.endSeasonDate.getMinute() / 10) * 10)) {
-            return false;
-        }
-
-        deleteDatabaseUntilDate(this.endSeasonDate);
+        deleteDatabaseUntilDate(endSeasonDate);
         // +5 계산해서 다음 시즌을 체크해도 되지만,
         // 서버로부터 정확한 데이터를 체크하기 위해 null로 데이터를 초기화하고 다시 파싱해 가져온다.
-        this.startSeasonDate = null;
-        this.endSeasonDate = null;
+        this.seasonData.setNull();
         return true;
     }
 

@@ -81,6 +81,29 @@ public class SeasonData {
         this.seasonDataPK = new SeasonDataPK();
     }
 
+    public boolean isNull() {
+        if (this.seasonDataPK.getStartDate() == null) {
+            return true;
+        }
+
+        if (this.seasonDataPK.getEndDate() == null) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isNotNull() {
+        if (this.isNull()) {
+            return false;
+        }
+        return true;
+    }
+
+    public void setNull() {
+        this.seasonDataPK.setStartDate(null);
+        this.seasonDataPK.setEndDate(null);
+    }
+
     public void setStartDate(LocalDateTime startDate) {
         this.seasonDataPK.setStartDate(startDate);
     }
