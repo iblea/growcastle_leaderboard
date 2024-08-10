@@ -57,7 +57,7 @@ class LeaderboardDBTest {
 
         List<LeaderboardBaseEntity> data = new ArrayList<LeaderboardBaseEntity>();
         data.add(leaderboard);
-        dml.insertLeaderboards(data, LeaderboardType.PLAYER);
+        dml.insertLeaderboards(data, LeaderboardType.PLAYER, true);
 
         LeaderboardBaseEntity find = dml.findLeaderboardPK(name, parseTime, LeaderboardType.PLAYER);
 
@@ -68,7 +68,7 @@ class LeaderboardDBTest {
             assertThat(find.getParseTime()).isEqualTo(parseTime);
         }).doesNotThrowAnyException();
 
-        dml.deleteLeaderboards(data, LeaderboardType.PLAYER);
+        dml.deleteLeaderboards(data, LeaderboardType.PLAYER, true);
 
         LeaderboardBaseEntity remove_find = dml.findLeaderboardPK(name, parseTime, LeaderboardType.PLAYER);
         assertThat(remove_find).isNull();

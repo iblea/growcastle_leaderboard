@@ -9,6 +9,9 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 
+import parser.entity.HistoryGuild;
+import parser.entity.HistoryHell;
+import parser.entity.HistoryPlayer;
 import parser.entity.LeaderboardBaseEntity;
 import parser.entity.LeaderboardGuild;
 import parser.entity.LeaderboardPK;
@@ -33,18 +36,28 @@ public class LeaderboardDB {
         this.db = db;
     }
 
-    public void insertLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
+    public EntityManager makeTransaction() {
         EntityManagerFactory emf = db.getEntityManagerFactory();
         if (emf == null) {
             logger.error("EntityManagerFactory is null");
             throw new NullPointerException("EntityManagerFactory is null");
         }
+        return emf.createEntityManager();
+    }
 
-        EntityManager em = emf.createEntityManager();
-        em.getTransaction().begin();
+    public void insertQuery(List<LeaderboardBaseEntity> data, LeaderboardType type, boolean isRealTime, EntityManager em) {
+        if (isRealTime) {
+            insertLeaderboardsByType(data, type, em);
+        } else {
+            insertLeaderboardsByTypeHistory(data, type, em);
+        }
+    }
 
-        insertLeaderboardsByType(data, type, em);
+    public void insertLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type, boolean isRealTime) {
+        EntityManager em = makeTransaction();
         try {
+            em.getTransaction().begin();
+            insertQuery(data, type, isRealTime, em);
             em.getTransaction().commit();
         } catch (Exception e) {
             logger.error("insertLeaderboards error");
@@ -53,8 +66,7 @@ public class LeaderboardDB {
         } finally {
             em.close();
         }
-        logger.debug("["+ type.getTypename() + "][" + data.size()
-            + "] leaderboards inserted");
+        logger.debug("[{}][{}] leaderboards inserted", type.getTypename(), data.size());
     }
 
     private void insertLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
@@ -77,21 +89,34 @@ public class LeaderboardDB {
         }
     }
 
-    public void deleteLeaderboardsUntilDate(LocalDateTime date) {
-        deleteLeaderboardsUntilDateWithType(date, "LEADERBOARD_PLAYER");
-        deleteLeaderboardsUntilDateWithType(date, "LEADERBOARD_GUILD");
-        deleteLeaderboardsUntilDateWithType(date, "LEADERBOARD_HELL");
+    private void insertLeaderboardsByTypeHistory(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
+        switch (type) {
+            case PLAYER:
+                for (LeaderboardBaseEntity leaderboard : data) {
+                    em.persist(new HistoryPlayer(leaderboard));
+                }
+                break;
+            case GUILD:
+                for (LeaderboardBaseEntity leaderboard : data) {
+                    em.persist(new HistoryGuild(leaderboard));
+                }
+                break;
+            case HELL:
+                for (LeaderboardBaseEntity leaderboard : data) {
+                    em.persist(new HistoryHell(leaderboard));
+                }
+                break;
+        }
+    }
+
+    public void deleteHistoryLeaderboardsUntilDate(LocalDateTime date) {
+        for (LeaderboardType type : LeaderboardType.values()) {
+            deleteLeaderboardsUntilDateWithType(date, type.getHistoryTableName());
+        }
     }
 
     public void deleteLeaderboardsUntilDateWithType(LocalDateTime date, String tableName) {
-        EntityManagerFactory emf = db.getEntityManagerFactory();
-
-        if (emf == null) {
-            logger.error("EntityManagerFactory is null");
-            throw new NullPointerException("EntityManagerFactory is null");
-        }
-
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = makeTransaction();
         EntityTransaction transaction = em.getTransaction();
         try {
             transaction.begin();
@@ -109,21 +134,25 @@ public class LeaderboardDB {
         } finally {
             em.close();
         }
-        logger.debug("date : [" + date.toString() + "], tableName : [" + tableName + "]");
+        logger.debug("date : [{}], tableName : [{}]", date, tableName);
         logger.debug("deleteLeaderboardsUntilDateWithType success");
     }
 
-    public void deleteLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
-        EntityManagerFactory emf = db.getEntityManagerFactory();
-        if (emf == null) {
-            logger.error("EntityManagerFactory is null");
-            throw new NullPointerException("EntityManagerFactory is null");
-        }
+    public void deleteAllQuery(String tableName, EntityManager em) {
+        String sql = "DELETE FROM `" + tableName + "`";
+        Query query = em.createNativeQuery(sql);
+        query.executeUpdate();
+    }
 
-        EntityManager em = emf.createEntityManager();
+    public void deleteLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type, boolean isRealTime) {
+        EntityManager em = makeTransaction();
         em.getTransaction().begin();
 
-        deleteLeaderboardsByType(data, type, em);
+        if (isRealTime) {
+            deleteLeaderboardsByType(data, type, em);
+        } else {
+            deleteLeaderboardsByTypeHistory(data, type, em);
+        }
         try {
             em.getTransaction().commit();
         } catch (Exception e) {
@@ -133,8 +162,7 @@ public class LeaderboardDB {
         } finally {
             em.close();
         }
-        logger.debug("["+ type.getTypename() + "][" + data.size()
-            + "] leaderboards deleted");
+        logger.debug("[{}][{}] leaderboards deleted", type.getTypename(), data.size());
     }
 
     private void deleteLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
@@ -160,16 +188,34 @@ public class LeaderboardDB {
         }
     }
 
-    public LeaderboardBaseEntity findLeaderboardPK(String name, LocalDateTime parseTime, LeaderboardType type) {
-        EntityManagerFactory emf = db.getEntityManagerFactory();
-        if (emf == null) {
-            logger.error("EntityManagerFactory is null");
-            throw new NullPointerException("EntityManagerFactory is null");
+    private void deleteLeaderboardsByTypeHistory(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
+        switch (type) {
+            case PLAYER:
+                for (LeaderboardBaseEntity leaderboard : data) {
+                    HistoryPlayer player = new HistoryPlayer(leaderboard);
+                    em.remove(em.contains(player) ? player : em.merge(player));
+                }
+                break;
+            case GUILD:
+                for (LeaderboardBaseEntity leaderboard : data) {
+                    HistoryGuild guild = new HistoryGuild(leaderboard);
+                    em.remove(em.contains(guild) ? guild : em.merge(guild));
+                }
+                break;
+            case HELL:
+                for (LeaderboardBaseEntity leaderboard : data) {
+                    HistoryHell hell = new HistoryHell(leaderboard);
+                    em.remove(em.contains(hell) ? hell : em.merge(hell));
+                }
+                break;
         }
+    }
 
+
+    public LeaderboardBaseEntity findLeaderboardPK(String name, LocalDateTime parseTime, LeaderboardType type) {
         LeaderboardPK pk = new LeaderboardPK(name, parseTime);
         Object leaderboard = null;
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = makeTransaction();
         try {
             switch (type) {
                 case PLAYER:
@@ -203,6 +249,23 @@ public class LeaderboardDB {
         return null;
     }
 
+    public void updateLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
+        EntityManager em = makeTransaction();
+        try {
+            em.getTransaction().begin();
+            deleteAllQuery(type.getRealTimeTableName(), em);
+            insertQuery(data, type, true, em);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            logger.error("insertLeaderboards error");
+            logger.error(e.getMessage());
+            em.getTransaction().rollback();
+        } finally {
+            em.close();
+        }
+        logger.debug("[{}][{}] leaderboards inserted", type.getTypename(), data.size());
+
+    }
 
     public LocalDateTime getParseTime() {
         LocalDateTime now = LocalDateTime.now();
