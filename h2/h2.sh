@@ -21,9 +21,16 @@ if [ ! -f "$h2_jar_full_path" ]; then
 	exit 1
 fi
 
+# java -cp "$h2_jar_full_path:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console \
+#     -webAllowOthers -webPort $webPort \
+#     -tcpAllowOthers -tcpPort $tcpPort \
+#     -pgAllowOthers -pgPort $pgPort \
+#     "$@"
+
+
 java -cp "$h2_jar_full_path:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console \
-    -webAllowOthers -webPort $webPort \
-    -tcpAllowOthers -tcpPort $tcpPort \
-    -pgAllowOthers -pgPort $pgPort \
+    -webPort $webPort \
+    -tcpPort $tcpPort \
+    -pgPort $pgPort \
     "$@"
 
