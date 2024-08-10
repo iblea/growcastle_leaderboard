@@ -32,7 +32,7 @@ public class ParseSchedular {
 
     // TODO: 길드는 이후 DB에서 가져오는 것으로 변경할 예정
     private String[] guilds = { "underdog", "sayonara", "redbridge",
-                "paragonia", "droplet", "777",
+                "paragonia", "droplet",
                 "skeleton_skl", "shalom" };
     // private String[] guilds = { "underdog" };
 
