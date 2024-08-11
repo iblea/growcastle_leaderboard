@@ -21,8 +21,6 @@ source "$curpath/config_h2"
 h2_jar_full_path="$H2_JAR_PATH/$H2_JAR_NAME"
 # example
 # url="jdbc:h2:tcp://localhost:9092/~/data/growcastle"
-username=""
-password=""
 
 
 
@@ -82,14 +80,14 @@ if [ -z "$h2_url" ] || [ -z "$h2_driver" ]; then
 fi
 
 # or input username and password
-if [ -z "$username" ]; then
-	read -p "enter username : " username
+if [ -z "$h2_username" ]; then
+	read -p "enter username : " h2_username
 fi
 
-if [ -z "$password" ]; then
+if [ -z "$h2_password" ]; then
 	# read -sp "enter password (hidden) : " password
 	echo -n "enter password (hidden) : "
-	password=$( input_password )
+	h2_password=$( input_password )
 fi
 
 
@@ -97,8 +95,8 @@ fi
 java -cp "$h2_jar_full_path" org.h2.tools.Shell \
 	-url "$h2_url" \
 	-driver "$h2_driver" \
-	-user "$username" \
-	-password "$password"
+	-user "$h2_username" \
+	-password "$h2_password"
 
 
 
