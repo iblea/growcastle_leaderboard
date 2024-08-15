@@ -29,6 +29,8 @@ dependencies {
     implementation("com.google.guava:guava:31.1-jre")
     implementation("org.hibernate:hibernate-core:5.6.5.Final")
     implementation("com.h2database:h2:2.2.224")
+    // https://mvnrepository.com/artifact/org.postgresql/postgresql
+    implementation("org.postgresql:postgresql:42.7.3")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
 
     // telegram bot
