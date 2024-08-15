@@ -44,7 +44,7 @@ public class GuildMemberDB {
         try {
             transaction.begin();
 
-            String sql = "INSERT INTO `" + guildName + "` (name, score, parseTime) VALUES (:name, :score, :parseTime)";
+            String sql = "INSERT INTO " + guildName + " (name, score, parseTime) VALUES (:name, :score, :parseTime)";
             sqlBatch(data, sql, em);
             transaction.commit();
         } catch (Exception e) {
@@ -72,7 +72,7 @@ public class GuildMemberDB {
         EntityManager em = emf.createEntityManager();
         GuildMember member = null;
         try {
-            String sql = "SELECT name, score, parseTime FROM `" + guildName + "` WHERE name = :name AND parseTime = :parseTime";
+            String sql = "SELECT name, score, parseTime FROM " + guildName + " WHERE name = :name AND parseTime = :parseTime";
             // String sql = "SELECT * FROM `" + guildName + "` WHERE name = :name AND parseTime = :parseTime";
             // Query query = em.createNativeQuery(sql, GuildMember.class);
             Query query = em.createNativeQuery(sql);
@@ -107,7 +107,7 @@ public class GuildMemberDB {
         EntityTransaction transaction = em.getTransaction();
         try {
             transaction.begin();
-            String sql = "DELETE FROM `" + guildName + "` WHERE  name = :name AND score = :score AND parseTime = :parseTime";
+            String sql = "DELETE FROM " + guildName + " WHERE  name = :name AND score = :score AND parseTime = :parseTime";
             sqlBatch(data, sql, em);
             transaction.commit();
         } catch (Exception e) {
@@ -134,7 +134,7 @@ public class GuildMemberDB {
         EntityTransaction transaction = em.getTransaction();
         try {
             transaction.begin();
-            String sql = "DELETE FROM `" + guildName + "` WHERE parseTime < :parseTime";
+            String sql = "DELETE FROM " + guildName + " WHERE parseTime < :parseTime";
             Query query = em.createNativeQuery(sql);
             query.setParameter("parseTime", date);
             query.executeUpdate();

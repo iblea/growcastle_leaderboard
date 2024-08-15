@@ -61,7 +61,7 @@ public class SeasonDataDB {
     }
 
     private void deleteQuery(EntityManager em) {
-        String sql = "DELETE FROM `SeasonData`";
+        String sql = "DELETE FROM SeasonData";
         Query query = em.createNativeQuery(sql);
         query.executeUpdate();
     }

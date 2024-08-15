@@ -126,7 +126,7 @@ public class LeaderboardDB {
         EntityTransaction transaction = em.getTransaction();
         try {
             transaction.begin();
-            String sql = "DELETE FROM `" + tableName + "` WHERE parseTime < :date";
+            String sql = "DELETE FROM " + tableName + " WHERE parseTime < :date";
             Query query = em.createNativeQuery(sql);
             query.setParameter("date", date);
             query.executeUpdate();
@@ -145,7 +145,7 @@ public class LeaderboardDB {
     }
 
     public void deleteAllQuery(String tableName, EntityManager em) {
-        String sql = "DELETE FROM `" + tableName + "`";
+        String sql = "DELETE FROM " + tableName + "";
         Query query = em.createNativeQuery(sql);
         query.executeUpdate();
     }
