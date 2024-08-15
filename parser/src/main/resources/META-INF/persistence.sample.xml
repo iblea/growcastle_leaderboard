@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence version="2.2"
-             xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
+            xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
 
     <persistence-unit name="growcastle">
         <!-- https://sweetburble.tistory.com/6 -->
@@ -11,17 +11,22 @@
         <class>parser.entity.LeaderboardPlayer</class>
         <class>parser.entity.LeaderboardGuild</class>
         <class>parser.entity.LeaderboardHell</class>
+        <class>parser.entity.HistoryBaseEntity</class>
         <class>parser.entity.HistoryPlayer</class>
         <class>parser.entity.HistoryGuild</class>
         <class>parser.entity.HistoryHell</class>
 
         <properties>
             <!-- 필수 속성 -->
-            <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>
             <property name="javax.persistence.jdbc.user" value="<username>"/>
             <property name="javax.persistence.jdbc.password" value="<password>"/>
-            <property name="javax.persistence.jdbc.url" value="jdbc:h2:tcp://localhost/<path>"/>
-            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
+            <!-- <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/> -->
+            <!-- <property name="javax.persistence.jdbc.url" value="jdbc:h2:tcp://localhost:<port>/<path>"/> -->
+            <!-- <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/> -->
+            <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="javax.persistence.jdbc.url"    value="jdbc:postgresql://localhost:<port>/<db>" />
+            <property name="hibernate.dialect"    value="org.hibernate.dialect.PostgreSQLDialect" />
+            <!-- <property name="hibernate.default_schema" value="public"/> -->
 
             <!-- 옵션 -->
             <property name="hibernate.show_sql" value="false"/>

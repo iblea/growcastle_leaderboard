@@ -15,7 +15,7 @@ import java.util.Objects;
 public class LeaderboardBaseEntity {
 
     @Id
-    LeaderboardPK leaderboardPK;
+    private LeaderboardPK leaderboardPK;
 
     @Column(name = "rank")
     private int rank;
