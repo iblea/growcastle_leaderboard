@@ -3,14 +3,21 @@ CREATE TABLE token
     bot_name      VARCHAR(128) NOT NULL,
     bot_token     VARCHAR(256) NOT NULL,
     bot_channel   VARCHAR(256) NOT NULL,
-    PRIMARY KEY     (token_name)
+    PRIMARY KEY     (bot_name)
 );
 
 CREATE TABLE SeasonData
 (
     start_date   TIMESTAMP,
     end_date     TIMESTAMP,
+	season_name  VARCHAR(16) NOT NULL,
     PRIMARY KEY (start_date, end_date)
+);
+
+CREATE TABLE guild_monitor
+(
+    guild_name   VARCHAR(32) NOT NULL,
+    PRIMARY KEY (guild_name)
 );
 
 -- drop table Leaderboard_Player;
@@ -50,6 +57,8 @@ CREATE TABLE History_Player
     name        VARCHAR(32) NOT NULL,
     score       INT NOT NULL,
     parseTime   TIMESTAMP NOT NULL,
+	season      VARCHAR(16) NOT NULL,
+	min_unit    INT NOT NULL,
     PRIMARY KEY (name, parseTime)
 );
 CREATE TABLE History_Guild
@@ -58,6 +67,8 @@ CREATE TABLE History_Guild
     name        VARCHAR(32) NOT NULL,
     score       INT NOT NULL,
     parseTime   TIMESTAMP NOT NULL,
+	season      VARCHAR(16) NOT NULL,
+	min_unit    INT NOT NULL,
     PRIMARY KEY (name, parseTime)
 );
 
@@ -67,84 +78,38 @@ CREATE TABLE History_Hell
     name        VARCHAR(32) NOT NULL,
     score       INT NOT NULL,
     parseTime   TIMESTAMP NOT NULL,
+	season      VARCHAR(16) NOT NULL,
+	min_unit    INT NOT NULL,
     PRIMARY KEY (name, parseTime)
 );
 
-
--- update 15 mins (history guild data)
-CREATE TABLE `underdog`
+-- 활성 길드 멤버
+CREATE TABLE guildmember
 (
-    name        VARCHAR(32) NOT NULL,
-    score       INT NOT NULL,
+    username    VARCHAR(32) NOT NULL,
+    guildname   VARCHAR(32) NOT NULL,
     parseTime   TIMESTAMP NOT NULL,
-    PRIMARY KEY (name, parseTime)
+	season      VARCHAR(16) NOT NULL,
+    PRIMARY KEY (username, parseTime)
 );
 
-CREATE TABLE `underdog`
+
+CREATE TABLE guildmember_wave
 (
-    name        VARCHAR(32) NOT NULL,
-    score       INT NOT NULL,
+    username    VARCHAR(32) NOT NULL,
+    guildname   VARCHAR(32) NOT NULL,
+	wave        INT NOT NULL,
     parseTime   TIMESTAMP NOT NULL,
-    PRIMARY KEY (name, parseTime)
+	season      VARCHAR(16) NOT NULL,
+	min_unit    INT NOT NULL,
+    PRIMARY KEY (username, parseTime)
 );
 
-CREATE TABLE `sayonara`
-(
-    name        VARCHAR(32) NOT NULL,
-    score       INT NOT NULL,
-    parseTime   TIMESTAMP NOT NULL,
-    PRIMARY KEY (name, parseTime)
-);
 
-CREATE TABLE `redbridge`
-(
-    name        VARCHAR(32) NOT NULL,
-    score       INT NOT NULL,
-    parseTime   TIMESTAMP NOT NULL,
-    PRIMARY KEY (name, parseTime)
-);
 
-CREATE TABLE `paragonia`
-(
-    name        VARCHAR(32) NOT NULL,
-    score       INT NOT NULL,
-    parseTime   TIMESTAMP NOT NULL,
-    PRIMARY KEY (name, parseTime)
-);
 
-CREATE TABLE `droplet`
-(
-    name        VARCHAR(32) NOT NULL,
-    score       INT NOT NULL,
-    parseTime   TIMESTAMP NOT NULL,
-    PRIMARY KEY (name, parseTime)
-);
 
-CREATE TABLE `777`
-(
-    name        VARCHAR(32) NOT NULL,
-    score       INT NOT NULL,
-    parseTime   TIMESTAMP NOT NULL,
-    PRIMARY KEY (name, parseTime)
-);
-
-CREATE TABLE `skeleton_skl`
-(
-    name        VARCHAR(32) NOT NULL,
-    score       INT NOT NULL,
-    parseTime   TIMESTAMP NOT NULL,
-    PRIMARY KEY (name, parseTime)
-);
-
-CREATE TABLE `shalom`
-(
-    name        VARCHAR(32) NOT NULL,
-    score       INT NOT NULL,
-    parseTime   TIMESTAMP NOT NULL,
-    PRIMARY KEY (name, parseTime)
-);
-
--- CREATE TABLE `under dog`
+-- CREATE TABLE underdog
 -- (
 --     name        VARCHAR(32) NOT NULL,
 --     score       INT NOT NULL,
@@ -152,19 +117,3 @@ CREATE TABLE `shalom`
 --     PRIMARY KEY (name, parseTime)
 -- );
 
-
-delete from `Leaderboard_Player`;
-delete from `Leaderboard_Guild`;
-delete from `Leaderboard_Hell`;
-delete from `underdog`;
-delete from `sayonara`;
-delete from `redbridge`;
-delete from `paragonia`;
-delete from `droplet`;
-delete from `777`;
-delete from `skeleton_skl`;
-delete from `shalom`;
-
-
-
-show tables;
