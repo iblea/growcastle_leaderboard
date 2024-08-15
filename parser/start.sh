@@ -34,11 +34,11 @@ if [ ! -f "${JAR_DIR}/${JAR_NAME}" ]; then
 fi
 
 # h2 database check
-db_proc=$(ps -aef | grep "java.*h2.*\.jar.*Console" | grep -v "grep")
-if [ -z "$db_proc" ]; then
-    echo "database is not running"
-    exit 1
-fi
+# db_proc=$(ps -aef | grep "java.*h2.*\.jar.*Console" | grep -v "grep")
+# if [ -z "$db_proc" ]; then
+#     echo "database is not running"
+#     exit 1
+# fi
 
 
 echo "start growacastle api parser program"
