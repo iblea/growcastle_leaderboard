@@ -77,8 +77,19 @@ public class SeasonData {
     @Id
     private SeasonDataPK seasonDataPK;
 
+    @Column (name = "season_name")
+    private String seasonName;
+
     public SeasonData() {
         this.seasonDataPK = new SeasonDataPK();
+        this.seasonName = "";
+    }
+
+    public SeasonData(SeasonData seasonData) {
+        this.seasonDataPK = new SeasonDataPK();
+        this.seasonDataPK.setStartDate(seasonData.getStartDate());
+        this.seasonDataPK.setEndDate(seasonData.getEndDate());
+        this.seasonName = seasonData.getSeasonName();
     }
 
     public boolean isNull() {
@@ -106,6 +117,7 @@ public class SeasonData {
 
     public void setStartDate(LocalDateTime startDate) {
         this.seasonDataPK.setStartDate(startDate);
+        this.seasonName = getSeasonNameWithTime(startDate);
     }
 
     public LocalDateTime getStartDate() {
@@ -118,6 +130,19 @@ public class SeasonData {
 
     public LocalDateTime getEndDate() {
         return this.seasonDataPK.getEndDate();
+    }
+
+    public void setSeasonName(String seasonName) {
+        this.seasonName = seasonName;
+    }
+
+    public String getSeasonName() {
+        return this.seasonName;
+    }
+
+    private String getSeasonNameWithTime(LocalDateTime timeobj) {
+        // yyyy-mm-dd
+        return timeobj.toString().substring(0, 10);
     }
 
 }

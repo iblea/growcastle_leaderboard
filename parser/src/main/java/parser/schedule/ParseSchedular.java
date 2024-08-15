@@ -10,6 +10,7 @@ import parser.db.Database;
 import parser.db.LeaderboardDB;
 import parser.db.SeasonDataDB;
 import parser.db.GuildMemberDB;
+import parser.db.HistoryDB;
 import parser.entity.GuildMember;
 import parser.entity.LeaderboardBaseEntity;
 import parser.entity.SeasonData;
@@ -31,10 +32,10 @@ public class ParseSchedular {
     private Database db;
 
     // TODO: 길드는 이후 DB에서 가져오는 것으로 변경할 예정
-    private String[] guilds = { "underdog", "sayonara", "redbridge",
-                "paragonia", "droplet",
-                "skeleton_skl", "shalom" };
-    // private String[] guilds = { "underdog" };
+    // private String[] guilds = { "underdog", "sayonara", "redbridge",
+    //             "paragonia", "droplet",
+    //             "skeleton_skl", "shalom" };
+    private String[] guilds = { "underdog" };
 
 
     private SeasonData seasonData = null;
@@ -64,6 +65,7 @@ public class ParseSchedular {
                     return ;
                 }
                 getGrowCastleData();
+                // testFunc();
 
                 // try {
                 //     getGrowCastleData();
@@ -139,8 +141,8 @@ public class ParseSchedular {
         if (this.seasonData.isNull()) {
             SeasonData data = seasonDataDB.findSeasonData();
             if (data != null) {
-                this.seasonData.setStartDate(data.getStartDate());
-                this.seasonData.setEndDate(data.getEndDate());
+                this.seasonData = null;
+                this.seasonData = new SeasonData(data);
                 // 이미 파싱된 데이터가 시즌 종료 시간을 지나지 않았을 경우 다시 파싱하지 않는다.
                 if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
                     return ;
@@ -216,8 +218,8 @@ public class ParseSchedular {
     }
 
     public void deleteDatabaseUntilDate(LocalDateTime date) {
-        LeaderboardDB leaderboardDB = new LeaderboardDB(this.db);
-        leaderboardDB.deleteHistoryLeaderboardsUntilDate(date);
+        HistoryDB historyDB = new HistoryDB(this.db);
+        historyDB.deleteHistoryUntilDate(date);
 
         GuildMemberDB guildMemberDB = new GuildMemberDB(this.db);
         for (String guildName : guilds) {
@@ -227,6 +229,7 @@ public class ParseSchedular {
 
     public void getParseLeaderboards(boolean updateInform) {
         LeaderboardDB leaderboardDB = new LeaderboardDB(this.db);
+        HistoryDB historyDB = new HistoryDB(this.db);
         boolean result;
 
         // parse Leaderboard player data
@@ -243,7 +246,7 @@ public class ParseSchedular {
             return ;
         }
         if (updateInform) {
-            result = leaderboardDB.insertLeaderboards(leaderboardData, LeaderboardType.PLAYER, false);
+            result = historyDB.insertHistory(leaderboardData, LeaderboardType.PLAYER, this.seasonData.getSeasonName());
             if (! result) {
                 logger.error("History Player Data Insert Error");
                 this.tgBot.sendMsg("History Player Data Insert Error");
@@ -264,7 +267,7 @@ public class ParseSchedular {
             return ;
         }
         if (updateInform) {
-            result = leaderboardDB.insertLeaderboards(leaderboardData, LeaderboardType.GUILD, false);
+            result = historyDB.insertHistory(leaderboardData, LeaderboardType.GUILD, this.seasonData.getSeasonName());
             if (! result) {
                 logger.error("History Guild Data Insert Error");
                 this.tgBot.sendMsg("History Guild Data Insert Error");
@@ -320,6 +323,10 @@ public class ParseSchedular {
         // System.out.println("end time : " + LocalDateTime.now());
 
         logger.debug("testFunc");
+        LocalDateTime now = getNowKST();
+        LocalDateTime nowDivide15Minute = divide15Minutes(now);
+        System.err.println("now : " + now);
+        System.err.println("nowDivide15Minute : " + nowDivide15Minute);
         // HistoryPlayer historydPlayer = new HistoryPlayer(new LeaderboardBaseEntity(1, "test", 100));
         // logger.debug("rank : {}", historydPlayer.getRank());
     }

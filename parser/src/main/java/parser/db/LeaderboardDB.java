@@ -9,9 +9,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 
-import parser.entity.HistoryGuild;
-import parser.entity.HistoryHell;
-import parser.entity.HistoryPlayer;
 import parser.entity.LeaderboardBaseEntity;
 import parser.entity.LeaderboardGuild;
 import parser.entity.LeaderboardPK;
@@ -45,21 +42,13 @@ public class LeaderboardDB {
         return emf.createEntityManager();
     }
 
-    public void insertQuery(List<LeaderboardBaseEntity> data, LeaderboardType type, boolean isRealTime, EntityManager em) {
-        if (isRealTime) {
-            insertLeaderboardsByType(data, type, em);
-        } else {
-            insertLeaderboardsByTypeHistory(data, type, em);
-        }
-    }
-
-    public boolean insertLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type, boolean isRealTime) {
+    public boolean insertLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
         EntityManager em = makeTransaction();
         EntityTransaction transaction = em.getTransaction();
         boolean result = true;
         try {
             transaction.begin();
-            insertQuery(data, type, isRealTime, em);
+            insertLeaderboardsByType(data, type, em);
             transaction.commit();
         } catch (Exception e) {
             logger.error("insertLeaderboards error");
@@ -71,7 +60,7 @@ public class LeaderboardDB {
         } finally {
             em.close();
         }
-        logger.debug("[{}][{}][{}] leaderboards inserted", type.getTypename(), data.size(), isRealTime);
+        logger.debug("[{}][{}] leaderboards inserted", type.getTypename(), data.size());
         return result;
     }
 
@@ -92,32 +81,6 @@ public class LeaderboardDB {
                     em.persist(new LeaderboardHell(leaderboard));
                 }
                 break;
-        }
-    }
-
-    private void insertLeaderboardsByTypeHistory(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
-        switch (type) {
-            case PLAYER:
-                for (LeaderboardBaseEntity leaderboard : data) {
-                    em.persist(new HistoryPlayer(leaderboard));
-                }
-                break;
-            case GUILD:
-                for (LeaderboardBaseEntity leaderboard : data) {
-                    em.persist(new HistoryGuild(leaderboard));
-                }
-                break;
-            case HELL:
-                for (LeaderboardBaseEntity leaderboard : data) {
-                    em.persist(new HistoryHell(leaderboard));
-                }
-                break;
-        }
-    }
-
-    public void deleteHistoryLeaderboardsUntilDate(LocalDateTime date) {
-        for (LeaderboardType type : LeaderboardType.values()) {
-            deleteLeaderboardsUntilDateWithType(date, type.getHistoryTableName());
         }
     }
 
@@ -150,16 +113,12 @@ public class LeaderboardDB {
         query.executeUpdate();
     }
 
-    public void deleteLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type, boolean isRealTime) {
+    public void deleteLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
         EntityManager em = makeTransaction();
         EntityTransaction transaction = em.getTransaction();
         try {
             transaction.begin();
-            if (isRealTime) {
-                deleteLeaderboardsByType(data, type, em);
-            } else {
-                deleteLeaderboardsByTypeHistory(data, type, em);
-            }
+            deleteLeaderboardsByType(data, type, em);
             transaction.commit();
         } catch (Exception e) {
             logger.error("deleteLeaderboards error");
@@ -195,30 +154,6 @@ public class LeaderboardDB {
                 break;
         }
     }
-
-    private void deleteLeaderboardsByTypeHistory(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
-        switch (type) {
-            case PLAYER:
-                for (LeaderboardBaseEntity leaderboard : data) {
-                    HistoryPlayer player = new HistoryPlayer(leaderboard);
-                    em.remove(em.contains(player) ? player : em.merge(player));
-                }
-                break;
-            case GUILD:
-                for (LeaderboardBaseEntity leaderboard : data) {
-                    HistoryGuild guild = new HistoryGuild(leaderboard);
-                    em.remove(em.contains(guild) ? guild : em.merge(guild));
-                }
-                break;
-            case HELL:
-                for (LeaderboardBaseEntity leaderboard : data) {
-                    HistoryHell hell = new HistoryHell(leaderboard);
-                    em.remove(em.contains(hell) ? hell : em.merge(hell));
-                }
-                break;
-        }
-    }
-
 
     public LeaderboardBaseEntity findLeaderboardPK(String name, LocalDateTime parseTime, LeaderboardType type) {
         LeaderboardPK pk = new LeaderboardPK(name, parseTime);
@@ -264,10 +199,10 @@ public class LeaderboardDB {
         try {
             transaction.begin();
             deleteAllQuery(type.getRealTimeTableName(), em);
-            insertQuery(data, type, true, em);
+            insertLeaderboardsByType(data, type, em);
             transaction.commit();
         } catch (Exception e) {
-            logger.error("insertLeaderboards error");
+            logger.error("updateLeaderboards error");
             logger.error(e.getMessage());
             if (transaction.isActive()) {
                 transaction.rollback();
@@ -276,7 +211,7 @@ public class LeaderboardDB {
         } finally {
             em.close();
         }
-        logger.debug("[{}][{}] leaderboards inserted", type.getTypename(), data.size());
+        logger.debug("[{}][{}] leaderboards updated", type.getTypename(), data.size());
         return result;
     }
 
