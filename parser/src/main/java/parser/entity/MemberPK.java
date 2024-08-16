@@ -9,16 +9,16 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Embeddable
-public class LeaderboardPK implements Serializable {
+public class MemberPK implements Serializable {
 
     @Column(name = "name", nullable = false)
     private String name;
     @Column(name = "parsetime", nullable = false)
     private LocalDateTime parseTime;
 
-    public LeaderboardPK() { }
+    public MemberPK() { }
 
-    public LeaderboardPK(String name, LocalDateTime parseTime) {
+    public MemberPK(String name, LocalDateTime parseTime) {
         this.name = name;
         this.parseTime = parseTime;
     }
@@ -44,10 +44,10 @@ public class LeaderboardPK implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof LeaderboardPK)) {
+        if (!(o instanceof MemberPK)) {
             return false;
         }
-        LeaderboardPK that = (LeaderboardPK) o;
+        MemberPK that = (MemberPK) o;
 
         if (this.name != that.name) {
             return false;

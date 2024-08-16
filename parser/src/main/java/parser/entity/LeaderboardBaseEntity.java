@@ -15,7 +15,7 @@ import java.util.Objects;
 public class LeaderboardBaseEntity {
 
     @Id
-    private LeaderboardPK leaderboardPK;
+    private MemberPK memberPK;
 
     @Column(name = "rank")
     private int rank;
@@ -24,31 +24,31 @@ public class LeaderboardBaseEntity {
     private int score;
 
     public LeaderboardBaseEntity() {
-        this.leaderboardPK = new LeaderboardPK();
+        this.memberPK = new MemberPK();
         this.rank = -1;
         this.score = -1;
     }
 
     public LeaderboardBaseEntity(int rank, String name, int score)
     {
-        this.leaderboardPK = new LeaderboardPK();
+        this.memberPK = new MemberPK();
         this.rank = rank;
         this.score = score;
-        this.leaderboardPK.setName(name);
+        this.memberPK.setName(name);
     }
 
     public LeaderboardBaseEntity(int rank, String name, int score, LocalDateTime parseTime)
     {
-        this.leaderboardPK = new LeaderboardPK();
+        this.memberPK = new MemberPK();
         this.rank = rank;
         this.score = score;
-        this.leaderboardPK.setName(name);
-        this.leaderboardPK.setParseTime(parseTime);
+        this.memberPK.setName(name);
+        this.memberPK.setParseTime(parseTime);
     }
 
     public LeaderboardBaseEntity(LeaderboardBaseEntity entity)
     {
-        this.leaderboardPK = new LeaderboardPK(entity.getName(), entity.getParseTime());
+        this.memberPK = new MemberPK(entity.getName(), entity.getParseTime());
         this.rank = entity.getRank();
         this.score = entity.getScore();
     }
@@ -62,11 +62,11 @@ public class LeaderboardBaseEntity {
     }
 
     public String getName() {
-        return this.leaderboardPK.getName();
+        return this.memberPK.getName();
     }
 
     public void setName(String name) {
-        this.leaderboardPK.setName(name);
+        this.memberPK.setName(name);
     }
 
     public int getScore() {
@@ -78,11 +78,11 @@ public class LeaderboardBaseEntity {
     }
 
     public LocalDateTime getParseTime() {
-        return this.leaderboardPK.getParseTime();
+        return this.memberPK.getParseTime();
     }
 
     public void setParseTime(LocalDateTime parseTime) {
-        this.leaderboardPK.setParseTime(parseTime);
+        this.memberPK.setParseTime(parseTime);
     }
 
     public LeaderboardBaseEntity getLeaderboard() {
@@ -99,7 +99,7 @@ public class LeaderboardBaseEntity {
         }
         LeaderboardBaseEntity that = (LeaderboardBaseEntity) o;
 
-        if (! this.leaderboardPK.equals(that.leaderboardPK)) {
+        if (! this.memberPK.equals(that.memberPK)) {
             return false;
         }
         if (this.rank != that.rank) {
@@ -114,8 +114,8 @@ public class LeaderboardBaseEntity {
     @Override
     public int hashCode() {
         return Objects.hash(
-            this.leaderboardPK.getName(),
-            this.leaderboardPK.getParseTime(),
+            this.memberPK.getName(),
+            this.memberPK.getParseTime(),
             this.rank,
             this.score
         );

@@ -7,6 +7,10 @@ import javax.persistence.Table;
 @Table(name = "history_player")
 public class HistoryPlayer extends HistoryBaseEntity {
 
+    public HistoryPlayer() {
+        super();
+    }
+
     public HistoryPlayer(LeaderboardBaseEntity entity) {
         super(entity);
     }

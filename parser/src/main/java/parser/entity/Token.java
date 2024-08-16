@@ -21,6 +21,12 @@ public class Token {
     @Column(name = "bot_channel")
     private String botChannel;
 
+    public Token() {
+        this.botName = "";
+        this.botToken = "";
+        this.botChannel = "";
+    }
+
     public String getBotName() {
         return this.botName;
     }

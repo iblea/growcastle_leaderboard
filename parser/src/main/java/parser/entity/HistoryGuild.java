@@ -7,6 +7,10 @@ import javax.persistence.Table;
 @Table(name = "history_guild")
 public class HistoryGuild extends HistoryBaseEntity {
 
+    public HistoryGuild() {
+        super();
+    }
+
     public HistoryGuild(LeaderboardBaseEntity entity) {
         super(entity);
     }
