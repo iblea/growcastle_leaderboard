@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Collections;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 import parser.telegram.TelegramBot;
 
@@ -13,7 +13,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
-import parser.entity.GuildMember;
+import parser.entity.GuildMemberWave;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,15 +23,18 @@ public class ParseGuild extends ParseAPI {
 
     private static Logger logger = LogManager.getLogger(ParseGuild.class);
 
-    LocalDateTime parseTime;
+    private String seasonName;
+    private LocalDateTime parseTime;
 
-    public ParseGuild(TelegramBot bot) {
+    public ParseGuild(TelegramBot bot, String seasonName) {
         super(bot);
+        this.seasonName = seasonName;
         this.parseTime = getCurrentTimeKST();
     }
 
-    public ParseGuild(TelegramBot bot, LocalDateTime parseTime) {
+    public ParseGuild(TelegramBot bot, String seasonName, LocalDateTime parseTime) {
         super(bot);
+        this.seasonName = seasonName;
         this.parseTime = parseTime;
     }
 
@@ -42,7 +45,7 @@ public class ParseGuild extends ParseAPI {
      * @param guildName - 파싱할 Guild Name
      * @return List<GuildMembers>
      */
-    public List<GuildMember> parseGuildByName(String guildName)
+    public List<GuildMemberWave> parseGuildByName(String guildName)
     {
         String leaderboardURL = getGuildURL(guildName);
         String leaderboardData = null;
@@ -52,16 +55,16 @@ public class ParseGuild extends ParseAPI {
             logger.error("[{}] Request API Error", guildName);
             logger.error(e.getMessage());
             // alarm
-            return Collections.<GuildMember>emptyList();
+            return Collections.<GuildMemberWave>emptyList();
         }
 
-        List<GuildMember> leaderboards = null;
+        List<GuildMemberWave> leaderboards = null;
         try {
-            leaderboards = guildJsonParser(leaderboardData);
+            leaderboards = guildJsonParser(leaderboardData, guildName);
         } catch (ParseException | NullPointerException | WrongJsonType e) {
             logger.error("[{}] Parse Json Error", guildName);
             logger.error(e.getMessage());
-            return Collections.<GuildMember>emptyList();
+            return Collections.<GuildMemberWave>emptyList();
         }
         return leaderboards;
     }
@@ -74,21 +77,26 @@ public class ParseGuild extends ParseAPI {
      * @param leaderboardDataString - API 응답받은 Json
      * @return List<GuildMembers>
      */
-    public List<GuildMember> guildJsonParser(String leaderboardDataString)
+    public List<GuildMemberWave> guildJsonParser(String leaderboardDataString, String guildName)
         throws ParseException, NullPointerException, WrongJsonType
     {
         JSONArray leaderboardlist = getAPIResponseData(leaderboardDataString);
 
-        List<GuildMember> leaderboards = new ArrayList<>();
+        List<GuildMemberWave> leaderboards = new LinkedList<>();
+
+        int minUnit = GuildMemberWave.getMinUnitAuto(this.parseTime);
         for (int i = 0; i < leaderboardlist.size(); i++) {
             JSONObject rankObject = (JSONObject)leaderboardlist.get(i);
 
             // Guild의 Player 정보에는 길드별 Rank에 대한 정보가 없다.
             Long score = (Long)rankObject.get("score");
-            GuildMember leaderboard = new GuildMember(
+            GuildMemberWave leaderboard = new GuildMemberWave(
                 (String)rankObject.get("name"),
+                guildName,
                 score.intValue(),
-                this.parseTime
+                this.parseTime,
+                this.seasonName,
+                minUnit
             );
             leaderboards.add(leaderboard);
         }

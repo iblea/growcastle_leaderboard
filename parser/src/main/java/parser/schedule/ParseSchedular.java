@@ -5,13 +5,14 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.LinkedList;
 
 import parser.db.Database;
 import parser.db.LeaderboardDB;
 import parser.db.SeasonDataDB;
-import parser.db.GuildMemberDB;
+import parser.db.GuildMemberWaveDB;
 import parser.db.HistoryDB;
-import parser.entity.GuildMember;
+import parser.entity.GuildMemberWave;
 import parser.entity.LeaderboardBaseEntity;
 import parser.entity.SeasonData;
 import parser.parser.LeaderboardType;
@@ -32,10 +33,10 @@ public class ParseSchedular {
     private Database db;
 
     // TODO: 길드는 이후 DB에서 가져오는 것으로 변경할 예정
-    // private String[] guilds = { "underdog", "sayonara", "redbridge",
-    //             "paragonia", "droplet",
-    //             "skeleton_skl", "shalom" };
-    private String[] guilds = { "underdog" };
+    private String[] guilds = { "underdog", "sayonara", "redbridge",
+                "paragonia", "droplet",
+                "skeleton_skl", "shalom" };
+    // private String[] guilds = { "underdog" };
 
 
     private SeasonData seasonData = null;
@@ -114,6 +115,7 @@ public class ParseSchedular {
         LocalDateTime now = getNowKST();
         LocalDateTime nowDivide15Minute = divide15Minutes(now);
         boolean updateInform = (nowDivide15Minute.isEqual(this.nextParseTime) || nowDivide15Minute.isAfter(this.nextParseTime));
+        // boolean updateInform = true;
 
         if (checkSeasonEnd(now)) {
             getParseLeaderboards(false);
@@ -132,7 +134,7 @@ public class ParseSchedular {
             logger.info("Delete ago Start Season Date : {}", this.seasonData.getStartDate());
             deleteDatabaseUntilDate(this.seasonData.getStartDate());
         }
-        getParseGuilds();
+        getParseGuilds(nowDivide15Minute);
         this.nextParseTime = getDivide15MinutesPlus15Minutes(nowDivide15Minute);
     }
 
@@ -221,10 +223,8 @@ public class ParseSchedular {
         HistoryDB historyDB = new HistoryDB(this.db);
         historyDB.deleteHistoryUntilDate(date);
 
-        GuildMemberDB guildMemberDB = new GuildMemberDB(this.db);
-        for (String guildName : guilds) {
-            guildMemberDB.deleteGuildDataUntilDate(date, guildName);
-        }
+        GuildMemberWaveDB guildMemberWaveDB = new GuildMemberWaveDB(this.db);
+        guildMemberWaveDB.deleteGuildMemberWaveUntilDate(date);
     }
 
     public void getParseLeaderboards(boolean updateInform) {
@@ -280,32 +280,31 @@ public class ParseSchedular {
         // leaderboardDB.insertLeaderboards(leaderboardData, LeaderboardType.HELL, false);
     }
 
-    public void getParseGuilds() {
+    public void getParseGuilds(LocalDateTime curTime) {
         // guild (우선 순위권 길드만 파싱한다.) 동일 길드의 2군이하 길드는 제외
-        ParseGuild parseGuild = new ParseGuild(this.tgBot);
+        ParseGuild parseGuild = new ParseGuild(this.tgBot, this.seasonData.getSeasonName(), curTime);
 
-        boolean insertStat;
         int failCount = 0;
+        List<GuildMemberWave> allGuildMembers = new LinkedList<>();
         for (String guildName : guilds) {
-            GuildMemberDB guildMemberDB = new GuildMemberDB(this.db);
-            List<GuildMember> guildData = parseGuild.parseGuildByName(guildName);
+            List<GuildMemberWave> guildData = parseGuild.parseGuildByName(guildName);
             if (guildData == null || guildData.isEmpty()) {
                 logger.error("Guild ({}) Data Parse Error", guildName);
                 this.tgBot.sendMsg("Guild (" + guildName + ") Data Parse Error");
                 continue;
             }
-            insertStat = guildMemberDB.insertGuildMembers(guildData, guildName);
-            if (! insertStat) {
-                logger.error("Guild ({}) Data Insert Error", guildName);
-                failCount++;
-                continue;
-            }
-            logger.debug("Guild ({}) Data Inserted Successfully", guildName);
+            allGuildMembers.addAll(guildData);
         }
-        if (failCount > 0) {
+
+        boolean insertStat = false;
+        GuildMemberWaveDB guildMemberWaveDB = new GuildMemberWaveDB(this.db);
+        insertStat = guildMemberWaveDB.insertGuildMemberWaves(allGuildMembers);
+        if (! insertStat) {
+            logger.error("Guild Data Insert Error");
             this.tgBot.sendMsg("Guild Data Insert Error : " + failCount);
         }
     }
+
 
     public void testFunc() {
         // System.out.println("start time : " + LocalDateTime.now());
