@@ -3,7 +3,7 @@ package parser.parser;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collections;
 
 import parser.telegram.TelegramBot;
@@ -106,7 +106,7 @@ public class ParseLeaderboard extends ParseAPI {
     {
         JSONArray leaderboardlist = getAPIResponseData(leaderboardDataString);
 
-        List<LeaderboardBaseEntity> leaderboards = new ArrayList<>();
+        List<LeaderboardBaseEntity> leaderboards = new LinkedList<>();
         for (int i = 0; i < leaderboardlist.size(); i++) {
             JSONObject rankObject = (JSONObject)leaderboardlist.get(i);
             leaderboards.add(getLeaderboardInJson(rankObject, i));

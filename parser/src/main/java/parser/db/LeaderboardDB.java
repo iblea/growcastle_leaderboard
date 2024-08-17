@@ -11,7 +11,7 @@ import javax.persistence.Query;
 
 import parser.entity.LeaderboardBaseEntity;
 import parser.entity.LeaderboardGuild;
-import parser.entity.LeaderboardPK;
+import parser.entity.MemberPK;
 import parser.entity.LeaderboardPlayer;
 import parser.entity.LeaderboardHell;
 import parser.parser.LeaderboardType;
@@ -156,7 +156,7 @@ public class LeaderboardDB {
     }
 
     public LeaderboardBaseEntity findLeaderboardPK(String name, LocalDateTime parseTime, LeaderboardType type) {
-        LeaderboardPK pk = new LeaderboardPK(name, parseTime);
+        MemberPK pk = new MemberPK(name, parseTime);
         Object leaderboard = null;
         EntityManager em = makeTransaction();
         try {

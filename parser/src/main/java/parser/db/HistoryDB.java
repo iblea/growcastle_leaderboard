@@ -13,7 +13,7 @@ import parser.entity.HistoryGuild;
 import parser.entity.HistoryHell;
 import parser.entity.HistoryPlayer;
 import parser.entity.LeaderboardBaseEntity;
-import parser.entity.LeaderboardPK;
+import parser.entity.MemberPK;
 import parser.parser.LeaderboardType;
 
 import org.apache.logging.log4j.LogManager;
@@ -127,7 +127,7 @@ public class HistoryDB {
     }
 
     public LeaderboardBaseEntity findHistoryPK(String name, LocalDateTime parseTime, LeaderboardType type) {
-        LeaderboardPK pk = new LeaderboardPK(name, parseTime);
+        MemberPK pk = new MemberPK(name, parseTime);
         Object leaderboard = null;
         EntityManager em = makeTransaction();
         try {
