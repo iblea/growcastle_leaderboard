@@ -3,7 +3,7 @@ package parser.db;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.annotation.Testable;
 
-import parser.entity.GuildMember;
+import parser.entity.GuildMemberWave;
 
 
 @Testable
@@ -39,32 +39,26 @@ class GuildMemberDBTest {
     @Test
     @Transactional
     void InsertOne() {
-        GuildMemberDB dml = new GuildMemberDB(database);
+        GuildMemberWaveDB dml = new GuildMemberWaveDB(database);
+        LocalDateTime parseTime = LocalDateTime.of(2017, 01, 01, 00, 00, 00);
+        GuildMemberWave member = new GuildMemberWave("Ib", "underdog", 100000, parseTime, "2017-01-01");
 
-        LocalDateTime parseTime = dml.getParseTime();
-        GuildMember member = new GuildMember("Ib", 100000, parseTime);
-
-        List<GuildMember> data = new ArrayList<GuildMember>();
+        List<GuildMemberWave> data = new LinkedList<GuildMemberWave>();
         data.add(member);
+        dml.insertGuildMemberWaves(data);
 
-        String guildName = "underdog";
-        dml.insertGuildMembers(data, guildName);
-
-        GuildMember findMember = dml.findGuildMemberPK("Ib", parseTime, guildName);
-
-
-        assertThat(findMember).isNotNull();
-
+        GuildMemberWave findMember1 = dml.findGuildMemberWavePK("Ib", parseTime);
+        assertThat(findMember1).isNotNull();
+        // assertThat(findMember1).isNull();
         assertThatCode(() -> {
-            assertThat(findMember.getName()).isEqualTo("Ib");
-            assertThat(findMember.getScore()).isEqualTo(100000);
-            assertThat(findMember.getParseTime()).isEqualTo(parseTime);
+            assertThat(findMember1.getName()).isEqualTo("Ib");
+            assertThat(findMember1.getScore()).isEqualTo(100000);
+            assertThat(findMember1.getParseTime()).isEqualTo(parseTime);
         }).doesNotThrowAnyException();
 
-
-        dml.deleteGuildMembers(data, guildName);
-
-        GuildMember findMemberAfterDelete = dml.findGuildMemberPK("Ib", parseTime, guildName);
-        assertThat(findMemberAfterDelete).isNull();
+        dml.deleteGuildMemberWaves(data);
+        GuildMemberWave findMember2 = dml.findGuildMemberWavePK("Ib", parseTime);
+        assertThat(findMember2).isNull();
     }
+
 }
