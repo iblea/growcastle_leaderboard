@@ -7,6 +7,7 @@
         <!-- https://sweetburble.tistory.com/6 -->
         <class>parser.entity.Token</class>
         <class>parser.entity.SeasonData</class>
+        <class>parser.entity.MemberPK</class>
         <class>parser.entity.LeaderboardBaseEntity</class>
         <class>parser.entity.LeaderboardPlayer</class>
         <class>parser.entity.LeaderboardGuild</class>
@@ -15,6 +16,7 @@
         <class>parser.entity.HistoryPlayer</class>
         <class>parser.entity.HistoryGuild</class>
         <class>parser.entity.HistoryHell</class>
+        <class>parser.entity.GuildMemberWave</class>
 
         <properties>
             <!-- 필수 속성 -->
