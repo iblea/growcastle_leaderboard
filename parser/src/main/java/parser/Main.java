@@ -46,7 +46,6 @@ public class Main {
         throws NullPointerException, TelegramApiException, InterruptedException
     {
         logger.info("start");
-        System.out.println("start");
         try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
             // Database 연결
             Database db = new Database("growcastle");

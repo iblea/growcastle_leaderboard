@@ -116,12 +116,6 @@ public class SeasonDataDB {
             return null;
         }
 
-        for (SeasonData data : dataList) {
-            System.out.println(data.getStartDate());
-            System.out.println(data.getEndDate());
-            System.out.println();
-        }
-
         return dataList.get(0);
     }
 

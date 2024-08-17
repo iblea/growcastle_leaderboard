@@ -130,7 +130,6 @@ public class GuildMemberWaveDB {
         } catch (Exception e) {
             logger.error("findGuildMemberWavePK error");
             logger.error(e.getMessage());
-            System.out.println(e.getMessage());
             data = null;
         } finally {
             em.close();
