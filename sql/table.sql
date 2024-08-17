@@ -10,7 +10,7 @@ CREATE TABLE SeasonData
 (
     start_date   TIMESTAMP,
     end_date     TIMESTAMP,
-	season_name  VARCHAR(16) NOT NULL,
+    season_name  VARCHAR(16) NOT NULL,
     PRIMARY KEY (start_date, end_date)
 );
 
@@ -57,8 +57,8 @@ CREATE TABLE History_Player
     name        VARCHAR(32) NOT NULL,
     score       INT NOT NULL,
     parseTime   TIMESTAMP NOT NULL,
-	season      VARCHAR(16) NOT NULL,
-	min_unit    INT NOT NULL,
+    season      VARCHAR(16) NOT NULL,
+    min_unit    INT NOT NULL,
     PRIMARY KEY (name, parseTime)
 );
 CREATE TABLE History_Guild
@@ -67,8 +67,8 @@ CREATE TABLE History_Guild
     name        VARCHAR(32) NOT NULL,
     score       INT NOT NULL,
     parseTime   TIMESTAMP NOT NULL,
-	season      VARCHAR(16) NOT NULL,
-	min_unit    INT NOT NULL,
+    season      VARCHAR(16) NOT NULL,
+    min_unit    INT NOT NULL,
     PRIMARY KEY (name, parseTime)
 );
 
@@ -78,31 +78,21 @@ CREATE TABLE History_Hell
     name        VARCHAR(32) NOT NULL,
     score       INT NOT NULL,
     parseTime   TIMESTAMP NOT NULL,
-	season      VARCHAR(16) NOT NULL,
-	min_unit    INT NOT NULL,
+    season      VARCHAR(16) NOT NULL,
+    min_unit    INT NOT NULL,
     PRIMARY KEY (name, parseTime)
 );
 
--- 활성 길드 멤버
-CREATE TABLE guildmember
+-- 길드 멤버
+CREATE TABLE guild_member_wave
 (
-    username    VARCHAR(32) NOT NULL,
+    name    VARCHAR(32) NOT NULL,
     guildname   VARCHAR(32) NOT NULL,
+    score       INT NOT NULL,
     parseTime   TIMESTAMP NOT NULL,
-	season      VARCHAR(16) NOT NULL,
-    PRIMARY KEY (username, parseTime)
-);
-
-
-CREATE TABLE guildmember_wave
-(
-    username    VARCHAR(32) NOT NULL,
-    guildname   VARCHAR(32) NOT NULL,
-	wave        INT NOT NULL,
-    parseTime   TIMESTAMP NOT NULL,
-	season      VARCHAR(16) NOT NULL,
-	min_unit    INT NOT NULL,
-    PRIMARY KEY (username, parseTime)
+    season      VARCHAR(16) NOT NULL,
+    min_unit    INT NOT NULL,
+    PRIMARY KEY (name, parseTime)
 );
 
 
