@@ -85,7 +85,7 @@ public class ParseSchedular {
 
 
     private boolean isSecondDivide10() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = getNowKST();
         return (now.getSecond() % 10 == 0);
     }
 
@@ -100,7 +100,7 @@ public class ParseSchedular {
 
     private LocalDateTime getNowKST() {
         ZoneId kstZoneId = ZoneId.of("Asia/Seoul");
-        return LocalDateTime.now(kstZoneId);
+        return LocalDateTime.now(kstZoneId).withNano(0);
     }
 
     private LocalDateTime getDivide15MinutesPlus15Minutes(LocalDateTime timeobj) {
