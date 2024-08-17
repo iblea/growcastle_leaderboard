@@ -1,6 +1,7 @@
 #!/bin/bash
 
 curpath=$(dirname "$(realpath $0)")
+cd "$curpath"
 
 # cd "$curpath/../h2"
 # ./cron.sh
