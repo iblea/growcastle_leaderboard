@@ -8,6 +8,7 @@ JAR_NAME="parser.jar"
 
 if [ ! -f "${JAR_DIR}/${JAR_NAME}" ]; then
     echo "${JAR_DIR}/${JAR_NAME} is not exist"
+	exit 1
 fi
 
 proc=$(ps -aef | grep "java -jar.*${JAR_NAME}" | grep -v "grep")
