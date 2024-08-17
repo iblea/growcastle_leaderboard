@@ -28,6 +28,7 @@ import parser.telegram.TelegramBot;
 public class ParseSchedular {
 
     private static Logger logger = LogManager.getLogger(ParseSchedular.class);
+    private static final String PARSE_TIME_ENTITY_NAME = "______parsetime______";
 
     private TelegramBot tgBot;
     private Database db;
@@ -232,12 +233,17 @@ public class ParseSchedular {
         HistoryDB historyDB = new HistoryDB(this.db);
         boolean result;
 
+        LeaderboardBaseEntity parseTimeEntity = new LeaderboardBaseEntity(0, PARSE_TIME_ENTITY_NAME, 0, getNowKST());
         // parse Leaderboard player data
-        List<LeaderboardBaseEntity> leaderboardData = ParseLeaderboard.player(this.tgBot, getNowKST()).parseLeaderboards();
+        List<LeaderboardBaseEntity> leaderboardData = ParseLeaderboard.player(
+            this.tgBot, parseTimeEntity.getParseTime()
+        ).parseLeaderboards();
+
         if (leaderboardData == null || leaderboardData.isEmpty()) {
             logger.error("Leaderboard Player Data Parse Error");
             this.tgBot.sendMsg("Leaderboard Player Data Parse Error");
         } else {
+            leaderboardData.add(parseTimeEntity);
             result = leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.PLAYER);
             if (! result) {
                 logger.error("Leaderboard Player Data Update Error");
@@ -254,12 +260,16 @@ public class ParseSchedular {
             leaderboardData.clear();
         }
 
+        parseTimeEntity.setParseTime(getNowKST());
         // parse Leaderboard guild data
-        leaderboardData = ParseLeaderboard.guild(this.tgBot, getNowKST()).parseLeaderboards();
+        leaderboardData = ParseLeaderboard.guild(
+            this.tgBot, parseTimeEntity.getParseTime()
+        ).parseLeaderboards();
         if (leaderboardData == null || leaderboardData.isEmpty()) {
             logger.error("Leaderboard Guild Data Parse Error");
             this.tgBot.sendMsg("Leaderboard Guild Data Parse Error");
         } else {
+            leaderboardData.add(parseTimeEntity);
             result = leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.GUILD);
             if (! result) {
                 logger.error("Leaderboard Guild Data Update Error");
@@ -295,6 +305,17 @@ public class ParseSchedular {
             }
             allGuildMembers.addAll(guildData);
         }
+
+        if (allGuildMembers.isEmpty()) {
+            logger.error("Guild Data Parse Error");
+            this.tgBot.sendMsg("Guild Data Parse Error");
+            return ;
+        }
+
+        GuildMemberWave parseTimeEntity = new GuildMemberWave(
+            PARSE_TIME_ENTITY_NAME, PARSE_TIME_ENTITY_NAME, 0, curTime, this.seasonData.getSeasonName()
+        );
+        allGuildMembers.add(parseTimeEntity);
 
         boolean insertStat = false;
         GuildMemberWaveDB guildMemberWaveDB = new GuildMemberWaveDB(this.db);
