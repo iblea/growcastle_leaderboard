@@ -48,7 +48,7 @@ public class HistoryDB {
         boolean result = true;
 
         if (data.isEmpty()) {
-            logger.info("insert data is empty");
+            logger.warn("insert data is empty");
             return false;
         }
 

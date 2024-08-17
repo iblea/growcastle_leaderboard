@@ -237,43 +237,43 @@ public class ParseSchedular {
         if (leaderboardData == null || leaderboardData.isEmpty()) {
             logger.error("Leaderboard Player Data Parse Error");
             this.tgBot.sendMsg("Leaderboard Player Data Parse Error");
-            return ;
-        }
-        result = leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.PLAYER);
-        if (! result) {
-            logger.error("Leaderboard Player Data Update Error");
-            this.tgBot.sendMsg("Leaderboard Player Data Update Error");
-            return ;
-        }
-        if (updateInform) {
-            result = historyDB.insertHistory(leaderboardData, LeaderboardType.PLAYER, this.seasonData.getSeasonName());
+        } else {
+            result = leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.PLAYER);
             if (! result) {
-                logger.error("History Player Data Insert Error");
-                this.tgBot.sendMsg("History Player Data Insert Error");
+                logger.error("Leaderboard Player Data Update Error");
+                this.tgBot.sendMsg("Leaderboard Player Data Update Error");
+                return ;
             }
+            if (updateInform) {
+                result = historyDB.insertHistory(leaderboardData, LeaderboardType.PLAYER, this.seasonData.getSeasonName());
+                if (! result) {
+                    logger.error("History Player Data Insert Error");
+                    this.tgBot.sendMsg("History Player Data Insert Error");
+                }
+            }
+            leaderboardData.clear();
         }
+
         // parse Leaderboard guild data
-        leaderboardData.clear();
         leaderboardData = ParseLeaderboard.guild(this.tgBot, getNowKST()).parseLeaderboards();
         if (leaderboardData == null || leaderboardData.isEmpty()) {
             logger.error("Leaderboard Guild Data Parse Error");
             this.tgBot.sendMsg("Leaderboard Guild Data Parse Error");
-            return ;
-        }
-        result = leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.GUILD);
-        if (! result) {
-            logger.error("Leaderboard Guild Data Update Error");
-            this.tgBot.sendMsg("Leaderboard Guild Data Update Error");
-            return ;
-        }
-        if (updateInform) {
-            result = historyDB.insertHistory(leaderboardData, LeaderboardType.GUILD, this.seasonData.getSeasonName());
+        } else {
+            result = leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.GUILD);
             if (! result) {
-                logger.error("History Guild Data Insert Error");
-                this.tgBot.sendMsg("History Guild Data Insert Error");
+                logger.error("Leaderboard Guild Data Update Error");
+                this.tgBot.sendMsg("Leaderboard Guild Data Update Error");
+                return ;
+            }
+            if (updateInform) {
+                result = historyDB.insertHistory(leaderboardData, LeaderboardType.GUILD, this.seasonData.getSeasonName());
+                if (! result) {
+                    logger.error("History Guild Data Insert Error");
+                    this.tgBot.sendMsg("History Guild Data Insert Error");
+                }
             }
         }
-
         // parse Leaderboard hell data (not implemented yet)
         // leaderboardData.clear();
         // leaderboardData = ParseLeaderboard.hellmode(tgBot, now).parseLeaderboards();

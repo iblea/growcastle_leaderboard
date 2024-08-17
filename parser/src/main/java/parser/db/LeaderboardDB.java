@@ -196,6 +196,10 @@ public class LeaderboardDB {
         EntityManager em = makeTransaction();
         boolean result = true;
         EntityTransaction transaction = em.getTransaction();
+        if (data.isEmpty()) {
+            logger.warn("data is empty");
+            return false;
+        }
         try {
             transaction.begin();
             deleteAllQuery(type.getRealTimeTableName(), em);
