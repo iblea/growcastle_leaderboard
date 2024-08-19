@@ -67,6 +67,7 @@ public class ParseGuild extends ParseAPI {
             logger.error(e.getMessage());
             return Collections.<GuildMemberWave>emptyList();
         }
+        logger.debug("[{}], count : [{}] Parse Success", guildName, leaderboards.size());
         return leaderboards;
     }
 

@@ -92,6 +92,8 @@ public class ParseLeaderboard extends ParseAPI {
             logger.error(e.getMessage());
             return Collections.<LeaderboardBaseEntity>emptyList();
         }
+
+        logger.debug("[{}], count : [{}] Parse Success", this.leaderboardType, leaderboards.size());
         return leaderboards;
     }
 
