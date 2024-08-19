@@ -142,6 +142,7 @@ public class ParseLeaderboard extends ParseAPI {
         return new LeaderboardBaseEntity(
             rank + 1,
             (String)rankObject.get("name"),
+            // ((String)rankObject.get("name")).toLowerCase(),
             score.intValue(),
             this.parseTime
         );

@@ -47,6 +47,7 @@ public class ParseGuild extends ParseAPI {
      */
     public List<GuildMemberWave> parseGuildByName(String guildName)
     {
+        // guildName = guildName.toLowerCase();
         String leaderboardURL = getGuildURL(guildName);
         String leaderboardData = null;
         try {
@@ -92,6 +93,7 @@ public class ParseGuild extends ParseAPI {
             Long score = (Long)rankObject.get("score");
             GuildMemberWave leaderboard = new GuildMemberWave(
                 (String)rankObject.get("name"),
+                // ((String)rankObject.get("name")).toLowerCase(),
                 guildName,
                 score.intValue(),
                 this.parseTime,
