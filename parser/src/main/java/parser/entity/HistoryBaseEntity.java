@@ -81,6 +81,11 @@ public class HistoryBaseEntity extends LeaderboardBaseEntity{
         return this.minUnit;
     }
 
+    public HistoryBaseEntity getHistoryBaseEntity()
+    {
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
