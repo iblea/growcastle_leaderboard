@@ -14,6 +14,7 @@ import parser.db.GuildMemberWaveDB;
 import parser.db.HistoryDB;
 import parser.entity.GuildMemberWave;
 import parser.entity.LeaderboardBaseEntity;
+import parser.entity.LeaderboardPlayer;
 import parser.entity.SeasonData;
 import parser.parser.LeaderboardType;
 import parser.parser.ParseGuild;
@@ -28,7 +29,6 @@ import parser.telegram.TelegramBot;
 public class ParseSchedular {
 
     private static Logger logger = LogManager.getLogger(ParseSchedular.class);
-    private static final String PARSE_TIME_ENTITY_NAME = "______parsetime______";
 
     private TelegramBot tgBot;
     private Database db;
@@ -95,7 +95,7 @@ public class ParseSchedular {
         if (minute == 0) {
             return timeobj.withMinute(0).withSecond(0).withNano(0);
         }
-        minute = (minute/ 15) * 15;
+        minute = (minute / 15) * 15;
         return timeobj.withMinute(minute).withSecond(0).withNano(0);
     }
 
@@ -119,6 +119,7 @@ public class ParseSchedular {
         // boolean updateInform = true;
 
         if (checkSeasonEnd(now)) {
+            logger.debug("Season End, Only Leaderboard Data Parse");
             getParseLeaderboards(false);
             return;
         }
@@ -127,7 +128,7 @@ public class ParseSchedular {
         getParseLeaderboards(updateInform);
 
         // parse Guild data
-        if (! updateInform ) {
+        if (! updateInform) {
             return ;
         }
 
@@ -140,6 +141,7 @@ public class ParseSchedular {
     }
 
     public void parseSeasonData(LocalDateTime now) {
+        logger.debug("parse Season Data (start/end)");
         SeasonDataDB seasonDataDB = new SeasonDataDB(this.db);
         if (this.seasonData.isNull()) {
             SeasonData data = seasonDataDB.findSeasonData();
@@ -150,11 +152,13 @@ public class ParseSchedular {
                 if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
                     return ;
                 }
+                this.seasonData.setNull();
             }
         } else {
             if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
                 return ;
             }
+            this.seasonData.setNull();
         }
 
         ParseLeaderboard parseAPI = ParseLeaderboard.player(tgBot, now);
@@ -173,27 +177,15 @@ public class ParseSchedular {
             // 파싱한 시각이 시즌 종료 시간을 지났을 수가 있다.
             this.seasonData.setNull();
         }
-
     }
 
     public boolean isAfterSeasonEnd(LocalDateTime now, LocalDateTime endSeasonDate) {
-        if (now.getYear() != endSeasonDate.getYear()) {
-            return false;
-        }
-        if (now.getMonth() != endSeasonDate.getMonth()) {
-            return false;
-        }
-        if (now.getDayOfMonth() != endSeasonDate.getDayOfMonth()) {
-            return false;
-        }
-        if (now.getHour() != endSeasonDate.getHour()) {
+        LocalDateTime endSeason50Minute = endSeasonDate.withSecond((endSeasonDate.getMinute() / 10) * 10);
+        if (now.isBefore(endSeason50Minute)) {
             return false;
         }
 
-        // 55분 시즌마감이면 50분부터 파싱하지 않는다.
-        if (now.getMinute() < ((endSeasonDate.getMinute() / 10) * 10)) {
-            return false;
-        }
+        logger.debug("after season {} > {}", now, endSeasonDate);
         return true;
     }
 
@@ -205,6 +197,7 @@ public class ParseSchedular {
     public boolean checkSeasonEnd(LocalDateTime now) {
 
         if (this.seasonData.isNull()) {
+            logger.debug("season data is null, parse season data");
             parseSeasonData(now);
         }
 
@@ -233,43 +226,16 @@ public class ParseSchedular {
         HistoryDB historyDB = new HistoryDB(this.db);
         boolean result;
 
-        LeaderboardBaseEntity parseTimeEntity = new LeaderboardBaseEntity(0, PARSE_TIME_ENTITY_NAME, 0, getNowKST());
-        // parse Leaderboard player data
-        List<LeaderboardBaseEntity> leaderboardData = ParseLeaderboard.player(
-            this.tgBot, parseTimeEntity.getParseTime()
-        ).parseLeaderboards();
+        List<LeaderboardBaseEntity> leaderboardData = null;
 
-        if (leaderboardData == null || leaderboardData.isEmpty()) {
-            logger.error("Leaderboard Player Data Parse Error");
-            this.tgBot.sendMsg("Leaderboard Player Data Parse Error");
-        } else {
-            leaderboardData.add(parseTimeEntity);
-            result = leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.PLAYER);
-            if (! result) {
-                logger.error("Leaderboard Player Data Update Error");
-                this.tgBot.sendMsg("Leaderboard Player Data Update Error");
-                return ;
-            }
-            if (updateInform) {
-                result = historyDB.insertHistory(leaderboardData, LeaderboardType.PLAYER, this.seasonData.getSeasonName());
-                if (! result) {
-                    logger.error("History Player Data Insert Error");
-                    this.tgBot.sendMsg("History Player Data Insert Error");
-                }
-            }
-            leaderboardData.clear();
-        }
-
-        parseTimeEntity.setParseTime(getNowKST());
         // parse Leaderboard guild data
         leaderboardData = ParseLeaderboard.guild(
-            this.tgBot, parseTimeEntity.getParseTime()
+            this.tgBot, getNowKST()
         ).parseLeaderboards();
         if (leaderboardData == null || leaderboardData.isEmpty()) {
             logger.error("Leaderboard Guild Data Parse Error");
             this.tgBot.sendMsg("Leaderboard Guild Data Parse Error");
         } else {
-            leaderboardData.add(parseTimeEntity);
             result = leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.GUILD);
             if (! result) {
                 logger.error("Leaderboard Guild Data Update Error");
@@ -277,13 +243,48 @@ public class ParseSchedular {
                 return ;
             }
             if (updateInform) {
-                result = historyDB.insertHistory(leaderboardData, LeaderboardType.GUILD, this.seasonData.getSeasonName());
+                result = historyDB.insertHistory(
+                    leaderboardData, LeaderboardType.GUILD, this.seasonData.getSeasonName(), this.nextParseTime
+                );
                 if (! result) {
                     logger.error("History Guild Data Insert Error");
                     this.tgBot.sendMsg("History Guild Data Insert Error");
                 }
             }
         }
+
+
+        // parse Leaderboard player data
+        leaderboardData = ParseLeaderboard.player(
+            this.tgBot, getNowKST()
+        ).parseLeaderboards();
+
+        if (leaderboardData == null || leaderboardData.isEmpty()) {
+            logger.error("Leaderboard Player Data Parse Error");
+            this.tgBot.sendMsg("Leaderboard Player Data Parse Error");
+        } else {
+            result = leaderboardDB.updateLeaderboardsPlayerTracking(leaderboardData);
+            if (! result) {
+                logger.error("Leaderboard Player Data Update Error");
+                this.tgBot.sendMsg("Leaderboard Player Data Update Error");
+                return ;
+            }
+            if (updateInform) {
+                List<LeaderboardPlayer> data = leaderboardDB.getLeaderboardPlayersAll();
+                result = historyDB.insertHistoryPlayerTracking(
+                    data, this.seasonData.getSeasonName(), this.nextParseTime
+                );
+                if (! result) {
+                    logger.error("History Player Data Insert Error");
+                    this.tgBot.sendMsg("History Player Data Insert Error");
+                } else {
+                    logger.info("History Player Data Insert Success");
+                    leaderboardDB.setInitializeTrackedData();
+                }
+            }
+            leaderboardData.clear();
+        }
+
         // parse Leaderboard hell data (not implemented yet)
         // leaderboardData.clear();
         // leaderboardData = ParseLeaderboard.hellmode(tgBot, now).parseLeaderboards();
@@ -311,11 +312,6 @@ public class ParseSchedular {
             this.tgBot.sendMsg("Guild Data Parse Error");
             return ;
         }
-
-        GuildMemberWave parseTimeEntity = new GuildMemberWave(
-            PARSE_TIME_ENTITY_NAME, PARSE_TIME_ENTITY_NAME, 0, curTime, this.seasonData.getSeasonName()
-        );
-        allGuildMembers.add(parseTimeEntity);
 
         boolean insertStat = false;
         GuildMemberWaveDB guildMemberWaveDB = new GuildMemberWaveDB(this.db);

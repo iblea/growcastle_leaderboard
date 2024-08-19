@@ -2,9 +2,9 @@ package parser.parser;
 
 public enum LeaderboardType {
 
-    PLAYER(1, "players", "LEADERBOARD_PLAYER", "HISTORY_PLAYER"),
-    GUILD(2, "guilds", "LEADERBOARD_GUILD", "HISTORY_GUILD"),
-    HELL(3, "hell", "LEADERBOARD_HELL", "HISTORY_HELL");
+    PLAYER(1, "players", "leaderboard_player", "history_player"),
+    GUILD(2, "guilds", "leaderboard_guild", "history_guild"),
+    HELL(3, "hell", "leaderboard_hell", "history_hell");
 
     private String typename;
     private int type;

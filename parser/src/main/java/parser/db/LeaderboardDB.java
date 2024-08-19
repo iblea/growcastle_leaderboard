@@ -27,6 +27,11 @@ public class LeaderboardDB {
 
     private static Logger logger = LogManager.getLogger(LeaderboardDB.class);
 
+    private static final int NO_JUMP = 5;
+    private static final int HORN_JUMP = 6;
+    private static final int DHORN_JUMP = 7;
+
+
     Database db;
 
     public LeaderboardDB(Database db) {
@@ -64,6 +69,28 @@ public class LeaderboardDB {
         return result;
     }
 
+    public boolean insertLeaderboardsPlayerTracking(List<LeaderboardBaseEntity> data, List<LeaderboardPlayer> agoWaveData) {
+        EntityManager em = makeTransaction();
+        EntityTransaction transaction = em.getTransaction();
+        boolean result = true;
+        try {
+            transaction.begin();
+            insertsqlLeaderboardsPlayerTracking(data, agoWaveData, em);
+            transaction.commit();
+        } catch (Exception e) {
+            logger.error("insertLeaderboardsPlayerTracking error");
+            logger.error(e.getMessage());
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            result = false;
+        } finally {
+            em.close();
+        }
+        logger.debug("player [{}] leaderboards tracking inserted", data.size());
+        return result;
+    }
+
     private void insertLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
         switch (type) {
             case PLAYER:
@@ -82,6 +109,92 @@ public class LeaderboardDB {
                 }
                 break;
         }
+    }
+
+    private LeaderboardPlayer trackedAgoData(LeaderboardBaseEntity leaderboard, List<LeaderboardPlayer> agoWaveData) {
+        LeaderboardPlayer player = new LeaderboardPlayer(leaderboard);
+        boolean userFind = false;
+
+        int index = -1;
+        for (LeaderboardPlayer agoData : agoWaveData) {
+            index++;
+
+            if (! leaderboard.getName().equals(agoData.getLeaderboard().getName())) {
+                continue;
+            }
+
+            userFind = true;
+
+            // 웨이브 정보가 이전 데이터보다 작으면 시즌이 초기화된 것
+            if (leaderboard.getScore() < agoData.getLeaderboard().getScore()) {
+                player.setWaveTracketZero();
+                agoWaveData.remove(index);
+                break;
+            }
+
+            player.setAgoData(agoData);
+            // 웨이브 정보가 같으면 이전 정보를 가져온다.
+            if (leaderboard.getScore() == agoData.getLeaderboard().getScore()) {
+                agoWaveData.remove(index);
+                break;
+            }
+
+            int waveDiff = leaderboard.getScore() - agoData.getLeaderboard().getScore();
+            player.addWave(1);
+            if (waveDiff <= NO_JUMP) {
+            } else if (waveDiff <= HORN_JUMP) {
+                player.addHornJump(1);
+            } else if (waveDiff <= DHORN_JUMP) {    // double horn jump
+                player.addDHornJump(1);
+            } else { //crystal jump
+                player.addCrystalJump(1);
+            }
+            agoWaveData.remove(index);
+            break;
+        }
+
+        // 유저를 찾지 못했으면 랭킹권에 새로 진입한 유저
+        if (! userFind) {
+            player.setWaveTracketZero();
+        }
+
+        return player;
+    }
+
+    private void insertsqlLeaderboardsPlayerTracking(List<LeaderboardBaseEntity> data, List<LeaderboardPlayer> agoWaveData, EntityManager em) {
+        if (agoWaveData == null ) {
+            logger.error("agoWaveData is null");
+            return ;
+        }
+        for (LeaderboardBaseEntity leaderboard : data) {
+            LeaderboardPlayer trackedPlayer = trackedAgoData(leaderboard, agoWaveData);
+            em.persist(trackedPlayer);
+        }
+    }
+
+    public void setInitializeTrackedData() {
+        EntityManager em = makeTransaction();
+        EntityTransaction transaction = em.getTransaction();
+
+        int updatedWave = 0;
+        int updatedHornJump = 0;
+        int updatedCrystalJump = 0;
+        try {
+            transaction.begin();
+            String jpql = "UPDATE " + LeaderboardPlayer.class.getSimpleName() + " p SET p.wave = 0, p.hornJump = 0, p.dhornJump = 0, p.crystalJump = 0";
+            Query query = em.createQuery(jpql);
+            updatedWave = query.executeUpdate();
+            transaction.commit();
+        } catch (Exception e) {
+            logger.error("setInitializeTrackedData error");
+            logger.error(e.getMessage());
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+        } finally {
+            em.close();
+        }
+        logger.debug("[{}][{}][{}] updated tracked data set 0", updatedWave, updatedHornJump, updatedCrystalJump);
     }
 
     public void deleteLeaderboardsUntilDateWithType(LocalDateTime date, String tableName) {
@@ -192,14 +305,39 @@ public class LeaderboardDB {
         return null;
     }
 
+    public List<LeaderboardPlayer> getLeaderboardPlayersAll() {
+        EntityManager em = makeTransaction();
+        List<LeaderboardPlayer> leaderboardList = null;
+        try {
+
+            leaderboardList = em.createQuery(
+                "SELECT lp FROM " + LeaderboardPlayer.class.getSimpleName() + " lp"
+                , LeaderboardPlayer.class).getResultList();
+
+        } catch (Exception e) {
+            logger.error("getLeaderboardPlayersAll error");
+            logger.error(e.getMessage());
+            leaderboardList = null;
+        } finally {
+            em.close();
+        }
+        return leaderboardList;
+    }
+
     public boolean updateLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
         EntityManager em = makeTransaction();
         boolean result = true;
         EntityTransaction transaction = em.getTransaction();
+
+        if (data == null) {
+            logger.error("data is null");
+            return false;
+        }
         if (data.isEmpty()) {
             logger.warn("data is empty");
             return false;
         }
+
         try {
             transaction.begin();
             deleteAllQuery(type.getRealTimeTableName(), em);
@@ -218,6 +356,41 @@ public class LeaderboardDB {
         logger.debug("[{}][{}] leaderboards updated", type.getTypename(), data.size());
         return result;
     }
+
+    public boolean updateLeaderboardsPlayerTracking(List<LeaderboardBaseEntity> data) {
+        EntityManager em = makeTransaction();
+        boolean result = true;
+        EntityTransaction transaction = em.getTransaction();
+
+        if (data == null) {
+            logger.error("data is null");
+            return false;
+        }
+        if (data.isEmpty()) {
+            logger.warn("data is empty");
+            return false;
+        }
+
+        try {
+            transaction.begin();
+            List<LeaderboardPlayer> agoWaveData = getLeaderboardPlayersAll();
+            deleteAllQuery(LeaderboardType.PLAYER.getRealTimeTableName(), em);
+            insertsqlLeaderboardsPlayerTracking(data, agoWaveData, em);
+            transaction.commit();
+        } catch (Exception e) {
+            logger.error("updateLeaderboardsPlayerTracking error");
+            logger.error(e.getMessage());
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            result = false;
+        } finally {
+            em.close();
+        }
+        logger.debug("player [{}] leaderboardsPlayerTracking updated", data.size());
+        return result;
+    }
+
 
     public LocalDateTime getParseTime() {
         LocalDateTime now = LocalDateTime.now();

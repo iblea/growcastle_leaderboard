@@ -13,6 +13,7 @@ import parser.entity.HistoryGuild;
 import parser.entity.HistoryHell;
 import parser.entity.HistoryPlayer;
 import parser.entity.LeaderboardBaseEntity;
+import parser.entity.LeaderboardPlayer;
 import parser.entity.MemberPK;
 import parser.parser.LeaderboardType;
 
@@ -42,7 +43,7 @@ public class HistoryDB {
         return emf.createEntityManager();
     }
 
-    public boolean insertHistory(List<LeaderboardBaseEntity> data, LeaderboardType type, String seasonName) {
+    public boolean insertHistory(List<LeaderboardBaseEntity> data, LeaderboardType type, String seasonName, LocalDateTime time) {
         EntityManager em = makeTransaction();
         EntityTransaction transaction = em.getTransaction();
         boolean result = true;
@@ -54,7 +55,7 @@ public class HistoryDB {
 
         try {
             transaction.begin();
-            insertHistoryByType(data, type, em, seasonName);
+            insertHistoryByType(data, type, em, seasonName, time);
             transaction.commit();
         } catch (Exception e) {
             logger.error("insertHistory error");
@@ -70,22 +71,66 @@ public class HistoryDB {
         return result;
     }
 
-    private void insertHistoryByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em, String seasonName) {
+    public boolean insertHistoryPlayerTracking(List<LeaderboardPlayer> data, String seasonName, LocalDateTime time) {
+        EntityManager em = makeTransaction();
+        EntityTransaction transaction = em.getTransaction();
+        boolean result = true;
+
+        if (data == null) {
+            logger.error("insert data is null");
+            return false;
+        }
+        if (data.isEmpty()) {
+            logger.warn("insert data is empty");
+            return false;
+        }
+
+        int minUnit = getMinUnit(time);
+        if (data.isEmpty()) {
+            logger.warn("insert data is empty");
+            return false;
+        }
+
+        try {
+            transaction.begin();
+            for (LeaderboardPlayer leaderboard : data) {
+                em.persist(new HistoryPlayer(leaderboard, seasonName, minUnit, time));
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            logger.error("insertHistory error");
+            logger.error(e.getMessage());
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            result = false;
+        } finally {
+            em.close();
+        }
+        logger.debug("player [{}] historyPlayerTracking inserted", data.size());
+        return result;
+    }
+
+
+    private void insertHistoryByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em, String seasonName, LocalDateTime time) {
         int minUnit = getMinUnit(data.get(0).getParseTime());
         switch (type) {
             case PLAYER:
+                HistoryPlayer history;
                 for (LeaderboardBaseEntity leaderboard : data) {
-                    em.persist(new HistoryPlayer(leaderboard, seasonName, minUnit));
+                    history = new HistoryPlayer(leaderboard, seasonName, minUnit);
+                    history.setParseTime(time);
+                    em.persist(history);
                 }
                 break;
             case GUILD:
                 for (LeaderboardBaseEntity leaderboard : data) {
-                    em.persist(new HistoryGuild(leaderboard, seasonName, minUnit));
+                    em.persist(new HistoryGuild(leaderboard, seasonName, minUnit, time));
                 }
                 break;
             case HELL:
                 for (LeaderboardBaseEntity leaderboard : data) {
-                    em.persist(new HistoryHell(leaderboard, seasonName, minUnit));
+                    em.persist(new HistoryHell(leaderboard, seasonName, minUnit, time));
                 }
                 break;
         }

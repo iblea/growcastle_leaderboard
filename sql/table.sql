@@ -29,6 +29,10 @@ CREATE TABLE Leaderboard_Player
     name        VARCHAR(32) NOT NULL,
     score       INT NOT NULL,
     parseTime   TIMESTAMP NOT NULL,
+    wave        INT NOT NULL,
+    hornjump    INT NOT NULL,
+    dhornjump    INT NOT NULL,
+    crystaljump INT NOT NULL,
     PRIMARY KEY (name, parseTime)
 );
 CREATE TABLE Leaderboard_Guild
@@ -59,6 +63,10 @@ CREATE TABLE History_Player
     parseTime   TIMESTAMP NOT NULL,
     season      VARCHAR(16) NOT NULL,
     min_unit    INT NOT NULL,
+    wave        INT NOT NULL,
+    hornjump    INT NOT NULL,
+    dhornjump    INT NOT NULL,
+    crystaljump INT NOT NULL,
     PRIMARY KEY (name, parseTime)
 );
 CREATE TABLE History_Guild
