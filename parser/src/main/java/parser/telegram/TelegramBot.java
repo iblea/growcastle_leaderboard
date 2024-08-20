@@ -124,7 +124,6 @@ public class TelegramBot implements LongPollingSingleThreadUpdateConsumer {
             logger.error("Error in selectByBotName.");
             logger.error("{} is not found in Token table.", botName);
             logger.error(e.getMessage());
-            // tx.rollback();
             tok = null;
         } finally {
             em.close();

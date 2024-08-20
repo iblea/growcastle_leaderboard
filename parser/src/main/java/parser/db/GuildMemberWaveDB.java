@@ -37,6 +37,20 @@ public class GuildMemberWaveDB {
         return emf.createEntityManager();
     }
 
+    public boolean transactionRollback(EntityTransaction transaction) {
+        boolean stat = true;
+        try {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+        } catch (Exception e) {
+            logger.error("transactionRollback error");
+            logger.error(e.getMessage());
+            stat = false;
+        }
+        return stat;
+    }
+
     public boolean insertGuildMemberWaves(List<GuildMemberWave> data) {
         EntityManager em = makeTransaction();
         EntityTransaction transaction = em.getTransaction();
@@ -54,9 +68,7 @@ public class GuildMemberWaveDB {
         } catch (Exception e) {
             logger.error("insertGuildMemberWave error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
             result = false;
         } finally {
             em.close();
@@ -84,9 +96,7 @@ public class GuildMemberWaveDB {
         } catch (Exception e) {
             logger.error("deleteGuildMemberWaveUntilDate error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
         } finally {
             em.close();
         }
@@ -111,9 +121,7 @@ public class GuildMemberWaveDB {
         } catch (Exception e) {
             logger.error("deleteGuildMemberWaves error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
         } finally {
             em.close();
         }

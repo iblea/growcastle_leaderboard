@@ -43,6 +43,20 @@ public class HistoryDB {
         return emf.createEntityManager();
     }
 
+    public boolean transactionRollback(EntityTransaction transaction) {
+        boolean stat = true;
+        try {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+        } catch (Exception e) {
+            logger.error("transactionRollback error");
+            logger.error(e.getMessage());
+            stat = false;
+        }
+        return stat;
+    }
+
     public boolean insertHistory(List<LeaderboardBaseEntity> data, LeaderboardType type, String seasonName, LocalDateTime time) {
         EntityManager em = makeTransaction();
         EntityTransaction transaction = em.getTransaction();
@@ -60,9 +74,7 @@ public class HistoryDB {
         } catch (Exception e) {
             logger.error("insertHistory error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
             result = false;
         } finally {
             em.close();
@@ -100,9 +112,7 @@ public class HistoryDB {
         } catch (Exception e) {
             logger.error("insertHistory error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
             result = false;
         } finally {
             em.close();
@@ -155,9 +165,7 @@ public class HistoryDB {
         } catch (Exception e) {
             logger.error("deleteHistoryUntilDateWithType error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
         } finally {
             em.close();
         }

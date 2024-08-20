@@ -36,6 +36,20 @@ public class SeasonDataDB {
         return emf.createEntityManager();
     }
 
+    public boolean transactionRollback(EntityTransaction transaction) {
+        boolean stat = true;
+        try {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+        } catch (Exception e) {
+            logger.error("transactionRollback error");
+            logger.error(e.getMessage());
+            stat = false;
+        }
+        return stat;
+    }
+
     public boolean updateSeasonData(SeasonData data) {
         EntityManager em = makeTransaction();
         EntityTransaction transaction = em.getTransaction();
@@ -48,9 +62,7 @@ public class SeasonDataDB {
         } catch (Exception e) {
             logger.error("update SeaonData error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
             result = false;
         } finally {
             em.close();
@@ -78,9 +90,7 @@ public class SeasonDataDB {
         } catch (Exception e) {
             logger.error("delete Season Data error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
             result = false;
         } finally {
             em.close();

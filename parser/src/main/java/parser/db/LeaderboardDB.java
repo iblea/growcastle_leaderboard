@@ -47,6 +47,20 @@ public class LeaderboardDB {
         return emf.createEntityManager();
     }
 
+    public boolean transactionRollback(EntityTransaction transaction) {
+        boolean stat = true;
+        try {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+        } catch (Exception e) {
+            logger.error("transactionRollback error");
+            logger.error(e.getMessage());
+            stat = false;
+        }
+        return stat;
+    }
+
     public boolean insertLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
         EntityManager em = makeTransaction();
         EntityTransaction transaction = em.getTransaction();
@@ -58,9 +72,7 @@ public class LeaderboardDB {
         } catch (Exception e) {
             logger.error("insertLeaderboards error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
             result = false;
         } finally {
             em.close();
@@ -80,9 +92,7 @@ public class LeaderboardDB {
         } catch (Exception e) {
             logger.error("insertLeaderboardsPlayerTracking error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
             result = false;
         } finally {
             em.close();
@@ -188,9 +198,7 @@ public class LeaderboardDB {
         } catch (Exception e) {
             logger.error("setInitializeTrackedData error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
         } finally {
             em.close();
         }
@@ -210,9 +218,7 @@ public class LeaderboardDB {
         } catch (Exception e) {
             logger.error("deleteLeaderboardsUntilDateWithType error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
         } finally {
             em.close();
         }
@@ -236,9 +242,7 @@ public class LeaderboardDB {
         } catch (Exception e) {
             logger.error("deleteLeaderboards error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
         } finally {
             em.close();
         }
@@ -346,9 +350,7 @@ public class LeaderboardDB {
         } catch (Exception e) {
             logger.error("updateLeaderboards error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
             result = false;
         } finally {
             em.close();
@@ -380,9 +382,7 @@ public class LeaderboardDB {
         } catch (Exception e) {
             logger.error("updateLeaderboardsPlayerTracking error");
             logger.error(e.getMessage());
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            transactionRollback(transaction);
             result = false;
         } finally {
             em.close();
