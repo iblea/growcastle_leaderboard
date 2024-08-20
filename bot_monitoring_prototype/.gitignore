@@ -1,0 +1,16 @@
+
+# venv
+gcleaderboard/
+
+# ide
+.vscode/**
+!.vscode/*.code-workspace
+
+# pycache
+**/__pycache__/
+
+# config
+conf/parser.json
+
+# log
+output.log
