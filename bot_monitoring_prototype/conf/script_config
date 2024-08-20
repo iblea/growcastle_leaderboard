@@ -1,5 +1,5 @@
 
-MAIN_SCRIPT="prototype_bot_main.py"
-VENV_NAME="gcleaderboard"
+MAIN_SCRIPT="underdog_monitoring_prototype.py"
+VENV_NAME="underdog_bot"
 # pip3 freeze > requirements_freeze.txt
 FREEZE_PATH="requirements_freeze.txt"
