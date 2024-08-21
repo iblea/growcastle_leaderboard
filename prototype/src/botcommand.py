@@ -3,6 +3,7 @@ import discord
 import config
 from datetime import datetime
 from typing import Optional
+from datetime import datetime
 
 import db
 
@@ -65,7 +66,9 @@ async def print_user_info(interaction: discord.Interaction,
     my_data: str = users_data[username]
     current_score = my_data["score"]
     current_rank = my_data["rank"]
-    msg: str = "```\nPlayer name : {}\nScore: {}\nRank: {}\n".format(username, current_score, current_rank)
+    last_wave_time = datetime.fromtimestamp(int(my_data["last_wave_time"]))
+    last_wave_time_string = last_wave_time.strftime("%Y-%m-%d %H:%M:%S")
+    msg: str = "```\nPlayer name : {}\nScore: {}\nRank: {}\nlast waving time: {}\n".format(username, current_score, current_rank, last_wave_time_string)
 
     if "leaderboard" not in conf_data:
         msg += "```"
@@ -81,18 +84,28 @@ async def print_user_info(interaction: discord.Interaction,
         msg += "2nd: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r3")
         msg += "3rd: {} ({})\n".format(obj, obj - current_score)
+        obj = leaderboards.get("r4")
+        msg += "4th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r5")
+        msg += "5th: {} ({})\n".format(obj, obj - current_score)
+        obj = leaderboards.get("r6")
         msg += "5th: {} ({})\n".format(obj, obj - current_score)
     elif current_rank <= 5:
         obj = leaderboards.get("r3")
         msg += "3rd: {} ({})\n".format(obj, obj - current_score)
+        obj = leaderboards.get("r4")
+        msg += "4th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r5")
         msg += "5th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r6")
         msg += "6th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r10")
         msg += "10th: {} ({})\n".format(obj, obj - current_score)
+        obj = leaderboards.get("r11")
+        msg += "11th: {} ({})\n".format(obj, obj - current_score)
     elif current_rank <= 10:
+        obj = leaderboards.get("r4")
+        msg += "4th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r5")
         msg += "5th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r6")
