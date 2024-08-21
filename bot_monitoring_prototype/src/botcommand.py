@@ -181,6 +181,7 @@ import time
 async def print_history(interaction: discord.Interaction,
         username: str,
         db_parser: db.ParsePlayer,
+        show_shart: bool
 ) -> None:
 
     history = db_parser.get_history(username)
@@ -188,19 +189,35 @@ async def print_history(interaction: discord.Interaction,
         await interaction.response.send_message("error, contact to developer")
         return
 
-    title = "'{}' user data\n\n".format(username)
     string = ""
 
-    if len(history) == 0:
-        string = "'{}' user not found\n\n".format(username)
-    else:
-        for i in range(5):
-            string += "{} day data\n".format(i + 1)
-            string += db.get_history_string(history[24*i:24*(i+1)])
+    embeds = []
 
-    embed = discord.Embed(title=title)
-    embed.description = (string)
-    await interaction.response.send_message(embed=embed)
+    if len(history) == 0:
+        title = "'{}' user data\n\n".format(username)
+        string = "'{}' user not found\n\n".format(username)
+        embed = discord.Embed(title=title)
+        embed.description = (string)
+        embeds.append(embed)
+    else:
+        if show_shart:
+            for i in range(5):
+                title = "'{}' user data, {} day\n\n".format(username, i + 1)
+                string = db.get_history_chart(history[24*i:24*(i+1)])
+                embed = discord.Embed(title=title)
+                embed.description = (string)
+                embeds.append(embed)
+        else:
+            for i in range(5):
+                title = "'{}' user data, {} day\n\n".format(username, i + 1)
+                string = "show output\n"
+                string += "hour | rank, score, diff | per, horn, dhorn, cjump\n"
+                string += db.get_history_string(history[24*i:24*(i+1)])
+                embed = discord.Embed(title=title)
+                embed.description = (string)
+                embeds.append(embed)
+
+    await interaction.response.send_message(embeds=embeds)
 
 
 

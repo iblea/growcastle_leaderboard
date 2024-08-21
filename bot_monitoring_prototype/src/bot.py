@@ -117,7 +117,21 @@ class DiscordBot(discord.Client):
     def apply_command(self) -> None:
 
         @self.tree.command()
-        async def history(interaction: discord.Interaction, username: str):
+        async def helpbot(interaction: discord.Interaction):
+            string = """```
+/history [username] (mobile)
+show history of username
+hour | rank, score, diff | per, horn, dhorn, cjump
+시즌시간 | 랭킹, 총합 웨이브, 변동량 | 클리어 횟수, 호른점프, 더블호른점프, 크리스탈점프
+
+/chart_history [username] (pc)
+show history chart of username
+```
+"""
+            await interaction.response.send_message(string)
+
+        @self.tree.command()
+        async def chart_history(interaction: discord.Interaction, username: str):
             global db_parser
             if botcommand.channel_check(
                 interaction=interaction,
@@ -132,7 +146,26 @@ class DiscordBot(discord.Client):
                 await interaction.response.send_message("username is wrong")
                 return
 
-            await botcommand.print_history(interaction=interaction, username=username, db_parser=db_parser)
+            await botcommand.print_history(interaction=interaction, username=username, db_parser=db_parser, show_shart=True)
+
+
+        @self.tree.command()
+        async def history(interaction: discord.Interaction, username: str):
+            global db_parser
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+
+            if db_parser is None:
+                db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+
+            if db.arg_check(username) is False:
+                await interaction.response.send_message("username is wrong")
+                return
+            await botcommand.print_history(interaction=interaction, username=username, db_parser=db_parser, show_shart=False)
+
 
         print("command set done")
 

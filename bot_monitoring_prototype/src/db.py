@@ -179,8 +179,8 @@ def get_historys(cur, username):
 SELECT
     name,
     parsetime_1h,
-    COALESCE(MAX(rank) FILTER (WHERE EXTRACT(MINUTE FROM parsetime) = 0), -1) AS rank,
-    COALESCE(MAX(score) FILTER (WHERE EXTRACT(MINUTE FROM parsetime) = 0), -1) AS score,
+	COALESCE(MAX(rank) FILTER (WHERE EXTRACT(MINUTE FROM parsetime) = 0), -1) AS rank,
+    MAX(score) AS score,
     SUM(wave) AS total_wave,
     SUM(hornjump) AS total_hornjump,
     SUM(dhornjump) AS total_dhornjump,
@@ -188,7 +188,7 @@ SELECT
 FROM
     ranked_data
 WHERE
-    LOWER(name) = LOWER('{}')
+	LOWER(name) = LOWER('{}')
 GROUP BY
     name, parsetime_1h
 ORDER BY
@@ -334,34 +334,25 @@ class ParsePlayer:
 
             if "users" in cfg_data and username in cfg_data["users"]:
                 ago_score = cfg_data["users"][username]["score"]
-                ago_history = cfg_data["users"][username]["history"]
-                history_time = ago_history["last_update_time"]
                 if ago_score == score:
                     cfg_user_data[username] = {
                         "score": score,
                         "rank": rank,
-                        "last_wave": cfg_data["users"][username]["last_wave"],
-                        "history": ago_history
+                        "last_wave_time": cfg_data["users"][username]["last_wave_time"],
                     }
                 else:
                     cfg_user_data[username] = {
                         "score": score,
                         "rank": rank,
-                        "last_wave": parseTime,
-                        "history": ago_history
+                        "last_wave_time": parseTime,
                     }
 
-                # TODO: history data update config 가져오기
-                if history_time + 1800 <= curr_time:
-                    cfg_data["users"][username]["history"] = get_historydata_by_username(cur, username)
-
-                self.wave_diff_and_set_alarm(username=username, last_wave_time=cfg_data["users"][username]["last_wave"])
+                self.wave_diff_and_set_alarm(username=username, user_data=cfg_user_data[username])
             else:
                 cfg_user_data[username] = {
                     "score": score,
                     "rank": rank,
-                    "last_wave": parseTime,
-                    "history": get_historydata_by_username(cur, username)
+                    "last_wave_time": parseTime,
                 }
 
         cfg_data["users"] = cfg_user_data
@@ -371,11 +362,13 @@ class ParsePlayer:
 
         return True
 
-    def wave_diff_and_set_alarm(self, username: str, last_wave_time: int):
+    def wave_diff_and_set_alarm(self, username: str, user_data: dict):
 
         # TODO: crash time config로부터 가져오기
         crash_time = 200
         player_monitoring: dict = self.config["monitoring"]["player"].get(username)
+
+        last_wave_time = user_data["last_wave_time"]
 
         if player_monitoring is None:
             return
@@ -384,7 +377,8 @@ class ParsePlayer:
             alert_user: str = player_monitoring.get("alert_user_id")
             self.alert_list.append({
                 "user": alert_user,
-                "username": username
+                "username": username,
+                "last_wave_time": last_wave_time
             })
         else:
             self.config["monitoring"]["player"][username]["check"] = False
@@ -445,30 +439,40 @@ class ParsePlayer:
             season_rotate = copy.deepcopy(start_season)
 
             curtime = datetime.now()
+            if curtime.minute == 0 and curtime.second == 0:
+                curtime = curtime.replace(minute=0, second=1)
+            else:
+                curtime = (curtime + timedelta(hours=1)).replace(minute=0, second=1)
             while season_rotate < curtime:
                 list_season.append(season_rotate)
                 season_rotate = season_rotate + timedelta(hours=1)
 
             userData = []
 
+            ago_wave = 0
             for list_season_time in list_season:
                 found = False
                 diff = list_season_time - start_season
                 # parse_time_string = "{} day {:2d} hour".format(diff.days, diff.seconds // 3600)
-                parse_time_string = "{:2d} hour".format(diff.seconds // 3600)
+                parse_time_string = "{:2d}".format(diff.seconds // 3600)
                 for i in range(len(history_data)):
                     if history_data[i][1] == list_season_time:
                         data = history_data[i]
+                        diff = data[3] - ago_wave
+                        if diff >= 10000 or diff < 0:
+                            diff = -1
                         userData.append({
                             "name": data[0],
                             "parse_time": parse_time_string,
                             "rank": data[2],
                             "score": data[3],
                             "wave": data[4],
+                            "diff": diff,
                             "hornjump": data[5],
                             "dhornjump": data[6],
                             "crystaljump": data[7]
                         })
+                        ago_wave = data[3]
                         found = True
                         history_data.pop(i)
                         break
@@ -479,13 +483,40 @@ class ParsePlayer:
                         "rank": 0,
                         "score": 0,
                         "wave": 0,
+                        "diff": 0,
                         "hornjump": 0,
                         "dhornjump": 0,
                         "crystaljump": 0
                     })
+                    ago_wave = 0
 
             break
         return userData
+
+
+def get_history_chart(data) -> str:
+    if len(data) == 0:
+        return "```\nno data\n```\n"
+
+    string = "```\n"
+    string += "|------+-----+--------+------+-----+-----+-----+-----|\n"
+    string += "| time | rnk | score  | diff | per | hrn | dhn | cjp |\n"
+    string += "|------+-----+--------+------+-----+-----+-----+-----|\n"
+    for item in data:
+        string += "| {} h | {:3d} | {:6d} | {:4d} | {:3d} | {:3d} | {:3d} | {:3d} |\n".format(
+            item["parse_time"],
+            item["rank"],
+            item["score"],
+            item["diff"],
+            item["wave"],
+            item["hornjump"],
+            item["dhornjump"],
+            item["crystaljump"]
+        )
+    string += "|------+-----+--------+------+-----+-----+-----+-----|\n"
+    string += "```\n"
+
+    return string
 
 
 def get_history_string(data) -> str:
@@ -493,23 +524,22 @@ def get_history_string(data) -> str:
         return "```\nno data\n```\n"
 
     string = "```\n"
-    string += "|---------+-----+--------+-----+-----+-----+-----|\n"
-    string += "| season  | rnk | score  | per | hrn | dhn | cjp |\n"
-    string += "|---------+-----+--------+-----+-----+-----+-----|\n"
+    # 10|aaa,bbbbbb,cccc|ddd,ooo,pp,qqq
     for item in data:
-        string += "| {} | {:3d} | {:6d} | {:3d} | {:3d} | {:3d} | {:3d} |\n".format(
+        string += "{}|{:3d},{:6d},{:4d}|{:3d},{:3d},{:2d},{:3d}\n".format(
             item["parse_time"],
             item["rank"],
             item["score"],
+            item["diff"],
             item["wave"],
             item["hornjump"],
             item["dhornjump"],
             item["crystaljump"]
         )
-    string += "|---------+-----+--------+-----+-----+-----+-----|\n"
     string += "```\n"
 
     return string
+
 
 
 # 정규식 검사
@@ -546,7 +576,7 @@ def test2():
     string = "'{}' user data\n\n".format(name)
     for i in range(5):
         string += "{} day data\n".format(i + 1)
-        string += get_history_string(result[24*i:24*(i+1)])
+        string += get_history_chart(result[24*i:24*(i+1)])
         print(string)
         print("")
         string = ""
