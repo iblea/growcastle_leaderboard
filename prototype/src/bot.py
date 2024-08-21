@@ -1,4 +1,5 @@
 from typing import Optional
+import config
 
 import discord
 from discord.ext import tasks
@@ -12,14 +13,19 @@ from json import dumps
 import parse
 from config import set_config
 import telegram_bot
+import db
 
 import copy
 
 
+client = None
+db_parser = None
+schedule_channel = None
+
 
 class DiscordBot(discord.Client):
     discord_guild_object: Optional[discord.Object] = None
-    discord_response_chat_id: int = -1
+    discord_response_chat_id: list = []
     discord_bot_token: str = ""
     schedule_second: int = 3
 
@@ -27,8 +33,8 @@ class DiscordBot(discord.Client):
     next_parse_time = 0
     config: Optional[dict] = None
 
-    alert_interval = 3
-    alert_list: list = []
+    alert_interval = 2
+    alert_list: dict = {}
     alert_channel: Optional[int] = None
     last_end_season: str = ""
     last_season_expire_start: int = 0
@@ -56,7 +62,7 @@ class DiscordBot(discord.Client):
         self.tree = app_commands.CommandTree(self)
 
     def set_alert_ignore_time(self):
-        spdate = self.last_end_season.split("-")
+        spdate = self.last_end_season.split(" ")[0].split("-")
         specific_time = datetime.datetime(
             year=int(spdate[0]),
             month=int(spdate[1]),
@@ -216,6 +222,61 @@ class DiscordBot(discord.Client):
                 return
             await botcommand.parse_stat(interaction=interaction, conf=self.config, stat=False)
 
+        @self.tree.command()
+        async def helpbot(interaction: discord.Interaction):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            string = """```
+/history [username] (mobile)
+show history of username
+hour | rank, score, diff | per, horn, dhorn, cjump
+시즌시간 | 랭킹, 총합 웨이브, 변동량 | 클리어 횟수, 호른점프, 더블호른점프, 크리스탈점프
+
+/chart_history [username] (pc)
+show history chart of username
+```
+"""
+            await interaction.response.send_message(string)
+
+        @self.tree.command()
+        async def chart_history(interaction: discord.Interaction, username: str):
+            global db_parser
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+
+            if db_parser is None:
+                db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+
+            if db.arg_check(username) is False:
+                await interaction.response.send_message("username is wrong")
+                return
+
+            await botcommand.print_history(interaction=interaction, username=username, db_parser=db_parser, show_shart=True)
+
+
+        @self.tree.command()
+        async def history(interaction: discord.Interaction, username: str):
+            global db_parser
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+
+            if db_parser is None:
+                db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+
+            if db.arg_check(username) is False:
+                await interaction.response.send_message("username is wrong")
+                return
+            await botcommand.print_history(interaction=interaction, username=username, db_parser=db_parser, show_shart=False)
+
         print("command set done")
 
 
@@ -229,8 +290,18 @@ class DiscordBot(discord.Client):
         if self.config.get("parse_stop") == True:
             return
 
-        parser = parse.ParsePlayer(bot=self.alert_channel, config=self.config)
-        parse_stat: bool = await parser.parse_leaderboard(curr_time=time.time())
+        # db_use = False if self.config["db"]["port"] == 0 else True
+        # if db_use == True and db_parser is None:
+        #     db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+
+        # parser = parse.ParsePlayer(bot=self.alert_channel, config=self.config)
+        parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+        # parse_stat = False
+        parse_stat = await parser.parse_leaderboard(curr_time=int(time.time()))
+        # if db_use == True:
+        #     parse_stat = await db_parser.parse_leaderboard(curr_time=int(time.time()))
+        # else:
+        #     parse_stat: bool = await parser.parse_leaderboard(curr_time=int(time.time()))
         # print("parse_stat : {}".format(parse_stat))
 
         if parse_stat != True:
@@ -240,7 +311,7 @@ class DiscordBot(discord.Client):
 
             if self.parse_fail_count > 8:
                 self.config["parse_stop"] = True
-                self.alert_list = []
+                self.alert_list = {}
                 set_config(config_dict=self.config)
                 await self.alert_channel.send("parse stop")
             return
@@ -249,8 +320,8 @@ class DiscordBot(discord.Client):
         self.alert_list = parser.get_alert_list()
         self.config = parser.get_config()
         set_config(config_dict=self.config)
-        if self.last_end_season != self.config["data"]["end_season"]:
-            self.last_end_season = self.config["data"]["end_season"]
+        if self.last_end_season != self.config["data"]["seasons"]["end"]:
+            self.last_end_season = self.config["data"]["seasons"]["end"]
             self.set_alert_ignore_time()
 
         # parse guild
@@ -261,6 +332,7 @@ class DiscordBot(discord.Client):
     # @tasks.loop(seconds=5.0)
     @tasks.loop(seconds=3)
     async def schedular(self):
+
         curr_time = time.time()
 
         # initialize
@@ -276,14 +348,13 @@ class DiscordBot(discord.Client):
         # set alert channel
         if self.alert_channel is None:
             print("set alert channel")
-            self.alert_channel = super().get_channel(self.config["bot_channel"])
+            self.alert_channel = super().get_channel(self.config["bot_channel"][0])
             await self.alert_channel.send("initialize")
 
         if self.config.get("parse_stop") == True:
             return
 
         if curr_time >= self.next_parse_time:
-            print("parse")
             # parse player
             await self.parse_growcastle_api()
 
@@ -298,22 +369,20 @@ class DiscordBot(discord.Client):
         # print("alert")
         telegram_use: bool = self.config["telegram_use"]
         # alarm
-        for user in self.alert_list:
-            username: str = user["username"]
+        alert_keys = self.alert_list.keys()
+        for key in alert_keys:
+            user = self.alert_list[key]
+            username: str = key
             if self.config["monitoring"]["player"][username]["check"] == True:
                 continue
 
-            msg: str = "user : {} is crashed\ncurrent_wave : {}\nago_wave : {}" \
-                .format(user["username"], user["cur_wave"], user["ago_wave"])
-            # print(msg)
+            msg: str = "user : {} is crashed".format(key)
             await self.alert_channel.send("<@"+ user["user"] + "> " + msg)
 
             if telegram_use == True:
+                parseTime_datetime = datetime.datetime.fromtimestamp(user["last_wave_time"])
                 telegram_bot.tg_lock.acquire()
-                telegram_bot.tg_user[user["username"]] = {
-                    "cur_wave": user["cur_wave"],
-                    "ago_wave": user["ago_wave"]
-                }
+                telegram_bot.tg_user[user["username"]] = parseTime_datetime.strftime("%Y-%m-%d %H:%M:%S")
                 telegram_bot.tg_lock.release()
 
 
@@ -325,7 +394,7 @@ class DiscordBot(discord.Client):
 
 
 def main():
-    import config
+    global client
     config_file_path: str = config.get_config_file_path()
     conf: dict= config.get_config_opt(config_file_path)
     if conf is None:

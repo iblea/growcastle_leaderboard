@@ -1,22 +1,26 @@
 
 import discord
 import config
+from datetime import datetime
 from typing import Optional
 
+import db
 
-def channel_check(interaction: discord.Interaction, chat_id: int) -> bool:
+
+def channel_check(interaction: discord.Interaction, chat_id: list) -> bool:
     """ 설정한 chat id와 다르면 응답하지 않는다.
     chat_id 값이 0이면, 모든 채널에서 응답하는 것으로 간주한다.
     Args:
         interaction (discord.Interaction): 명령어를 실행한 channel_id
-        chat_id (int): 검증할 channel_id
+        chat_id (list): 검증할 channel_id list
 
     Returns:
         bool: 동일한 channel_id인지를 리턴
     """
-    if chat_id == 0:
+    if len(chat_id) <= 0:
         return True
-    if interaction.channel.id == chat_id:
+    # if interaction.channel.id == chat_id
+    if interaction.channel.id in chat_id:
         return True
     return False
 
@@ -106,6 +110,29 @@ async def print_user_info(interaction: discord.Interaction,
         msg += "50th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r51")
         msg += "51th: {} ({})\n".format(obj, obj - current_score)
+
+    msg += "\n"
+    if "history" in my_data:
+        my_history = my_data["history"]
+        msg += "last_update_time : {}".format(my_history["last_update_time"])
+        ago_score = 0
+        history_times = list(my_history.keys())
+        for history_time in history_times:
+            if ago_score == 0:
+                msg += "{} : {}({})\n".format(
+                    history_time,
+                    my_history[history_time]["score"],
+                    my_history[history_time]["rank"]
+                )
+                continue
+            else:
+                msg += "{} : {}({}) [{}]\n".format(
+                    history_time,
+                    my_history[history_time]["score"],
+                    my_history[history_time]["rank"],
+                    ago_score - my_history[history_time]["score"]
+                )
+            ago_score = my_history[history_time]
     msg += "```"
     await interaction.response.send_message(msg)
 
@@ -149,6 +176,51 @@ async def parse_stat(interaction: discord.Interaction,
     conf["parse_stop"] = stat
     config.set_config(conf)
     await interaction.response.send_message("parse_stop object change to {}".format(stat))
+
+
+import time
+async def print_history(interaction: discord.Interaction,
+        username: str,
+        db_parser: db.ParsePlayer,
+        show_shart: bool
+) -> None:
+
+    history = db_parser.get_history(username)
+    if history is None:
+        await interaction.response.send_message("error, contact to developer")
+        return
+
+    string = ""
+
+    embeds = []
+
+    if len(history) == 0:
+        title = "'{}' user data\n\n".format(username)
+        string = "'{}' user not found\n\n".format(username)
+        embed = discord.Embed(title=title)
+        embed.description = (string)
+        embeds.append(embed)
+    else:
+        if show_shart:
+            for i in range(5):
+                title = "'{}' user data, {} day\n\n".format(username, i + 1)
+                string = db.get_history_chart(history[24*i:24*(i+1)])
+                embed = discord.Embed(title=title)
+                embed.description = (string)
+                embeds.append(embed)
+        else:
+            for i in range(5):
+                title = "'{}' user data, {} day\n\n".format(username, i + 1)
+                string = "show output\n"
+                string += "hour | rank, score, diff | per, horn, dhorn, cjump\n"
+                string += db.get_history_string(history[24*i:24*(i+1)])
+                embed = discord.Embed(title=title)
+                embed.description = (string)
+                embeds.append(embed)
+
+    await interaction.response.send_message(embeds=embeds)
+
+
 
 
 

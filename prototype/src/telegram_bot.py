@@ -44,8 +44,11 @@ def telegram_thread():
         msg = ""
         for key in userkeys:
             loop = asyncio.get_event_loop()
-            msg += "User : {} is crashed, cur_wave: {}, ago_wave: {}" \
-                .format(key, tg_user[key]["cur_wave"], tg_user[key]["ago_wave"])
+            value = tg_user[key]
+            if value is None:
+                msg += "prototype bot information : {}".format(key)
+            else:
+                msg += "User : {} is crashed, last waving time : {}".format(key, tg_user[key])
             msg += "\n"
             tg_lock.acquire()
             del tg_user[key]
@@ -74,7 +77,7 @@ def start_telegram_bot(config: dict):
     tg_alert_repeat = config["telegram"]["alert_repeat"]
     print("init telegram")
 
-    tg_user["telegram bot initialize. this is init check message"] = {"cur_wave": 0, "ago_wave": 0}
+    tg_user["telegram bot initialize."] = None
 
     tg_thread = threading.Thread(target=telegram_thread)
     tg_thread.daemon = True

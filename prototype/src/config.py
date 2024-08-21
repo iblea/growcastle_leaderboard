@@ -35,7 +35,7 @@ def get_config_opt(conf_path: str) -> dict | None:
             return None
 
         obj = config.get("bot_channel")
-        if obj is None or obj == 0:
+        if obj is None:
             print("Wrong bot channel id")
             return None
 
@@ -57,6 +57,28 @@ def get_config_opt(conf_path: str) -> dict | None:
             obj = config["telegram"].get("chat_id")
             if obj is None or obj == 0:
                 print("no telegram chat id")
+                return None
+
+        if "db" in config:
+            obj = config["db"].get("username")
+            if obj is None or obj == "":
+                print("no db username")
+                return None
+            obj = config["db"].get("password")
+            if obj is None or obj == "":
+                print("no db password")
+                return None
+            obj = config["db"].get("host")
+            if obj is None or obj == "":
+                print("no db host")
+                return None
+            obj = config["db"].get("port")
+            if obj is None or obj == "":
+                print("no db port")
+                return None
+            obj = config["db"].get("database")
+            if obj is None or obj == "":
+                print("no db database")
                 return None
 
         obj = config["monitoring"]

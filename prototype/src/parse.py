@@ -204,7 +204,7 @@ class ParsePlayer:
     response: Optional[Response] = None
     apidict: Optional[dict] = None
 
-    alert_list: list = []
+    alert_list: dict = {}
 
 
     def __init__(self, bot, config):
@@ -226,7 +226,7 @@ class ParsePlayer:
         """API를 파싱하여 crash 난 사람들의 리스트를 획득한다.
         """
         print("url : {}".format(url))
-        self.alert_list = []
+        self.alert_list = {}
         self.response = None
         self.apidict = None
         retry_count: int = self.config.get("retry_count")
@@ -317,13 +317,12 @@ class ParsePlayer:
         if ago_wave >= curr_wave - check_crash_wave:
 
             alert_user: str = player_monitoring.get("alert_user_id")
-            self.alert_list.append({
+            self.alert_list[alert_user] = {
                 "ago_wave": ago_wave,
                 "cur_wave": curr_wave,
                 "user": alert_user,
                 "username": username
-            })
-
+            }
         else:
             self.config["monitoring"]["player"][username]["check"] = False
 
