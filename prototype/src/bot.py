@@ -234,9 +234,22 @@ class DiscordBot(discord.Client):
 show history of username
 hour | rank, score, diff | per, horn, dhorn, cjump
 시즌시간 | 랭킹, 총합 웨이브, 변동량 | 클리어 횟수, 호른점프, 더블호른점프, 크리스탈점프
+전일과 금일의 시즌 데이터를 출력한다. (show ago and today data)
+
+/history_all [username] (mobile)
+show all history of username
+hour | rank, score, diff | per, horn, dhorn, cjump
+시즌시간 | 랭킹, 총합 웨이브, 변동량 | 클리어 횟수, 호른점프, 더블호른점프, 크리스탈점프
+현 시즌의 모든 데이터를 출력한다. (show all data of this season)
+
 
 /chart_history [username] (pc)
 show history chart of username
+전일과 금일의 시즌 데이터를 차트 형식으로 출력한다. (show ago and today data)
+
+/chart_history_all [username] (pc)
+show all history chart of username
+현 시즌의 모든 데이터를 차트 형식으로 출력한다. (show all data of this season)
 ```
 """
             await interaction.response.send_message(string)
@@ -257,8 +270,36 @@ show history chart of username
                 await interaction.response.send_message("username is wrong")
                 return
 
-            await botcommand.print_history(interaction=interaction, username=username, db_parser=db_parser, show_shart=True)
+            await botcommand.print_history(
+                interaction=interaction,
+                username=username,
+                db_parser=db_parser,
+                show_shart=True,
+                show_all=False
+            )
 
+        @self.tree.command()
+        async def chart_history_all(interaction: discord.Interaction, username: str):
+            global db_parser
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+
+            if db_parser is None:
+                db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+
+            if db.arg_check(username) is False:
+                await interaction.response.send_message("username is wrong")
+                return
+
+            await botcommand.print_history(
+                interaction=interaction,
+                username=username,
+                db_parser=db_parser,
+                show_shart=True, show_all=True
+            )
 
         @self.tree.command()
         async def history(interaction: discord.Interaction, username: str):
@@ -275,7 +316,35 @@ show history chart of username
             if db.arg_check(username) is False:
                 await interaction.response.send_message("username is wrong")
                 return
-            await botcommand.print_history(interaction=interaction, username=username, db_parser=db_parser, show_shart=False)
+            await botcommand.print_history(
+                interaction=interaction,
+                username=username,
+                db_parser=db_parser,
+                show_shart=False, show_all=False
+            )
+
+        @self.tree.command()
+        async def history_all(interaction: discord.Interaction, username: str):
+            global db_parser
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+
+            if db_parser is None:
+                db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+
+            if db.arg_check(username) is False:
+                await interaction.response.send_message("username is wrong")
+                return
+            await botcommand.print_history(
+                interaction=interaction,
+                username=username,
+                db_parser=db_parser,
+                show_shart=False, show_all=True
+            )
+
 
         print("command set done")
 

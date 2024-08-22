@@ -4,6 +4,8 @@ import config
 from datetime import datetime
 from typing import Optional
 from datetime import datetime
+from math import ceil
+import time
 
 import db
 
@@ -191,11 +193,12 @@ async def parse_stat(interaction: discord.Interaction,
     await interaction.response.send_message("parse_stop object change to {}".format(stat))
 
 
-import time
+
 async def print_history(interaction: discord.Interaction,
         username: str,
         db_parser: db.ParsePlayer,
-        show_shart: bool
+        show_shart: bool,
+        show_all: bool
 ) -> None:
 
     history = db_parser.get_history(username)
@@ -206,23 +209,40 @@ async def print_history(interaction: discord.Interaction,
     string = ""
 
     embeds = []
+    history_len = len(history)
 
-    if len(history) == 0:
+    if history_len == 0:
         title = "'{}' user data\n\n".format(username)
         string = "'{}' user not found\n\n".format(username)
         embed = discord.Embed(title=title)
         embed.description = (string)
         embeds.append(embed)
     else:
+        start_index = 0
+        showlen = 5
+
+        if show_all == False:
+            difflen = 2
+            if history_len <= 24:
+                difflen = 1
+            elif history_len % 24 == 0:
+                start_index = (history_len // 24) - 2
+            else:
+                start_index = (history_len // 24) - 1
+            showlen = start_index + difflen
+
         if show_shart:
-            for i in range(5):
+            for i in range(start_index, showlen, 1):
                 title = "'{}' user data, {} day\n\n".format(username, i + 1)
                 string = db.get_history_chart(history[24*i:24*(i+1)])
                 embed = discord.Embed(title=title)
                 embed.description = (string)
                 embeds.append(embed)
         else:
-            for i in range(5):
+            # for i in range(5):
+            for i in range(start_index, showlen, 1):
+                if history_len < 24*(i):
+                    break
                 title = "'{}' user data, {} day\n\n".format(username, i + 1)
                 string = "show output\n"
                 string += "hour | rank, score, diff | per, horn, dhorn, cjump\n"
