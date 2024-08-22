@@ -389,6 +389,7 @@ class ParsePlayer:
         if self.config["db"]["port"] == 0:
             return None
 
+        userData = []
         history_data = None
         for _ in range(5):
             if self.conn is None:
@@ -449,14 +450,16 @@ class ParsePlayer:
                 list_season.append(season_rotate)
                 season_rotate = season_rotate + timedelta(hours=1)
 
-            userData = []
 
             ago_wave = 0
             for list_season_time in list_season:
                 found = False
                 diff = list_season_time - start_season
                 # parse_time_string = "{} day {:2d} hour".format(diff.days, diff.seconds // 3600)
-                parse_time_string = "{:2d}".format(diff.seconds // 3600)
+                diffhour = (diff.seconds // 3600) - 1
+                if diffhour < 0:
+                    diffhour = 23
+                parse_time_string = "{:2d}".format(diffhour)
                 for i in range(len(history_data)):
                     if history_data[i][1] == list_season_time:
                         data = history_data[i]
@@ -493,6 +496,8 @@ class ParsePlayer:
                     ago_wave = 0
 
             break
+        if len(userData) >= 1:
+            userData[0]["parse_time"] = " X"
         return userData
 
 
@@ -505,20 +510,27 @@ def get_history_chart(data) -> str:
     string += "| time | rnk | score  | diff | per | hrn | dhn | cjp |\n"
     string += "|------+-----+--------+------+-----+-----+-----+-----|\n"
     for item in data:
-        string += "| {} h | {:3d} | {:6d} | {:4d} | {:3d} | {:3d} | {:3d} | {:3d} |\n".format(
-            item["parse_time"],
-            item["rank"],
-            item["score"],
-            item["diff"],
-            item["wave"],
-            item["hornjump"],
-            item["dhornjump"],
-            item["crystaljump"]
-        )
+        string += print_history_chart_row(item)
+
     string += "|------+-----+--------+------+-----+-----+-----+-----|\n"
     string += "```\n"
 
     return string
+
+
+def print_history_chart_row(item):
+    string = "| {} h | {:3d} | {:6d} | {:4d} | {:3d} | {:3d} | {:3d} | {:3d} |\n".format(
+        item["parse_time"],
+        item["rank"],
+        item["score"],
+        item["diff"],
+        item["wave"],
+        item["hornjump"],
+        item["dhornjump"],
+        item["crystaljump"]
+    )
+    return string
+
 
 
 def get_history_string(data) -> str:
@@ -528,19 +540,24 @@ def get_history_string(data) -> str:
     string = "```\n"
     # 10|aaa,bbbbbb,cccc|ddd,ooo,pp,qqq
     for item in data:
-        string += "{}|{:3d},{:6d},{:4d}|{:3d},{:3d},{:2d},{:3d}\n".format(
-            item["parse_time"],
-            item["rank"],
-            item["score"],
-            item["diff"],
-            item["wave"],
-            item["hornjump"],
-            item["dhornjump"],
-            item["crystaljump"]
-        )
+        string += print_history_string_row(item)
     string += "```\n"
 
     return string
+
+def print_history_string_row(item):
+    string = "{}|{:3d},{:6d},{:4d}|{:3d},{:3d},{:2d},{:3d}\n".format(
+        item["parse_time"],
+        item["rank"],
+        item["score"],
+        item["diff"],
+        item["wave"],
+        item["hornjump"],
+        item["dhornjump"],
+        item["crystaljump"]
+    )
+    return string
+
 
 
 

@@ -193,6 +193,7 @@ async def print_history(interaction: discord.Interaction,
         await interaction.response.send_message("error, contact to developer")
         return
 
+    history_init_row = history.pop(0)
     string = ""
 
     embeds = []
@@ -221,7 +222,13 @@ async def print_history(interaction: discord.Interaction,
         if show_shart:
             for i in range(start_index, showlen, 1):
                 title = "'{}' user data, {} day\n\n".format(username, i + 1)
-                string = db.get_history_chart(history[24*i:24*(i+1)])
+                history_arr = history[24*i:24*(i+1)]
+                string = ""
+                if i == 0:
+                    string += "initialize data\n```\n"
+                    string += db.print_history_chart_row(history_init_row)
+                    string += "```\n"
+                string += db.get_history_chart(history_arr)
                 embed = discord.Embed(title=title)
                 embed.description = (string)
                 embeds.append(embed)
@@ -231,9 +238,13 @@ async def print_history(interaction: discord.Interaction,
                 if history_len < 24*(i):
                     break
                 title = "'{}' user data, {} day\n\n".format(username, i + 1)
-                string = "show output\n"
-                string += "hour | rank, score, diff | per, horn, dhorn, cjump\n"
-                string += db.get_history_string(history[24*i:24*(i+1)])
+                string = ""
+                if i == 0:
+                    string += "initialize data\n```\n"
+                    string += db.print_history_string_row(history_init_row)
+                    string += "```\n"
+                history_arr = history[24*i:24*(i+1)]
+                string += db.get_history_string(history_arr)
                 embed = discord.Embed(title=title)
                 embed.description = (string)
                 embeds.append(embed)
