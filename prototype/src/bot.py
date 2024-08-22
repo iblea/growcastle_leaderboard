@@ -10,7 +10,7 @@ import time
 import datetime
 from json import dumps
 
-import parse
+# import parse
 from config import set_config
 import telegram_bot
 import db
