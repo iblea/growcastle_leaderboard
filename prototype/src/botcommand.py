@@ -308,7 +308,6 @@ async def print_history(interaction: discord.Interaction,
         await interaction.response.send_message("error, contact to developer")
         return
 
-    history_init_row = history.pop(0)
     string = ""
 
     embeds = []
@@ -321,6 +320,8 @@ async def print_history(interaction: discord.Interaction,
         embed.description = (string)
         embeds.append(embed)
     else:
+        history_init_row = history.pop(0)
+        history_len -= 1
         start_index = 0
         showlen = 5
 
