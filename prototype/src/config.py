@@ -1,7 +1,9 @@
 
 import os
 import json
+from time import sleep
 
+io_lock = False
 
 def get_script_path() -> str:
     return os.path.dirname(__file__)
@@ -21,6 +23,14 @@ def get_config_opt(conf_path: str) -> dict | None:
         return None
 
     try:
+        for _ in range(10):
+            if io_lock == True:
+                sleep(0.1)
+                continue
+            break
+        if io_lock == True:
+            print("io lock")
+            return None
         with open(conf_path, "r") as f:
             config: dict = json.load(f)
 
@@ -102,10 +112,22 @@ def get_config_opt(conf_path: str) -> dict | None:
 
 
 def set_config(config_dict, config_file=get_config_file_path()) -> bool:
+    global io_lock
+    for _ in range(10):
+        if io_lock == True:
+            sleep(0.1)
+            continue
+        break
+    if io_lock == True:
+        print("io lock")
+        return False
     try:
+        io_lock = True
         with open(config_file, "w") as f:
             json.dump(config_dict, f, indent=4)
+            io_lock = False
     except Exception as e:
+        io_lock = False
         print("config file save error")
         print(e)
         return False

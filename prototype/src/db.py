@@ -329,6 +329,7 @@ class ParsePlayer:
             username: str = userdata[1]
             score = userdata[2]
             parseTime = int(userdata[3].timestamp())
+            username = username.lower()
             if username not in player_monitoring:
                 continue
 

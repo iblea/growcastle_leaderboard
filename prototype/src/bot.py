@@ -120,16 +120,70 @@ class DiscordBot(discord.Client):
 
     # discord bot command
     def apply_command(self) -> None:
+
         @self.tree.command()
-        async def userinfo(interaction: discord.Interaction) -> None:
+        async def userinfo(interaction: discord.Interaction, user: str) -> None:
             if botcommand.channel_check(
                 interaction=interaction,
                 chat_id=self.discord_response_chat_id
             ) == False:
                 return
 
-            await botcommand.print_user_info(interaction=interaction, conf=self.config, username=self.my_username)
+            await botcommand.print_user_info(interaction=interaction, conf=self.config, username=user)
 
+        @self.tree.command()
+        @app_commands.describe(
+            user='Add Monitoring User'
+        )
+        async def useradd(interaction: discord.Interaction, user: str):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_add(interaction=interaction, conf=self.config, username=user)
+
+        @self.tree.command()
+        @app_commands.describe(
+            user='Delete Monitoring User',
+        )
+        async def userdel(interaction: discord.Interaction, user: str):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_del(interaction=interaction, conf=self.config, username=user)
+
+        @self.tree.command()
+        async def userlist(interaction: discord.Interaction):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_list(interaction=interaction, conf=self.config)
+
+        @self.tree.command()
+        async def userok(interaction: discord.Interaction, user: str):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_ok(interaction=interaction, conf=self.config, username=user)
+
+        @self.tree.command()
+        async def userno(interaction: discord.Interaction, user: str):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_notok(interaction=interaction, conf=self.config, username=user)
+
+
+        # """
         @self.tree.command()
         async def info(interaction: discord.Interaction) -> None:
             if botcommand.channel_check(
@@ -140,30 +194,6 @@ class DiscordBot(discord.Client):
 
             await botcommand.print_user_info(interaction=interaction, conf=self.config, username=self.my_username)
 
-        # @self.tree.command()
-        # @app_commands.describe(
-        #     user='Add Monitoring User'
-        # )
-        # async def useradd(interaction: discord.Interaction, user: str):
-        #     if botcommand.channel_check(
-        #         interaction=interaction,
-        #         chat_id=self.discord_response_chat_id
-        #     ) == False:
-        #         return
-        #     await botcommand.todo(interaction=interaction)
-
-        # @self.tree.command()
-        # @app_commands.describe(
-        #     user='Delete Monitoring User',
-        # )
-        # async def userdel(interaction: discord.Interaction, user: str):
-        #     if botcommand.channel_check(
-        #         interaction=interaction,
-        #         chat_id=self.discord_response_chat_id
-        #     ) == False:
-        #         return
-        #     await botcommand.todo(interaction=interaction)
-
         @self.tree.command()
         async def ok(interaction: discord.Interaction):
             if botcommand.channel_check(
@@ -172,6 +202,15 @@ class DiscordBot(discord.Client):
             ) == False:
                 return
             await botcommand.user_ok(interaction=interaction, conf=self.config, username=self.my_username)
+
+        @self.tree.command()
+        async def no(interaction: discord.Interaction):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_notok(interaction=interaction, conf=self.config, username=self.my_username)
 
         @self.tree.command()
         async def reboot(interaction: discord.Interaction):
@@ -202,6 +241,8 @@ class DiscordBot(discord.Client):
             del print_dict["bot_server"]
             del print_dict["bot_channel"]
             del print_dict["telegram"]
+            del print_dict["telegram_use"]
+            del print_dict["db"]
             await interaction.response.send_message("```\n" + dumps(print_dict, indent=4) + "\n```")
 
         @self.tree.command()
@@ -221,6 +262,7 @@ class DiscordBot(discord.Client):
             ) == False:
                 return
             await botcommand.parse_stat(interaction=interaction, conf=self.config, stat=False)
+        # """
 
         @self.tree.command()
         async def helpbot(interaction: discord.Interaction):
@@ -230,6 +272,25 @@ class DiscordBot(discord.Client):
             ) == False:
                 return
             string = """```
+/useradd [username]
+유저가 웨이브를 3~5분 이상 올리지 않을 때 알림을 받도록 모니터링 리스트에 추가합니다.
+이 모니터링은 시즌 리더보드 200위 이내의 유저에게만 적용됩니다.
+add monitoring user
+
+/useradd [username]
+모니터링 리스트에서 유저를 삭제합니다.
+delete monitoring user
+
+/userlist
+모니터링 리스트에 있는 유저들을 출력합니다.
+
+/userok [username]
+유저의 모니터링 알림을 일시적으로 해제합니다.
+유저가 웨이브를 다시 올리기 시작했을 때 자동으로 모니터링이 다시 시작됩니다.
+
+/userinfo [username]
+모니터링 중인 유저의 웨이브 정보와 리더보드의 순위권 및 차이를 출력합니다.
+
 /history [username] (mobile)
 show history of username
 hour | rank, score, diff | per, horn, dhorn, cjump
