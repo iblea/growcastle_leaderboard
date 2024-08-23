@@ -311,6 +311,14 @@ show history chart of username
 /chart_history_all [username] (pc)
 show all history chart of username
 현 시즌의 모든 데이터를 차트 형식으로 출력한다. (show all data of this season)
+
+/alias_add [username]
+/alias_del
+
+별칭을 등록합니다.
+별칭 등록 이후 /history, /chart_history 명령어 실행에
+닉네임을 입력하지 않을 경우, 별칭에 등록된 닉네임을 사용합니다.
+
 ```
 """
             await interaction.response.send_message(string)
