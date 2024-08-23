@@ -247,7 +247,7 @@ async def alias_add(interaction: discord.Interaction,
         username: str) -> None:
 
     alias_data = conf["alias"]
-    alias_user = interaction.user.id
+    alias_user = str(interaction.user.id)
     lower_username = username.lower()
 
     if alias_user in alias_data:
@@ -266,7 +266,7 @@ async def alias_del(interaction: discord.Interaction,
     ) -> None:
 
     alias_data = conf["alias"]
-    alias_user = interaction.user.id
+    alias_user = str(interaction.user.id)
 
     if alias_user not in alias_data:
         await interaction.response.send_message('not found user in alias list')
@@ -295,7 +295,7 @@ async def print_history(interaction: discord.Interaction,
         return
 
     if username == "":
-        userid = interaction.user.id
+        userid = str(interaction.user.id)
         alias_data = conf["alias"]
         if userid not in alias_data:
             await interaction.response.send_message("alias not found, input username or add alias first")
