@@ -69,6 +69,10 @@ def get_config_opt(conf_path: str) -> dict | None:
                 print("no telegram chat id")
                 return None
 
+        if "alias" not in config:
+            print("no alias")
+            return None
+
         if "db" in config:
             obj = config["db"].get("username")
             if obj is None or obj == "":
