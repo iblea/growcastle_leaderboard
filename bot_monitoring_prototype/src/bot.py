@@ -33,7 +33,7 @@ class DiscordBot(discord.Client):
     next_parse_time = 0
     config: Optional[dict] = None
 
-    alert_interval = 2
+    alert_interval = 59
     alert_list: dict = {}
     alert_channel: Optional[int] = None
     last_end_season: str = ""
