@@ -277,7 +277,7 @@ class DiscordBot(discord.Client):
 이 모니터링은 시즌 리더보드 200위 이내의 유저에게만 적용됩니다.
 add monitoring user
 
-/useradd [username]
+/userdel [username]
 모니터링 리스트에서 유저를 삭제합니다.
 delete monitoring user
 
