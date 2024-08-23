@@ -252,7 +252,7 @@ class ParsePlayer:
 
     apidict: Optional[dict] = None
 
-    alert_list: list = []
+    alert_list: dict = {}
     conn = None
 
 
@@ -329,6 +329,7 @@ class ParsePlayer:
             username: str = userdata[1]
             score = userdata[2]
             parseTime = int(userdata[3].timestamp())
+            username = username.lower()
             if username not in player_monitoring:
                 continue
 
@@ -375,13 +376,15 @@ class ParsePlayer:
 
         if last_wave_time + crash_time < int(time.time()):
             alert_user: str = player_monitoring.get("alert_user_id")
-            self.alert_list.append({
+            self.alert_list[username] = {
                 "user": alert_user,
                 "username": username,
                 "last_wave_time": last_wave_time
-            })
+            }
         else:
             self.config["monitoring"]["player"][username]["check"] = False
+            if username in self.alert_list:
+                del self.alert_list[username]
 
     def get_history(self, username: str):
         if self.config["db"]["port"] == 0:

@@ -10,19 +10,20 @@ import time
 import db
 
 
-def channel_check(interaction: discord.Interaction, chat_id: int) -> bool:
+def channel_check(interaction: discord.Interaction, chat_id: list) -> bool:
     """ 설정한 chat id와 다르면 응답하지 않는다.
     chat_id 값이 0이면, 모든 채널에서 응답하는 것으로 간주한다.
     Args:
         interaction (discord.Interaction): 명령어를 실행한 channel_id
-        chat_id (int): 검증할 channel_id
+        chat_id (list): 검증할 channel_id list
 
     Returns:
         bool: 동일한 channel_id인지를 리턴
     """
-    if chat_id == 0:
+    if len(chat_id) <= 0:
         return True
-    if interaction.channel.id == chat_id:
+    # if interaction.channel.id == chat_id
+    if interaction.channel.id in chat_id:
         return True
     return False
 
@@ -38,36 +39,75 @@ async def todo(interaction: discord.Interaction) -> None:
     # if interaction.channel_id != chat_id:
     await interaction.response.send_message("todo")
 
-async def user_add(interaction: discord.Interaction, user: str) -> bool:
+async def user_add(interaction: discord.Interaction, conf: dict, username: str) -> bool:
 
-    await interaction.response.send_message(f'add monitoring "{user}" success')
+    player_data = conf["monitoring"]["player"]
+    username_org = username
+    username = username.lower()
+    if username in player_data:
+        await interaction.response.send_message(f'"{username_org}" already exist in monitoring list')
+        return False
+
+    conf["monitoring"]["player"][username] = {
+        "rank_monitoring": True,
+        "alert_user_id": str(interaction.user.id),
+        # "alert_user_id": str(interaction.member.id),
+        "check": False
+    }
+    config.set_config(conf)
+    await interaction.response.send_message(f'add monitoring "{username_org}" success')
     return True
 
-async def user_del(interaction: discord.Interaction, user: str) -> bool:
+async def user_del(interaction: discord.Interaction, conf: dict, username: str) -> bool:
 
-    await interaction.response.send_message(f'delete monitoring "{user}" success')
+    player_data = conf["monitoring"]["player"]
+    username_org = username
+    username = username.lower()
+    if username not in player_data:
+        await interaction.response.send_message(f'"{username_org}" not found in monitoring list')
+        return False
+
+    del conf["monitoring"]["player"][username]
+    config.set_config(conf)
+    await interaction.response.send_message(f'delete monitoring "{username_org}" success')
     return True
+
+async def user_list(interaction: discord.Interaction, conf: dict) -> None:
+
+    players = conf["monitoring"]["player"].keys()
+    string = "monitoring list\n```\n"
+    for player in players:
+        string += f"{player}\n"
+    string += "```"
+    await interaction.response.send_message(string)
+
 
 async def print_user_info(interaction: discord.Interaction,
         conf: dict,
         username: str) -> None:
 
     conf_data: Optional[dict] = conf.get("data")
+    username_org = username
+    username = username.lower()
     if conf_data is None:
-        await interaction.response.send_message(f'no {interaction.user.mention} userdata')
+        # await interaction.response.send_message(f'no {interaction.user.mention} userdata')
+        await interaction.response.send_message(f'no {username_org} userdata')
     if "users" not in conf_data:
-        await interaction.response.send_message(f'no {interaction.user.mention} userdata')
+        await interaction.response.send_message(f'no {username_org} userdata')
+
     users_data: Optional[dict] = conf_data.get("users")
     if users_data is None:
-        await interaction.response.send_message(f'no {interaction.user.mention} userdata')
+        await interaction.response.send_message(f'no {username_org} userdata')
 
     if username not in users_data:
-        await interaction.response.send_message(f'no {interaction.user.mention} userdata')
+        await interaction.response.send_message(f'no {username_org} userdata')
 
     my_data: str = users_data[username]
     current_score = my_data["score"]
     current_rank = my_data["rank"]
-    msg: str = "```\nPlayer name : {}\nScore: {}\nRank: {}\n".format(username, current_score, current_rank)
+    last_wave_time = datetime.fromtimestamp(int(my_data["last_wave_time"]))
+    last_wave_time_string = last_wave_time.strftime("%Y-%m-%d %H:%M:%S")
+    msg: str = "```\nPlayer name : {}\nScore: {}\nRank: {}\nlast waving time: {}\n".format(username_org, current_score, current_rank, last_wave_time_string)
 
     if "leaderboard" not in conf_data:
         msg += "```"
@@ -83,18 +123,28 @@ async def print_user_info(interaction: discord.Interaction,
         msg += "2nd: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r3")
         msg += "3rd: {} ({})\n".format(obj, obj - current_score)
+        obj = leaderboards.get("r4")
+        msg += "4th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r5")
+        msg += "5th: {} ({})\n".format(obj, obj - current_score)
+        obj = leaderboards.get("r6")
         msg += "5th: {} ({})\n".format(obj, obj - current_score)
     elif current_rank <= 5:
         obj = leaderboards.get("r3")
         msg += "3rd: {} ({})\n".format(obj, obj - current_score)
+        obj = leaderboards.get("r4")
+        msg += "4th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r5")
         msg += "5th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r6")
         msg += "6th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r10")
         msg += "10th: {} ({})\n".format(obj, obj - current_score)
+        obj = leaderboards.get("r11")
+        msg += "11th: {} ({})\n".format(obj, obj - current_score)
     elif current_rank <= 10:
+        obj = leaderboards.get("r4")
+        msg += "4th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r5")
         msg += "5th: {} ({})\n".format(obj, obj - current_score)
         obj = leaderboards.get("r6")
@@ -143,7 +193,13 @@ async def user_ok(interaction: discord.Interaction,
         conf: dict,
         username: str) -> None:
 
-    current_check: bool = conf["monitoring"]["player"][username]["check"]
+    player_data = conf["monitoring"]["player"]
+    username = username.lower()
+    if username not in player_data:
+        await interaction.response.send_message(f'"{username}" not found in monitoring list')
+        return
+
+    current_check: bool = player_data[username]["check"]
     if current_check == True:
         await interaction.response.send_message(f'already "{username}" check is True')
         return
@@ -156,7 +212,13 @@ async def user_notok(interaction: discord.Interaction,
         conf: dict,
         username: str) -> None:
 
-    current_check: bool = conf["monitoring"]["player"][username]["check"]
+    player_data = conf["monitoring"]["player"]
+    username = username.lower()
+    if username not in player_data:
+        await interaction.response.send_message(f'"{username}" not found in monitoring list')
+        return
+
+    current_check: bool = player_data[username]["check"]
     if current_check == False:
         await interaction.response.send_message(f'already "{username}" check is False')
         return

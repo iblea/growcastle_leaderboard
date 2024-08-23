@@ -3,6 +3,7 @@ import sys
 import config
 # from bot import DiscordBot
 import bot
+import telegram_bot
 
 def start_bot(conf) -> bot.DiscordBot:
 
@@ -29,6 +30,8 @@ def main() -> int:
     if conf["parse_stop"] == True:
         conf["parse_stop"] = False
         config.set_config(conf)
+
+    telegram_bot.start_telegram_bot(conf)
 
     start_bot(
         conf=conf
