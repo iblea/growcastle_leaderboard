@@ -566,6 +566,11 @@ def print_history_string_row(item):
 # username은 대소문자/숫자/공백/-/_ 만 허용
 def arg_check(username: str):
     global compiled_username_pattern
+
+    if len(username) == 0:
+        return True
+    if len(username) > 20:
+        return False
     # 정규식 검사
     if compiled_username_pattern.match(username):
         return True

@@ -22,6 +22,8 @@
         "port": 0,
         "database": "database"
     },
+    "alias": {
+    },
     "monitoring": {
         "player": {
             "Ib": {

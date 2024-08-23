@@ -316,7 +316,7 @@ show all history chart of username
             await interaction.response.send_message(string)
 
         @self.tree.command()
-        async def chart_history(interaction: discord.Interaction, username: str):
+        async def chart_history(interaction: discord.Interaction, username: str = ""):
             global db_parser
             if botcommand.channel_check(
                 interaction=interaction,
@@ -334,13 +334,14 @@ show all history chart of username
             await botcommand.print_history(
                 interaction=interaction,
                 username=username,
+                conf=self.config,
                 db_parser=db_parser,
                 show_shart=True,
                 show_all=False
             )
 
         @self.tree.command()
-        async def chart_history_all(interaction: discord.Interaction, username: str):
+        async def chart_history_all(interaction: discord.Interaction, username: str = ""):
             global db_parser
             if botcommand.channel_check(
                 interaction=interaction,
@@ -358,12 +359,13 @@ show all history chart of username
             await botcommand.print_history(
                 interaction=interaction,
                 username=username,
+                conf=self.config,
                 db_parser=db_parser,
                 show_shart=True, show_all=True
             )
 
         @self.tree.command()
-        async def history(interaction: discord.Interaction, username: str):
+        async def history(interaction: discord.Interaction, username: str = ""):
             global db_parser
             if botcommand.channel_check(
                 interaction=interaction,
@@ -380,12 +382,13 @@ show all history chart of username
             await botcommand.print_history(
                 interaction=interaction,
                 username=username,
+                conf=self.config,
                 db_parser=db_parser,
                 show_shart=False, show_all=False
             )
 
         @self.tree.command()
-        async def history_all(interaction: discord.Interaction, username: str):
+        async def history_all(interaction: discord.Interaction, username: str = ""):
             global db_parser
             if botcommand.channel_check(
                 interaction=interaction,
@@ -402,9 +405,38 @@ show all history chart of username
             await botcommand.print_history(
                 interaction=interaction,
                 username=username,
+                conf=self.config,
                 db_parser=db_parser,
                 show_shart=False, show_all=True
             )
+
+        @self.tree.command()
+        async def alias_add(interaction: discord.Interaction, username: str):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+
+            if len(username) <= 0:
+                await interaction.response.send_message("username is wrong")
+                return
+
+            if db.arg_check(username) is False:
+                await interaction.response.send_message("username is wrong")
+                return
+
+            await botcommand.alias_add(interaction=interaction, conf=self.config, username=username)
+
+        @self.tree.command()
+        async def alias_del(interaction: discord.Interaction):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.alias_del(interaction=interaction, conf=self.config)
+
 
 
         print("command set done")

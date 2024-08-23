@@ -242,13 +242,66 @@ async def parse_stat(interaction: discord.Interaction,
     await interaction.response.send_message("parse_stop object change to {}".format(stat))
 
 
+async def alias_add(interaction: discord.Interaction,
+        conf: dict,
+        username: str) -> None:
+
+    alias_data = conf["alias"]
+    alias_user = interaction.user.id
+    lower_username = username.lower()
+
+    if alias_user in alias_data:
+        conf["alias"][alias_user] = lower_username
+        config.set_config(conf)
+        await interaction.response.send_message(f'modify alias "{username}" success')
+        return
+
+    conf["alias"][alias_user] = lower_username
+    config.set_config(conf)
+    await interaction.response.send_message(f'add alias "{username}" success')
+
+
+async def alias_del(interaction: discord.Interaction,
+        conf: dict
+    ) -> None:
+
+    alias_data = conf["alias"]
+    alias_user = interaction.user.id
+
+    if alias_user not in alias_data:
+        await interaction.response.send_message('not found user in alias list')
+        return
+
+    del conf["alias"][alias_user]
+    config.set_config(conf)
+    await interaction.response.send_message('delete alias success')
+
+
 
 async def print_history(interaction: discord.Interaction,
         username: str,
+        conf: dict,
         db_parser: db.ParsePlayer,
         show_shart: bool,
         show_all: bool
 ) -> None:
+
+    if db_parser is None:
+        await interaction.response.send_message("error, contact to developer")
+        return
+
+    if username is None:
+        await interaction.response.send_message("wrong username, contact to developer")
+        return
+
+    if username == "":
+        userid = interaction.user.id
+        alias_data = conf["alias"]
+        if userid not in alias_data:
+            await interaction.response.send_message("alias not found, input username or add alias first")
+            return
+
+        username = alias_data[userid]
 
     history = db_parser.get_history(username)
     if history is None:
