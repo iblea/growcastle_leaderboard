@@ -291,6 +291,11 @@ delete monitoring user
 /userinfo [username]
 모니터링 중인 유저의 웨이브 정보와 리더보드의 순위권 및 차이를 출력합니다.
 
+
+
+username 에는 닉네임, !랭킹, #별칭 등이 들어갈 수 있습니다.
+ex ) username, !10 (현 10위 데이터 출력), #별칭 (별칭으로 등록된 닉네임 데이터 출력)
+
 /history [username] (mobile)
 show history of username
 hour | rank, score, diff | per, horn, dhorn, cjump
