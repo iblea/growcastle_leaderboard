@@ -150,17 +150,20 @@ public class ParseSchedular {
                 this.seasonData = new SeasonData(data);
                 // 이미 파싱된 데이터가 시즌 종료 시간을 지나지 않았을 경우 다시 파싱하지 않는다.
                 if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
+                    logger.info("Season Data is already parsed : {}", this.seasonData.getEndDate());
                     return ;
                 }
                 this.seasonData.setNull();
             }
         } else {
             if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
+                logger.info("Season Data is already existed : {}", this.seasonData.getEndDate());
                 return ;
             }
             this.seasonData.setNull();
         }
 
+        logger.info("parse new Season Data");
         ParseLeaderboard parseAPI = ParseLeaderboard.player(tgBot, now);
         parseAPI.parseLeaderboards();
         this.seasonData.setStartDate(parseAPI.getStartSeasonDate());
@@ -171,16 +174,18 @@ public class ParseSchedular {
             return ;
         }
         if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
+            logger.info("update season data");
             seasonDataDB.updateSeasonData(seasonData);
         } else {
             // 10분 단위로 계산을 진행하므로
             // 파싱한 시각이 시즌 종료 시간을 지났을 수가 있다.
+            logger.info("ended data : {}", this.seasonData.getEndDate());
             this.seasonData.setNull();
         }
     }
 
     public boolean isAfterSeasonEnd(LocalDateTime now, LocalDateTime endSeasonDate) {
-        LocalDateTime endSeason50Minute = endSeasonDate.withSecond((endSeasonDate.getMinute() / 10) * 10);
+        LocalDateTime endSeason50Minute = endSeasonDate.withMinute((endSeasonDate.getMinute() / 10) * 10);
         if (now.isBefore(endSeason50Minute)) {
             return false;
         }
@@ -206,9 +211,11 @@ public class ParseSchedular {
             return false;
         }
 
+        logger.debug("Season End, Delete History Data");
         deleteDatabaseUntilDate(endSeasonDate);
         // +5 계산해서 다음 시즌을 체크해도 되지만,
         // 서버로부터 정확한 데이터를 체크하기 위해 null로 데이터를 초기화하고 다시 파싱해 가져온다.
+        logger.debug("Season End, season data set null");
         this.seasonData.setNull();
         return true;
     }
