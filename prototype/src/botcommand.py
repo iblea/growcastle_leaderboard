@@ -325,6 +325,13 @@ async def print_history(interaction: discord.Interaction,
         start_index = 0
         showlen = 5
 
+        if username[0] == '!' or username[0] == '#':
+            for data in history:
+                if data["name"] == "":
+                    continue
+                username = data["name"]
+                break
+
         if show_all == False:
             difflen = 2
             if history_len <= 24:

@@ -14,7 +14,9 @@ import re
 
 # 정규식 패턴 정의
 username_pattern = r'^[a-zA-Z0-9 _-]+$'
+rank_pattern = r'^[0-9]+$'
 compiled_username_pattern = re.compile(username_pattern)
+compiled_rank_pattern = re.compile(rank_pattern)
 
 def open_conn(config):
     conn = None
@@ -151,14 +153,22 @@ def get_seasons(cur):
     return season_date
 
 
-def get_historys(cur, username):
-    if cur is None:
-        return None
-    if username is None:
-        return None
-    if username == "":
-        return None
+def get_sql_with_rank(rank: str, cur):
+    rank = rank[1:]
+    sql = "select name from history_player where rank = {} order by parsetime desc LIMIT 1".format(rank)
+    data = execute_query(cur, sql)
 
+    if data is None:
+        return ""
+
+    if len(data) == 0 or len(data) > 1:
+        return ""
+
+    name = data[0][0]
+    return get_sql_with_username(name)
+
+
+def get_sql_with_username(username: str):
     sql = """WITH ranked_data AS (
     SELECT
         name,
@@ -193,17 +203,46 @@ GROUP BY
     name, parsetime_1h
 ORDER BY
     name, parsetime_1h;
-"""
+""".format(username)
+    return sql
 
-    userData = None
+
+def execute_query(cur, sql):
+    data = None
     try:
-        cur.execute(sql.format(username))
-        userData = cur.fetchall()
+        cur.execute(sql)
+        data = cur.fetchall()
     except Exception as e:
         print("================= get historys error =================")
         print(e)
-        userData = None
+        data = None
 
+    return data
+
+
+
+def get_historys(cur, username):
+    if cur is None:
+        return None
+    if username is None:
+        return None
+    if username == "":
+        return None
+
+    sql = ""
+    # rank
+    if username[0] == "!":
+        sql = get_sql_with_rank(username, cur)
+    # alias
+    elif username[0] == "#":
+        return None
+    else:
+        sql = get_sql_with_username(username)
+
+    if sql == "":
+        return None
+
+    userData = execute_query(cur, sql)
     return userData
 
     # histories = []
@@ -566,16 +605,31 @@ def print_history_string_row(item):
 # username은 대소문자/숫자/공백/-/_ 만 허용
 def arg_check(username: str):
     global compiled_username_pattern
+    global compiled_rank_pattern
 
     if len(username) == 0:
         return True
-    if len(username) > 20:
+    if len(username) > 21:
         return False
+
+    regex_username = username
+
+    # rank
+    if username[0] == '!':
+        regex_username = username[1:]
+        if compiled_rank_pattern.match(regex_username):
+            return True
+        return False
+
+    # alias
+    if username[0] == '#':
+        regex_username = username[1:]
+
     # 정규식 검사
-    if compiled_username_pattern.match(username):
+    if compiled_username_pattern.match(regex_username):
         return True
-    else:
-        return False
+
+    return False
 
 
 
