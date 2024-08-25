@@ -3,9 +3,6 @@
 curpath=$(dirname "$(realpath $0)")
 cd "$curpath"
 
-curpath=$(dirname "$(realpath $0)")
-cd "$curpath"
-
 if [ ! -f "$curpath/config_h2" ]; then
     echo "no file config_h2"
     echo "=================================================="

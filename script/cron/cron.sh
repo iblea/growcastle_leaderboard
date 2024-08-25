@@ -9,5 +9,5 @@ cd "$curpath"
 ./postgres_cron.sh
 
 # cd "$curpath/../parser"
-cd "../parser"
+cd "../../parser"
 ./cron.sh
