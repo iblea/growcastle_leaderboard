@@ -377,7 +377,7 @@ async def print_history(interaction: discord.Interaction,
 
 async def print_leaderboard(interaction: discord.Interaction,
         db_parser: db.ParsePlayer,
-        show_rank: int = 60
+        show_rank: int
 ) -> None:
 
     if db_parser is None:

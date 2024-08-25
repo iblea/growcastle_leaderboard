@@ -326,7 +326,7 @@ show all history chart of username
 
 /leaderboard [rank](선택사항)
 리더보드의 상위 rank위까지 출력합니다.
-rank 미기입 시 60위까지 출력합니다.
+rank 미기입 시 20위까지 출력합니다.
 ```
 """
             await interaction.response.send_message(string)
@@ -462,7 +462,7 @@ rank 미기입 시 60위까지 출력합니다.
             ) == False:
                 return
 
-            rank_num = 60
+            rank_num = 20
             if len(rank) > 0:
                 if db.arg_check_number(rank) is False:
                     await interaction.response.send_message("argument is wrong")
