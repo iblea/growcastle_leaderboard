@@ -1,13 +1,33 @@
 #!/bin/bash
 
 curpath=$(dirname "$(realpath $0)")
-cd "$curpath"
+project_path=$(readlink -e "$curpath/../../")
 
-# cd "$curpath/../h2"
-# ./cron.sh
 
-./postgres_cron.sh
+function db_cron() {
+    # h2 database
+    # cd "$curpath/../h2"
+    # ./cron.sh
 
-# cd "$curpath/../parser"
-cd "../../parser"
-./cron.sh
+    # postgresql cron
+    cd "$curpath"
+    ./postgres_cron.sh
+}
+
+function parser_cron() {
+    cd "$project_path/parser"
+    ./cron.sh
+}
+
+function bot_cron() {
+    cd "$project_path/discord_bot/prototype/"
+    ./cron.sh
+    cd "$project_path/discord_bot/bot_monitoring_prototype/"
+    ./cron.sh
+}
+
+
+
+db_cron
+parser_cron
+bot_cron
