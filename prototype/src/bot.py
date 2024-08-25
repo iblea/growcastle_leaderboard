@@ -324,6 +324,9 @@ show all history chart of username
 별칭 등록 이후 /history, /chart_history 명령어 실행에
 닉네임을 입력하지 않을 경우, 별칭에 등록된 닉네임을 사용합니다.
 
+/leaderboard [rank](선택사항)
+리더보드의 상위 rank위까지 출력합니다.
+rank 미기입 시 60위까지 출력합니다.
 ```
 """
             await interaction.response.send_message(string)
@@ -449,6 +452,28 @@ show all history chart of username
             ) == False:
                 return
             await botcommand.alias_del(interaction=interaction, conf=self.config)
+
+        @self.tree.command()
+        async def leaderboard(interaction: discord.Interaction, rank: str = ""):
+            global db_parser
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+
+            rank_num = 60
+            if len(rank) > 0:
+                if db.arg_check_number(rank) is False:
+                    await interaction.response.send_message("argument is wrong")
+                    return
+                rank_num = int(rank)
+
+            if db_parser is None:
+                db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+
+            await botcommand.print_leaderboard(interaction=interaction, db_parser=db_parser, show_rank=rank_num)
+
 
 
 

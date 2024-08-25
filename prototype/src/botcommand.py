@@ -375,6 +375,36 @@ async def print_history(interaction: discord.Interaction,
     await interaction.response.send_message(embeds=embeds)
 
 
+async def print_leaderboard(interaction: discord.Interaction,
+        db_parser: db.ParsePlayer,
+        show_rank: int = 60
+) -> None:
+
+    if db_parser is None:
+        await interaction.response.send_message("error, contact to developer")
+        return
+
+    leaderboards = db_parser.get_current_leaderboard()
+    if leaderboards is None:
+        await interaction.response.send_message("error, contact to developer")
+        return
+
+    if len(leaderboards) == 0:
+        await interaction.response.send_message("leaderboard not found")
+        return
+
+    show_length= min(len(leaderboards), show_rank)
+    string = "```\n"
+    # for i in range(5):
+    for i in range(show_length):
+        data = leaderboards[i]
+        string += "{:2d}. {:6d} | {}\n".format(data[0], data[2], data[1])
+
+    string += "```\n"
+    title = "current leaderboard"
+    embed = discord.Embed(title=title)
+    embed.description = (string)
+    await interaction.response.send_message(embed=embed)
 
 
 

@@ -155,7 +155,7 @@ def get_seasons(cur):
 
 def get_sql_with_rank(rank: str, cur):
     rank = rank[1:]
-    sql = "select name from history_player where rank = {} order by parsetime desc LIMIT 1".format(rank)
+    sql = "select name from leaderboard_player where rank = {} LIMIT 1".format(rank)
     data = execute_query(cur, sql)
 
     if data is None:
@@ -540,6 +540,33 @@ class ParsePlayer:
             userData[0]["parse_time"] = " X"
         return userData
 
+    def get_current_leaderboard(self):
+
+        if self.config["db"]["port"] == 0:
+            return None
+
+        if self.conn is None:
+            self.conn = open_conn(self.config)
+            if self.conn is None:
+                return None
+
+        cur = get_cursor(self.conn)
+        if cur is None:
+            print("error: cannot get cursor")
+            self.conn = conn_close(self.conn)
+            return None
+
+        leaderboards = get_leaderboards(cur)
+        if leaderboards is None:
+            print("data is None or sql error")
+            return None
+        if len(leaderboards) == 0:
+            print("data is empty")
+            return []
+
+        return leaderboards
+
+
 
 def get_history_chart(data) -> str:
     if len(data) == 0:
@@ -600,12 +627,21 @@ def print_history_string_row(item):
 
 
 
+def arg_check_number(number: str):
+    global compiled_rank_pattern
+
+    if len(number) == 0:
+        return False
+
+    if compiled_rank_pattern.match(number):
+        return True
+    return False
+
 
 # 정규식 검사
 # username은 대소문자/숫자/공백/-/_ 만 허용
 def arg_check(username: str):
     global compiled_username_pattern
-    global compiled_rank_pattern
 
     if len(username) == 0:
         return True
@@ -616,10 +652,7 @@ def arg_check(username: str):
 
     # rank
     if username[0] == '!':
-        regex_username = username[1:]
-        if compiled_rank_pattern.match(regex_username):
-            return True
-        return False
+        return arg_check_number(username[1:])
 
     # alias
     if username[0] == '#':
