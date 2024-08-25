@@ -1,9 +1,36 @@
-#!/bin/sh
+#!/bin/bash
 
-# test ! -f growcastle.mv.db && touch growcastle.mv.db
-# jdbc:h2:~/db/growcastle/growcastle
-# jdbc:h2:tcp://localhost/~/db/growcastle/growcastle
-dir=$(dirname "$0")
-h2_jar="h2-2.2.224.jar"
-java -cp "$dir/$h2_jar:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console -webAllowOthers "$@"
-# java -cp "$dir/h2-2.2.224.jar:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console -webAllowOthers -webPort 8082 -tcpPort 9092 -pgPort 5435 "$@"
+curpath=$(dirname "$(realpath $0)")
+cd "$curpath"
+
+if [ ! -f "$curpath/config_h2" ]; then
+    echo "no file config_h2"
+    echo "=================================================="
+    echo "cd $curpath"
+    echo "cp -r config_h2.sample config_h2"
+    echo "=================================================="
+    exit 1
+fi
+
+source "$curpath/config_h2"
+h2_jar_full_path="$H2_JAR_PATH/$H2_JAR_NAME"
+
+if [ ! -f "$h2_jar_full_path" ]; then
+	echo "$h2_jar_full_path not found"
+	echo "modify 'H2_JAR_PATH', 'H2_JAR_NAME' variable"
+	exit 1
+fi
+
+# java -cp "$h2_jar_full_path:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console \
+#     -webAllowOthers -webPort $webPort \
+#     -tcpAllowOthers -tcpPort $tcpPort \
+#     -pgAllowOthers -pgPort $pgPort \
+#     "$@"
+
+
+java -cp "$h2_jar_full_path:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console \
+    -webPort $webPort \
+    -tcpPort $tcpPort \
+    -pgPort $pgPort \
+    "$@"
+
