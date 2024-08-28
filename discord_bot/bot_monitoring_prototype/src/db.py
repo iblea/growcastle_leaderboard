@@ -323,6 +323,7 @@ class ParsePlayer:
         if self.conn is None:
             self.conn = open_conn(self.config)
             if self.conn is None:
+                print("error: cannot connect db")
                 return False
 
         cur = get_cursor(self.conn)
@@ -350,6 +351,7 @@ class ParsePlayer:
         if "player_hash" in cfg_data:
             # db 내용이 업데이트 되지 않는 것
             if db_parseTime == cfg_data["player_hash"]:
+                print("error: db data is not updated")
                 return False
 
         cfg_data["player_hash"] = db_parseTime

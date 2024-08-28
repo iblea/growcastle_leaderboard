@@ -509,11 +509,13 @@ rank 미기입 시 20위까지 출력합니다.
             if self.parse_fail_count > 4:
                 await self.alert_channel.send("parse growcastle api fail {} count".format(self.parse_fail_count))
 
-            if self.parse_fail_count > 8:
+            # 1분에 6번, 10분에 60번 (10분이상 파싱 연속 실패 시 알림)
+            if self.parse_fail_count > 60:
+                print("parse fail count over 60")
                 self.config["parse_stop"] = True
                 self.alert_list = {}
                 set_config(config_dict=self.config)
-                await self.alert_channel.send("parse stop")
+                await self.alert_channel.send("parse stop, fail over 60")
             return
 
         self.parse_fail_count = 0
