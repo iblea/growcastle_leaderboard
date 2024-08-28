@@ -204,6 +204,10 @@ public class ParseSchedular {
         if (this.seasonData.isNull()) {
             logger.debug("season data is null, parse season data");
             parseSeasonData(now);
+            if (this.seasonData.isNull()) {
+                logger.info("Season is End");
+                return true;
+            }
         }
 
         LocalDateTime endSeasonDate = this.seasonData.getEndDate();
