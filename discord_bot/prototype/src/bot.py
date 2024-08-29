@@ -209,7 +209,7 @@ class DiscordBot(discord.Client):
                 return
             await botcommand.user_notok(interaction=interaction, conf=self.config, username=user)
 
-        # """
+        # """ admin command
         @self.tree.command()
         async def reboot(interaction: discord.Interaction):
             if botcommand.channel_check(

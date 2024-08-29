@@ -27,6 +27,17 @@ def channel_check(interaction: discord.Interaction, chat_id: list) -> bool:
         return True
     return False
 
+def get_alias_user(interaction: discord.Interaction, conf: dict) -> str:
+    userid = str(interaction.user.id)
+    alias_data = conf["alias"]
+    if userid not in alias_data:
+        return ""
+
+    username = alias_data[userid]
+    return username
+
+
+
 async def return_hello(command, interaction: discord.Interaction) -> None:
 
     if command == "hithere":
@@ -87,6 +98,12 @@ async def print_user_info(interaction: discord.Interaction,
         username: str) -> None:
 
     conf_data: Optional[dict] = conf.get("data")
+    if username == "":
+        username = get_alias_user(interaction, conf)
+        if username == "":
+            await interaction.response.send_message("alias not found, input username or add alias first")
+            return
+
     username_org = username
     username = username.lower()
     if conf_data is None:
@@ -114,54 +131,57 @@ async def print_user_info(interaction: discord.Interaction,
         await interaction.response.send_message(msg)
         return
 
+    msg += "\n"
     leaderboards = conf_data["leaderboard"]
     obj: int = 0
+    # obj[0] -> score
+    # obj[1] -> name
     if current_rank <= 3:
         obj = leaderboards.get("r1")
-        msg += "1st : {} ({})\n".format(obj, obj - current_score)
+        msg += "1st : {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r2")
-        msg += "2nd: {} ({})\n".format(obj, obj - current_score)
+        msg += "2nd: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r3")
-        msg += "3rd: {} ({})\n".format(obj, obj - current_score)
+        msg += "3rd: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r4")
-        msg += "4th: {} ({})\n".format(obj, obj - current_score)
+        msg += "4th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r5")
-        msg += "5th: {} ({})\n".format(obj, obj - current_score)
+        msg += "5th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r6")
-        msg += "5th: {} ({})\n".format(obj, obj - current_score)
+        msg += "6th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
     elif current_rank <= 5:
         obj = leaderboards.get("r3")
-        msg += "3rd: {} ({})\n".format(obj, obj - current_score)
+        msg += " 3rd: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r4")
-        msg += "4th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 4th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r5")
-        msg += "5th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 5th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r6")
-        msg += "6th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 6th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r10")
-        msg += "10th: {} ({})\n".format(obj, obj - current_score)
+        msg += "10th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r11")
-        msg += "11th: {} ({})\n".format(obj, obj - current_score)
+        msg += "11th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
     elif current_rank <= 10:
         obj = leaderboards.get("r4")
-        msg += "4th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 4th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r5")
-        msg += "5th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 5th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r6")
-        msg += "6th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 6th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r10")
-        msg += "10th: {} ({})\n".format(obj, obj - current_score)
+        msg += "10th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r11")
-        msg += "11th: {} ({})\n".format(obj, obj - current_score)
+        msg += "11th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
     else:
         obj = leaderboards.get("r5")
-        msg += "5th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 5th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r10")
-        msg += "10th: {} ({})\n".format(obj, obj - current_score)
+        msg += "10th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r50")
-        msg += "50th: {} ({})\n".format(obj, obj - current_score)
+        msg += "50th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r51")
-        msg += "51th: {} ({})\n".format(obj, obj - current_score)
+        msg += "51th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
 
     msg += "\n"
     if "history" in my_data:
@@ -193,6 +213,12 @@ async def user_ok(interaction: discord.Interaction,
         conf: dict,
         username: str) -> None:
 
+    if username == "":
+        username = get_alias_user(interaction, conf)
+        if username == "":
+            await interaction.response.send_message("alias not found, input username or add alias first")
+            return
+
     player_data = conf["monitoring"]["player"]
     username = username.lower()
     if username not in player_data:
@@ -211,6 +237,12 @@ async def user_ok(interaction: discord.Interaction,
 async def user_notok(interaction: discord.Interaction,
         conf: dict,
         username: str) -> None:
+
+    if username == "":
+        username = get_alias_user(interaction, conf)
+        if username == "":
+            await interaction.response.send_message("alias not found, input username or add alias first")
+            return
 
     player_data = conf["monitoring"]["player"]
     username = username.lower()
@@ -295,13 +327,10 @@ async def print_history(interaction: discord.Interaction,
         return
 
     if username == "":
-        userid = str(interaction.user.id)
-        alias_data = conf["alias"]
-        if userid not in alias_data:
+        username = get_alias_user(interaction, conf)
+        if username == "":
             await interaction.response.send_message("alias not found, input username or add alias first")
             return
-
-        username = alias_data[userid]
 
     history = db_parser.get_history(username)
     if history is None:
@@ -377,8 +406,13 @@ async def print_history(interaction: discord.Interaction,
 
 async def print_leaderboard(interaction: discord.Interaction,
         db_parser: db.ParsePlayer,
+        conf: dict,
         show_rank: int
 ) -> None:
+
+    if (show_rank == 0):
+        await interaction.response.send_message("error, input rank > 0")
+        return
 
     if db_parser is None:
         await interaction.response.send_message("error, contact to developer")
@@ -393,18 +427,51 @@ async def print_leaderboard(interaction: discord.Interaction,
         await interaction.response.send_message("leaderboard not found")
         return
 
-    show_length= min(len(leaderboards), show_rank)
-    string = "```\n"
-    # for i in range(5):
-    for i in range(show_length):
-        data = leaderboards[i]
-        string += "{:2d}. {:6d} | {}\n".format(data[0], data[2], data[1])
+    user_not_found = True
+    username = get_alias_user(interaction, conf)
+    diff_score = 0
+    if username == "":
+        diff_score = leaderboards[0][2]
+    else:
+        for data in leaderboards:
+            # alias에서 자신의 데이터를 찾았으면 그 데이터를 사용
+            if data[1].lower() == username:
+                diff_score = data[2]
+                user_not_found = False
+                break
+        if user_not_found == True:
+            diff_score = leaderboards[0][2]
 
-    string += "```\n"
-    title = "current leaderboard"
-    embed = discord.Embed(title=title)
-    embed.description = (string)
-    await interaction.response.send_message(embed=embed)
+    show_length= min(len(leaderboards), show_rank)
+    show_page = ((show_rank - 1) // 20) + 1
+
+    embeds = []
+
+    show_index = 1
+
+    while show_index <= show_page:
+
+        start_idx = (show_index - 1) * 20
+        end_idx = min(show_index * 20, show_length)
+
+        title = "current leaderboard {} ~ {}".format(start_idx + 1, end_idx)
+        string = "```\n"
+        for i in range(start_idx, end_idx):
+            data = leaderboards[i]
+            space_nickname = data[1]
+            for _ in range(len(data[1]), 20):
+                space_nickname += " "
+            string += "{:2d}. {:6d} | {} ({})\n".format(data[0], data[2], space_nickname, diff_score - data[2])
+            if user_not_found == True:
+                diff_score = data[2]
+
+        string += "```\n"
+        embed = discord.Embed(title=title)
+        embed.description = (string)
+        embeds.append(embed)
+        show_index += 1
+
+    await interaction.response.send_message(embeds=embeds)
 
 
 
