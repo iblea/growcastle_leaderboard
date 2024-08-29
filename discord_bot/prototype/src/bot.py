@@ -41,7 +41,6 @@ class DiscordBot(discord.Client):
     last_season_expire_end: int = 0
 
     parse_fail_count = 0
-    my_username: str = "Ib"
 
     def __init__(self,
             config: dict,
@@ -122,7 +121,7 @@ class DiscordBot(discord.Client):
     def apply_command(self) -> None:
 
         @self.tree.command()
-        async def userinfo(interaction: discord.Interaction, user: str) -> None:
+        async def userinfo(interaction: discord.Interaction, user: str = "") -> None:
             if botcommand.channel_check(
                 interaction=interaction,
                 chat_id=self.discord_response_chat_id
@@ -165,7 +164,7 @@ class DiscordBot(discord.Client):
             await botcommand.user_list(interaction=interaction, conf=self.config)
 
         @self.tree.command()
-        async def userok(interaction: discord.Interaction, user: str):
+        async def userok(interaction: discord.Interaction, user: str = ""):
             if botcommand.channel_check(
                 interaction=interaction,
                 chat_id=self.discord_response_chat_id
@@ -174,7 +173,7 @@ class DiscordBot(discord.Client):
             await botcommand.user_ok(interaction=interaction, conf=self.config, username=user)
 
         @self.tree.command()
-        async def userno(interaction: discord.Interaction, user: str):
+        async def userno(interaction: discord.Interaction, user: str = ""):
             if botcommand.channel_check(
                 interaction=interaction,
                 chat_id=self.discord_response_chat_id
@@ -182,36 +181,35 @@ class DiscordBot(discord.Client):
                 return
             await botcommand.user_notok(interaction=interaction, conf=self.config, username=user)
 
+        @self.tree.command()
+        async def info(interaction: discord.Interaction, user: str = "") -> None:
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+
+            await botcommand.print_user_info(interaction=interaction, conf=self.config, username=user)
+
+        @self.tree.command()
+        async def ok(interaction: discord.Interaction, user: str = ""):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_ok(interaction=interaction, conf=self.config, username=user)
+
+        @self.tree.command()
+        async def no(interaction: discord.Interaction, user: str = ""):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_notok(interaction=interaction, conf=self.config, username=user)
 
         # """
-        @self.tree.command()
-        async def info(interaction: discord.Interaction) -> None:
-            if botcommand.channel_check(
-                interaction=interaction,
-                chat_id=self.discord_response_chat_id
-            ) == False:
-                return
-
-            await botcommand.print_user_info(interaction=interaction, conf=self.config, username=self.my_username)
-
-        @self.tree.command()
-        async def ok(interaction: discord.Interaction):
-            if botcommand.channel_check(
-                interaction=interaction,
-                chat_id=self.discord_response_chat_id
-            ) == False:
-                return
-            await botcommand.user_ok(interaction=interaction, conf=self.config, username=self.my_username)
-
-        @self.tree.command()
-        async def no(interaction: discord.Interaction):
-            if botcommand.channel_check(
-                interaction=interaction,
-                chat_id=self.discord_response_chat_id
-            ) == False:
-                return
-            await botcommand.user_notok(interaction=interaction, conf=self.config, username=self.my_username)
-
         @self.tree.command()
         async def reboot(interaction: discord.Interaction):
             if botcommand.channel_check(
@@ -472,7 +470,12 @@ rank 미기입 시 20위까지 출력합니다.
             if db_parser is None:
                 db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
 
-            await botcommand.print_leaderboard(interaction=interaction, db_parser=db_parser, show_rank=rank_num)
+            await botcommand.print_leaderboard(
+                interaction=interaction,
+                db_parser=db_parser,
+                conf=self.config,
+                show_rank=rank_num
+            )
 
 
 
