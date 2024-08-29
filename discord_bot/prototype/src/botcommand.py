@@ -114,54 +114,57 @@ async def print_user_info(interaction: discord.Interaction,
         await interaction.response.send_message(msg)
         return
 
+    msg += "\n"
     leaderboards = conf_data["leaderboard"]
     obj: int = 0
+    # obj[0] -> score
+    # obj[1] -> name
     if current_rank <= 3:
         obj = leaderboards.get("r1")
-        msg += "1st : {} ({})\n".format(obj, obj - current_score)
+        msg += "1st : {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r2")
-        msg += "2nd: {} ({})\n".format(obj, obj - current_score)
+        msg += "2nd: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r3")
-        msg += "3rd: {} ({})\n".format(obj, obj - current_score)
+        msg += "3rd: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r4")
-        msg += "4th: {} ({})\n".format(obj, obj - current_score)
+        msg += "4th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r5")
-        msg += "5th: {} ({})\n".format(obj, obj - current_score)
+        msg += "5th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r6")
-        msg += "5th: {} ({})\n".format(obj, obj - current_score)
+        msg += "6th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
     elif current_rank <= 5:
         obj = leaderboards.get("r3")
-        msg += "3rd: {} ({})\n".format(obj, obj - current_score)
+        msg += " 3rd: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r4")
-        msg += "4th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 4th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r5")
-        msg += "5th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 5th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r6")
-        msg += "6th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 6th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r10")
-        msg += "10th: {} ({})\n".format(obj, obj - current_score)
+        msg += "10th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r11")
-        msg += "11th: {} ({})\n".format(obj, obj - current_score)
+        msg += "11th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
     elif current_rank <= 10:
         obj = leaderboards.get("r4")
-        msg += "4th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 4th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r5")
-        msg += "5th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 5th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r6")
-        msg += "6th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 6th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r10")
-        msg += "10th: {} ({})\n".format(obj, obj - current_score)
+        msg += "10th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r11")
-        msg += "11th: {} ({})\n".format(obj, obj - current_score)
+        msg += "11th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
     else:
         obj = leaderboards.get("r5")
-        msg += "5th: {} ({})\n".format(obj, obj - current_score)
+        msg += " 5th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r10")
-        msg += "10th: {} ({})\n".format(obj, obj - current_score)
+        msg += "10th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r50")
-        msg += "50th: {} ({})\n".format(obj, obj - current_score)
+        msg += "50th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
         obj = leaderboards.get("r51")
-        msg += "51th: {} ({})\n".format(obj, obj - current_score)
+        msg += "51th: {:6d} ({}) [{}]\n".format(obj[0],  obj[0] - current_score, obj[1])
 
     msg += "\n"
     if "history" in my_data:

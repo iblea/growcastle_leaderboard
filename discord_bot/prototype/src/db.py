@@ -277,9 +277,10 @@ def set_leaderboard_data(leaderboards) -> dict:
     for i in range(userlist_len):
         userdata = leaderboards[i]
         rank = userdata[0]
+        naeme = userdata[1]
         score = userdata[2]
         if rank in rank_monitoring_list:
-            leaderboards_dict[rank_format.format(rank)] = score
+            leaderboards_dict[rank_format.format(rank)] = [score, naeme]
     return leaderboards_dict
 
 
