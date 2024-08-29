@@ -458,10 +458,11 @@ async def print_leaderboard(interaction: discord.Interaction,
         string = "```\n"
         for i in range(start_idx, end_idx):
             data = leaderboards[i]
-            space_nickname = data[1]
-            for _ in range(len(data[1]), 20):
-                space_nickname += " "
-            string += "{:2d}. {:6d} | {} ({})\n".format(data[0], data[2], space_nickname, diff_score - data[2])
+            # space_nickname = data[1]
+            # for _ in range(len(data[1]), 20):
+            #     space_nickname += " "
+            # string += "{:2d}. {:6d} | {} ({})\n".format(data[0], data[2], space_nickname, diff_score - data[2])
+            string += "{:2d}. {:6d} | {} ({})\n".format(data[0], data[2], data[1], diff_score - data[2])
             if user_not_found == True:
                 diff_score = data[2]
 
