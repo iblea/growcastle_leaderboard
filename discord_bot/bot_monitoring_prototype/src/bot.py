@@ -331,98 +331,29 @@ rank 미기입 시 20위까지 출력합니다.
 
         @self.tree.command()
         async def chart_history(interaction: discord.Interaction, username: str = ""):
-            global db_parser
-            if botcommand.channel_check(
-                interaction=interaction,
-                chat_id=self.discord_response_chat_id
-            ) == False:
-                return
-
-            if db_parser is None:
-                db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
-
-            if db.arg_check(username) is False:
-                await interaction.response.send_message("username is wrong")
-                return
-
-            await botcommand.print_history(
-                interaction=interaction,
-                username=username,
-                conf=self.config,
-                db_parser=db_parser,
-                show_shart=True,
-                show_all=False
-            )
+            await history_command(interaction, username, True, False)
 
         @self.tree.command()
         async def chart_history_all(interaction: discord.Interaction, username: str = ""):
-            global db_parser
-            if botcommand.channel_check(
-                interaction=interaction,
-                chat_id=self.discord_response_chat_id
-            ) == False:
-                return
-
-            if db_parser is None:
-                db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
-
-            if db.arg_check(username) is False:
-                await interaction.response.send_message("username is wrong")
-                return
-
-            await botcommand.print_history(
-                interaction=interaction,
-                username=username,
-                conf=self.config,
-                db_parser=db_parser,
-                show_shart=True, show_all=True
-            )
+            await history_command(interaction, username, True, True)
 
         @self.tree.command()
         async def history(interaction: discord.Interaction, username: str = ""):
-            global db_parser
-            if botcommand.channel_check(
-                interaction=interaction,
-                chat_id=self.discord_response_chat_id
-            ) == False:
-                return
-
-            if db_parser is None:
-                db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
-
-            if db.arg_check(username) is False:
-                await interaction.response.send_message("username is wrong")
-                return
-            await botcommand.print_history(
-                interaction=interaction,
-                username=username,
-                conf=self.config,
-                db_parser=db_parser,
-                show_shart=False, show_all=False
-            )
+            await history_command(interaction, username, False, False)
 
         @self.tree.command()
         async def history_all(interaction: discord.Interaction, username: str = ""):
-            global db_parser
-            if botcommand.channel_check(
-                interaction=interaction,
-                chat_id=self.discord_response_chat_id
-            ) == False:
-                return
+            await history_command(interaction, username, False, True)
 
-            if db_parser is None:
-                db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+        @self.tree.command()
+        async def hs(interaction: discord.Interaction, username: str = ""):
+            # history 단축 명령어
+            await history_command(interaction, username, False, False)
 
-            if db.arg_check(username) is False:
-                await interaction.response.send_message("username is wrong")
-                return
-            await botcommand.print_history(
-                interaction=interaction,
-                username=username,
-                conf=self.config,
-                db_parser=db_parser,
-                show_shart=False, show_all=True
-            )
+        @self.tree.command()
+        async def hsc(interaction: discord.Interaction, username: str = ""):
+            # chart_history 단축 명령어
+            await history_command(interaction, username, True, False)
 
         @self.tree.command()
         async def alias_add(interaction: discord.Interaction, username: str):
@@ -452,7 +383,58 @@ rank 미기입 시 20위까지 출력합니다.
             await botcommand.alias_del(interaction=interaction, conf=self.config)
 
         @self.tree.command()
+        async def leaderboardspace(interaction: discord.Interaction, rank: str = ""):
+            await leaderboard_command(interaction, rank, True)
+
+        @self.tree.command()
         async def leaderboard(interaction: discord.Interaction, rank: str = ""):
+            await leaderboard_command(interaction, rank, False)
+
+        @self.tree.command()
+        async def lbs(interaction: discord.Interaction, rank: str = ""):
+            await leaderboard_command(interaction, rank, True)
+
+        @self.tree.command()
+        async def lb(interaction: discord.Interaction, rank: str = ""):
+            await leaderboard_command(interaction, rank, False)
+
+
+
+
+        print("command set done")
+
+        async def history_command(
+            interaction: discord.Interaction,
+            username: str = "",
+            show_chart: bool = False,
+            show_all: bool = False
+        ):
+            global db_parser
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+
+            if db_parser is None:
+                db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+
+            if db.arg_check(username) is False:
+                await interaction.response.send_message("username is wrong")
+                return
+            await botcommand.print_history(
+                interaction=interaction,
+                username=username,
+                conf=self.config,
+                db_parser=db_parser,
+                show_chart=show_chart, show_all=show_all
+            )
+
+        async def leaderboard_command(
+            interaction: discord.Interaction,
+            rank: str = "",
+            is_nickname_space: bool = False
+        ):
             global db_parser
             if botcommand.channel_check(
                 interaction=interaction,
@@ -474,13 +456,14 @@ rank 미기입 시 20위까지 출력합니다.
                 interaction=interaction,
                 db_parser=db_parser,
                 conf=self.config,
-                show_rank=rank_num
+                show_rank=rank_num,
+                is_nickname_space=is_nickname_space
             )
 
 
 
 
-        print("command set done")
+        print("command common function set done")
 
 
 

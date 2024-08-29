@@ -9,6 +9,8 @@ import time
 
 import db
 
+HISTORY_CHART_FORMAT="시즌시간 | 랭킹, 총합 웨이브, 변동량 | 클리어 횟수, 호른점프, 더블호른점프, 크리스탈점프"
+
 
 def channel_check(interaction: discord.Interaction, chat_id: list) -> bool:
     """ 설정한 chat id와 다르면 응답하지 않는다.
@@ -314,7 +316,7 @@ async def print_history(interaction: discord.Interaction,
         username: str,
         conf: dict,
         db_parser: db.ParsePlayer,
-        show_shart: bool,
+        show_chart: bool,
         show_all: bool
 ) -> None:
 
@@ -371,9 +373,9 @@ async def print_history(interaction: discord.Interaction,
                 start_index = (history_len // 24) - 1
             showlen = start_index + difflen
 
-        if show_shart:
+        if show_chart:
             for i in range(start_index, showlen, 1):
-                title = "'{}' user data, {} day\n\n".format(username, i + 1)
+                title = "`{}`\n\n'{}' user data, {} day\n\n".format(HISTORY_CHART_FORMAT, username, i + 1)
                 history_arr = history[24*i:24*(i+1)]
                 string = ""
                 if i == 0:
@@ -389,7 +391,7 @@ async def print_history(interaction: discord.Interaction,
             for i in range(start_index, showlen, 1):
                 if history_len < 24*(i):
                     break
-                title = "'{}' user data, {} day\n\n".format(username, i + 1)
+                title = "`{}`\n\n'{}' user data, {} day\n\n".format(HISTORY_CHART_FORMAT, username, i + 1)
                 string = ""
                 if i == 0:
                     string += "initialize data\n```\n"
@@ -404,10 +406,12 @@ async def print_history(interaction: discord.Interaction,
     await interaction.response.send_message(embeds=embeds)
 
 
-async def print_leaderboard(interaction: discord.Interaction,
-        db_parser: db.ParsePlayer,
-        conf: dict,
-        show_rank: int
+async def print_leaderboard(
+    interaction: discord.Interaction,
+    db_parser: db.ParsePlayer,
+    conf: dict,
+    show_rank: int,
+    is_nickname_space=False
 ) -> None:
 
     if (show_rank == 0):
@@ -458,11 +462,13 @@ async def print_leaderboard(interaction: discord.Interaction,
         string = "```\n"
         for i in range(start_idx, end_idx):
             data = leaderboards[i]
-            # space_nickname = data[1]
-            # for _ in range(len(data[1]), 20):
-            #     space_nickname += " "
-            # string += "{:2d}. {:6d} | {} ({})\n".format(data[0], data[2], space_nickname, diff_score - data[2])
-            string += "{:2d}. {:6d} | {} ({})\n".format(data[0], data[2], data[1], diff_score - data[2])
+            if is_nickname_space == True:
+                space_nickname = data[1]
+                for _ in range(len(data[1]), 20):
+                    space_nickname += " "
+                string += "{:2d}. {:6d} | {} ({})\n".format(data[0], data[2], space_nickname, diff_score - data[2])
+            else:
+                string += "{:2d}. {:6d} | {} ({})\n".format(data[0], data[2], data[1], diff_score - data[2])
             if user_not_found == True:
                 diff_score = data[2]
 
