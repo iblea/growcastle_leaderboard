@@ -561,6 +561,9 @@ rank 미기입 시 20위까지 출력합니다.
         for key in alert_keys:
             user = self.alert_list[key]
             username: str = key
+            if username not in self.config["monitoring"]["player"]:
+                del self.alert_list[key]
+                continue
             if self.config["monitoring"]["player"][username]["check"] == True:
                 continue
 

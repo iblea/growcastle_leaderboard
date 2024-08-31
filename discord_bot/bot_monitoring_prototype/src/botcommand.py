@@ -111,15 +111,19 @@ async def print_user_info(interaction: discord.Interaction,
     if conf_data is None:
         # await interaction.response.send_message(f'no {interaction.user.mention} userdata')
         await interaction.response.send_message(f'no {username_org} userdata')
+        return
     if "users" not in conf_data:
         await interaction.response.send_message(f'no {username_org} userdata')
+        return
 
     users_data: Optional[dict] = conf_data.get("users")
     if users_data is None:
         await interaction.response.send_message(f'no {username_org} userdata')
+        return
 
     if username not in users_data:
         await interaction.response.send_message(f'no {username_org} userdata')
+        return
 
     my_data: str = users_data[username]
     current_score = my_data["score"]
