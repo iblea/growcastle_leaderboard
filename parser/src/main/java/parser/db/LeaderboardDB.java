@@ -32,90 +32,74 @@ public class LeaderboardDB {
     private static final int DHORN_JUMP = 7;
 
 
-    Database db;
+    private Database db;
+    private EntityManager em;
 
     public LeaderboardDB(Database db) {
         this.db = db;
+        this.em = UtilDB.setEntityManager(this.db);
     }
 
-    public EntityManager makeTransaction() {
-        EntityManagerFactory emf = db.getEntityManagerFactory();
-        if (emf == null) {
-            logger.error("EntityManagerFactory is null");
-            throw new NullPointerException("EntityManagerFactory is null");
-        }
-        return emf.createEntityManager();
-    }
-
-    public boolean transactionRollback(EntityTransaction transaction) {
-        boolean stat = true;
-        try {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-        } catch (Exception e) {
-            logger.error("transactionRollback error");
-            logger.error(e.getMessage());
-            stat = false;
-        }
-        return stat;
-    }
 
     public boolean insertLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return false;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
         boolean result = true;
         try {
             transaction.begin();
-            insertLeaderboardsByType(data, type, em);
+            insertLeaderboardsByType(data, type);
             transaction.commit();
         } catch (Exception e) {
             logger.error("insertLeaderboards error");
             logger.error(e.getMessage());
-            transactionRollback(transaction);
+            UtilDB.transactionRollback(transaction);
             result = false;
-        } finally {
-            em.close();
         }
         logger.debug("[{}][{}] leaderboards inserted", type.getTypename(), data.size());
         return result;
     }
 
     public boolean insertLeaderboardsPlayerTracking(List<LeaderboardBaseEntity> data, List<LeaderboardPlayer> agoWaveData) {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return false;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
         boolean result = true;
         try {
             transaction.begin();
-            insertsqlLeaderboardsPlayerTracking(data, agoWaveData, em);
+            insertsqlLeaderboardsPlayerTracking(data, agoWaveData);
             transaction.commit();
         } catch (Exception e) {
             logger.error("insertLeaderboardsPlayerTracking error");
             logger.error(e.getMessage());
-            transactionRollback(transaction);
+            UtilDB.transactionRollback(transaction);
             result = false;
-        } finally {
-            em.close();
         }
         logger.debug("player [{}] leaderboards tracking inserted", data.size());
         return result;
     }
 
-    private void insertLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
+    private void insertLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type) {
         switch (type) {
             case PLAYER:
                 for (LeaderboardBaseEntity leaderboard : data) {
-                    em.persist(new LeaderboardPlayer(leaderboard));
+                    this.em.persist(new LeaderboardPlayer(leaderboard));
                 }
                 break;
             case GUILD:
                 for (LeaderboardBaseEntity leaderboard : data) {
-                    em.persist(new LeaderboardGuild(leaderboard));
+                    this.em.persist(new LeaderboardGuild(leaderboard));
                 }
                 break;
             case HELL:
                 for (LeaderboardBaseEntity leaderboard : data) {
-                    em.persist(new LeaderboardHell(leaderboard));
+                    this.em.persist(new LeaderboardHell(leaderboard));
                 }
                 break;
         }
@@ -171,20 +155,24 @@ public class LeaderboardDB {
         return player;
     }
 
-    private void insertsqlLeaderboardsPlayerTracking(List<LeaderboardBaseEntity> data, List<LeaderboardPlayer> agoWaveData, EntityManager em) {
+    private void insertsqlLeaderboardsPlayerTracking(List<LeaderboardBaseEntity> data, List<LeaderboardPlayer> agoWaveData) {
         if (agoWaveData == null ) {
             logger.error("agoWaveData is null");
             return ;
         }
         for (LeaderboardBaseEntity leaderboard : data) {
             LeaderboardPlayer trackedPlayer = trackedAgoData(leaderboard, agoWaveData);
-            em.persist(trackedPlayer);
+            this.em.persist(trackedPlayer);
         }
     }
 
     public void setInitializeTrackedData() {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return ;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
 
         int updatedWave = 0;
         int updatedHornJump = 0;
@@ -192,107 +180,111 @@ public class LeaderboardDB {
         try {
             transaction.begin();
             String jpql = "UPDATE " + LeaderboardPlayer.class.getSimpleName() + " p SET p.wave = 0, p.hornJump = 0, p.dhornJump = 0, p.crystalJump = 0";
-            Query query = em.createQuery(jpql);
+            Query query = this.em.createQuery(jpql);
             updatedWave = query.executeUpdate();
             transaction.commit();
         } catch (Exception e) {
             logger.error("setInitializeTrackedData error");
             logger.error(e.getMessage());
-            transactionRollback(transaction);
-        } finally {
-            em.close();
+            UtilDB.transactionRollback(transaction);
         }
         logger.debug("[{}][{}][{}] updated tracked data set 0", updatedWave, updatedHornJump, updatedCrystalJump);
     }
 
     public void deleteLeaderboardsUntilDateWithType(LocalDateTime date, String tableName) {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return ;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
         try {
             transaction.begin();
             String sql = "DELETE FROM " + tableName + " WHERE parseTime < :date";
-            Query query = em.createNativeQuery(sql);
+            Query query = this.em.createNativeQuery(sql);
             query.setParameter("date", date);
             query.executeUpdate();
             transaction.commit();
         } catch (Exception e) {
             logger.error("deleteLeaderboardsUntilDateWithType error");
             logger.error(e.getMessage());
-            transactionRollback(transaction);
-        } finally {
-            em.close();
+            UtilDB.transactionRollback(transaction);
         }
         logger.debug("date : [{}], tableName : [{}]", date, tableName);
         logger.debug("deleteLeaderboardsUntilDateWithType success");
     }
 
-    public void deleteAllQuery(String tableName, EntityManager em) {
+    public void deleteAllQuery(String tableName) {
         String sql = "DELETE FROM " + tableName + "";
-        Query query = em.createNativeQuery(sql);
+        Query query = this.em.createNativeQuery(sql);
         query.executeUpdate();
     }
 
     public void deleteLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return ;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
         try {
             transaction.begin();
-            deleteLeaderboardsByType(data, type, em);
+            deleteLeaderboardsByType(data, type);
             transaction.commit();
         } catch (Exception e) {
             logger.error("deleteLeaderboards error");
             logger.error(e.getMessage());
-            transactionRollback(transaction);
-        } finally {
-            em.close();
+            UtilDB.transactionRollback(transaction);
         }
         logger.debug("[{}][{}] leaderboards deleted", type.getTypename(), data.size());
     }
 
-    private void deleteLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em) {
+    private void deleteLeaderboardsByType(List<LeaderboardBaseEntity> data, LeaderboardType type) {
         switch (type) {
             case PLAYER:
                 for (LeaderboardBaseEntity leaderboard : data) {
                     LeaderboardPlayer player = new LeaderboardPlayer(leaderboard);
-                    em.remove(em.contains(player) ? player : em.merge(player));
+                    this.em.remove(this.em.contains(player) ? player : this.em.merge(player));
                 }
                 break;
             case GUILD:
                 for (LeaderboardBaseEntity leaderboard : data) {
                     LeaderboardGuild guild = new LeaderboardGuild(leaderboard);
-                    em.remove(em.contains(guild) ? guild : em.merge(guild));
+                    this.em.remove(this.em.contains(guild) ? guild : this.em.merge(guild));
                 }
                 break;
             case HELL:
                 for (LeaderboardBaseEntity leaderboard : data) {
                     LeaderboardHell hell = new LeaderboardHell(leaderboard);
-                    em.remove(em.contains(hell) ? hell : em.merge(hell));
+                    this.em.remove(this.em.contains(hell) ? hell : this.em.merge(hell));
                 }
                 break;
         }
     }
 
     public LeaderboardBaseEntity findLeaderboardPK(String name, LocalDateTime parseTime, LeaderboardType type) {
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return null;
+        }
         MemberPK pk = new MemberPK(name, parseTime);
         Object leaderboard = null;
-        EntityManager em = makeTransaction();
         try {
             switch (type) {
                 case PLAYER:
-                    leaderboard = em.find(LeaderboardPlayer.class, pk);
+                    leaderboard = this.em.find(LeaderboardPlayer.class, pk);
                     break;
                 case GUILD:
-                    leaderboard = em.find(LeaderboardGuild.class, pk);
+                    leaderboard = this.em.find(LeaderboardGuild.class, pk);
                     break;
                 case HELL:
-                    leaderboard = em.find(LeaderboardHell.class, pk);
+                    leaderboard = this.em.find(LeaderboardHell.class, pk);
                     break;
             }
         } catch (Exception e) {
             logger.error("findLeaderboardPK error");
             logger.error(e.getMessage());
-        } finally {
-            em.close();
         }
         if (leaderboard == null) {
             return null;
@@ -310,11 +302,16 @@ public class LeaderboardDB {
     }
 
     public List<LeaderboardPlayer> getLeaderboardPlayersAll() {
-        EntityManager em = makeTransaction();
         List<LeaderboardPlayer> leaderboardList = null;
+
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return leaderboardList;
+        }
         try {
 
-            leaderboardList = em.createQuery(
+            leaderboardList = this.em.createQuery(
                 "SELECT lp FROM " + LeaderboardPlayer.class.getSimpleName() + " lp"
                 , LeaderboardPlayer.class).getResultList();
 
@@ -322,16 +319,18 @@ public class LeaderboardDB {
             logger.error("getLeaderboardPlayersAll error");
             logger.error(e.getMessage());
             leaderboardList = null;
-        } finally {
-            em.close();
         }
         return leaderboardList;
     }
 
     public boolean updateLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
-        EntityManager em = makeTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return false;
+        }
         boolean result = true;
-        EntityTransaction transaction = em.getTransaction();
+        EntityTransaction transaction = this.em.getTransaction();
 
         if (data == null) {
             logger.error("data is null");
@@ -344,25 +343,27 @@ public class LeaderboardDB {
 
         try {
             transaction.begin();
-            deleteAllQuery(type.getRealTimeTableName(), em);
-            insertLeaderboardsByType(data, type, em);
+            deleteAllQuery(type.getRealTimeTableName());
+            insertLeaderboardsByType(data, type);
             transaction.commit();
         } catch (Exception e) {
             logger.error("updateLeaderboards error");
             logger.error(e.getMessage());
-            transactionRollback(transaction);
+            UtilDB.transactionRollback(transaction);
             result = false;
-        } finally {
-            em.close();
         }
         logger.debug("[{}][{}] leaderboards updated", type.getTypename(), data.size());
         return result;
     }
 
     public boolean updateLeaderboardsPlayerTracking(List<LeaderboardBaseEntity> data) {
-        EntityManager em = makeTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return false;
+        }
         boolean result = true;
-        EntityTransaction transaction = em.getTransaction();
+        EntityTransaction transaction = this.em.getTransaction();
 
         if (data == null) {
             logger.error("data is null");
@@ -376,16 +377,14 @@ public class LeaderboardDB {
         try {
             transaction.begin();
             List<LeaderboardPlayer> agoWaveData = getLeaderboardPlayersAll();
-            deleteAllQuery(LeaderboardType.PLAYER.getRealTimeTableName(), em);
-            insertsqlLeaderboardsPlayerTracking(data, agoWaveData, em);
+            deleteAllQuery(LeaderboardType.PLAYER.getRealTimeTableName());
+            insertsqlLeaderboardsPlayerTracking(data, agoWaveData);
             transaction.commit();
         } catch (Exception e) {
             logger.error("updateLeaderboardsPlayerTracking error");
             logger.error(e.getMessage());
-            transactionRollback(transaction);
+            UtilDB.transactionRollback(transaction);
             result = false;
-        } finally {
-            em.close();
         }
         logger.debug("player [{}] leaderboardsPlayerTracking updated", data.size());
         return result;

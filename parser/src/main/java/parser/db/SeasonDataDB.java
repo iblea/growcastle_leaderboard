@@ -21,79 +21,62 @@ public class SeasonDataDB {
 
     private static Logger logger = LogManager.getLogger(SeasonDataDB.class);
 
-    Database db;
+    private Database db;
+    private EntityManager em;
 
     public SeasonDataDB(Database db) {
         this.db = db;
-    }
-
-    private EntityManager makeTransaction() {
-        EntityManagerFactory emf = db.getEntityManagerFactory();
-        if (emf == null) {
-            logger.error("EntityManagerFactory is null");
-            throw new NullPointerException("EntityManagerFactory is null");
-        }
-        return emf.createEntityManager();
-    }
-
-    public boolean transactionRollback(EntityTransaction transaction) {
-        boolean stat = true;
-        try {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-        } catch (Exception e) {
-            logger.error("transactionRollback error");
-            logger.error(e.getMessage());
-            stat = false;
-        }
-        return stat;
+        this.em = UtilDB.setEntityManager(db);
     }
 
     public boolean updateSeasonData(SeasonData data) {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return false;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
         boolean result = true;
         try {
             transaction.begin();
-            deleteQuery(em);
-            em.persist(data);
+            deleteQuery();
+            this.em.persist(data);
             transaction.commit();
         } catch (Exception e) {
             logger.error("update SeaonData error");
             logger.error(e.getMessage());
-            transactionRollback(transaction);
+            UtilDB.transactionRollback(transaction);
             result = false;
-        } finally {
-            em.close();
         }
 
         logger.debug("start [{}], end [{}] season data update", data.getStartDate(), data.getEndDate());
         return result;
     }
 
-    private void deleteQuery(EntityManager em) {
+    private void deleteQuery() {
         String sql = "DELETE FROM SeasonData";
-        Query query = em.createNativeQuery(sql);
+        Query query = this.em.createNativeQuery(sql);
         query.executeUpdate();
     }
 
     public boolean deleteSeasonData() {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return false;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
         boolean result = true;
 
         try {
             transaction.begin();
-            deleteQuery(em);
+            deleteQuery();
             transaction.commit();
         } catch (Exception e) {
             logger.error("delete Season Data error");
             logger.error(e.getMessage());
-            transactionRollback(transaction);
+            UtilDB.transactionRollback(transaction);
             result = false;
-        } finally {
-            em.close();
         }
 
         logger.debug("season data delete");
@@ -102,18 +85,19 @@ public class SeasonDataDB {
     }
 
     public SeasonData findSeasonData() {
-        EntityManager em = makeTransaction();
-
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return null;
+        }
         List<SeasonData> dataList = null;
         try {
-            TypedQuery<SeasonData> query = em.createQuery("SELECT s FROM SeasonData s", SeasonData.class);
+            TypedQuery<SeasonData> query = this.em.createQuery("SELECT s FROM SeasonData s", SeasonData.class);
             dataList = query.getResultList();
         } catch (Exception e) {
             logger.error("find SeasonData error");
             logger.error(e.getMessage());
             dataList = null;
-        } finally {
-            em.close();
         }
 
         if (dataList == null || dataList.isEmpty()) {

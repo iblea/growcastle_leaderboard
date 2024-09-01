@@ -22,19 +22,12 @@ public class GuildMemberWaveDB {
 
     private static Logger logger = LogManager.getLogger(GuildMemberWaveDB.class);
 
-    Database db;
+    private Database db;
+    private EntityManager em;
 
     public GuildMemberWaveDB(Database db) {
         this.db = db;
-    }
-
-    public EntityManager makeTransaction() {
-        EntityManagerFactory emf = db.getEntityManagerFactory();
-        if (emf == null) {
-            logger.error("EntityManagerFactory is null");
-            throw new NullPointerException("EntityManagerFactory is null");
-        }
-        return emf.createEntityManager();
+        this.em = UtilDB.setEntityManager(this.db);
     }
 
     public boolean transactionRollback(EntityTransaction transaction) {
@@ -52,8 +45,12 @@ public class GuildMemberWaveDB {
     }
 
     public boolean insertGuildMemberWaves(List<GuildMemberWave> data) {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return false;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
         boolean result = true;
 
         if (data.isEmpty()) {
@@ -63,33 +60,35 @@ public class GuildMemberWaveDB {
 
         try {
             transaction.begin();
-            insertGuildMemberWavesQuery(data, em);
+            insertGuildMemberWavesQuery(data);
             transaction.commit();
         } catch (Exception e) {
             logger.error("insertGuildMemberWave error");
             logger.error(e.getMessage());
             transactionRollback(transaction);
             result = false;
-        } finally {
-            em.close();
         }
         logger.debug("[{}] guildMemberWave inserted", data.size());
         return result;
     }
 
-    private void insertGuildMemberWavesQuery(List<GuildMemberWave> data, EntityManager em) {
+    private void insertGuildMemberWavesQuery(List<GuildMemberWave> data) {
         for (GuildMemberWave guildMemberWave : data) {
-            em.persist(guildMemberWave);
+            this.em.persist(guildMemberWave);
         }
     }
 
     public void deleteGuildMemberWaveUntilDate(LocalDateTime date) {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return ;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
         try {
             transaction.begin();
             String sql = "DELETE FROM guild_member_wave WHERE parseTime < :date";
-            Query query = em.createNativeQuery(sql);
+            Query query = this.em.createNativeQuery(sql);
             query.setParameter("date", date);
             query.executeUpdate();
             transaction.commit();
@@ -97,33 +96,33 @@ public class GuildMemberWaveDB {
             logger.error("deleteGuildMemberWaveUntilDate error");
             logger.error(e.getMessage());
             transactionRollback(transaction);
-        } finally {
-            em.close();
         }
         logger.debug("date : [{}] deleteGuildMemberWaveUntilDate success", date);
     }
 
-    public void deleteAllQuery(EntityManager em) {
+    public void deleteAllQuery() {
         String sql = "DELETE FROM guild_member_wave";
-        Query query = em.createNativeQuery(sql);
+        Query query = this.em.createNativeQuery(sql);
         query.executeUpdate();
     }
 
     public void deleteGuildMemberWaves(List<GuildMemberWave> data) {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return ;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
         try {
             transaction.begin();
             for (GuildMemberWave guildMember : data) {
-                em.remove(em.contains(guildMember) ? guildMember : em.merge(guildMember));
+                this.em.remove(em.contains(guildMember) ? guildMember : this.em.merge(guildMember));
             }
             transaction.commit();
         } catch (Exception e) {
             logger.error("deleteGuildMemberWaves error");
             logger.error(e.getMessage());
             transactionRollback(transaction);
-        } finally {
-            em.close();
         }
         logger.debug("[{}] guidlMemberWave deleted", data.size());
     }
@@ -132,15 +131,17 @@ public class GuildMemberWaveDB {
     public GuildMemberWave findGuildMemberWavePK(String name, LocalDateTime parseTime) {
         MemberPK pk = new MemberPK(name, parseTime);
         Object data = null;
-        EntityManager em = makeTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return null;
+        }
         try {
-            data = em.find(GuildMemberWave.class, pk);
+            data = this.em.find(GuildMemberWave.class, pk);
         } catch (Exception e) {
             logger.error("findGuildMemberWavePK error");
             logger.error(e.getMessage());
             data = null;
-        } finally {
-            em.close();
         }
         if (data == null) {
             return null;

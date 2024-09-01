@@ -28,38 +28,21 @@ public class HistoryDB {
 
     private static Logger logger = LogManager.getLogger(HistoryDB.class);
 
-    Database db;
+    private Database db;
+    private EntityManager em;
 
     public HistoryDB(Database db) {
         this.db = db;
-    }
-
-    public EntityManager makeTransaction() {
-        EntityManagerFactory emf = db.getEntityManagerFactory();
-        if (emf == null) {
-            logger.error("EntityManagerFactory is null");
-            throw new NullPointerException("EntityManagerFactory is null");
-        }
-        return emf.createEntityManager();
-    }
-
-    public boolean transactionRollback(EntityTransaction transaction) {
-        boolean stat = true;
-        try {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-        } catch (Exception e) {
-            logger.error("transactionRollback error");
-            logger.error(e.getMessage());
-            stat = false;
-        }
-        return stat;
+        this.em = UtilDB.setEntityManager(this.db);
     }
 
     public boolean insertHistory(List<LeaderboardBaseEntity> data, LeaderboardType type, String seasonName, LocalDateTime time) {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return false;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
         boolean result = true;
 
         if (data.isEmpty()) {
@@ -69,23 +52,25 @@ public class HistoryDB {
 
         try {
             transaction.begin();
-            insertHistoryByType(data, type, em, seasonName, time);
+            insertHistoryByType(data, type, seasonName, time);
             transaction.commit();
         } catch (Exception e) {
             logger.error("insertHistory error");
             logger.error(e.getMessage());
-            transactionRollback(transaction);
+            UtilDB.transactionRollback(transaction);
             result = false;
-        } finally {
-            em.close();
         }
         logger.debug("[{}][{}] history inserted", type.getTypename(), data.size());
         return result;
     }
 
     public boolean insertHistoryPlayerTracking(List<LeaderboardPlayer> data, String seasonName, LocalDateTime time) {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return false;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
         boolean result = true;
 
         if (data == null) {
@@ -106,23 +91,21 @@ public class HistoryDB {
         try {
             transaction.begin();
             for (LeaderboardPlayer leaderboard : data) {
-                em.persist(new HistoryPlayer(leaderboard, seasonName, minUnit, time));
+                this.em.persist(new HistoryPlayer(leaderboard, seasonName, minUnit, time));
             }
             transaction.commit();
         } catch (Exception e) {
             logger.error("insertHistory error");
             logger.error(e.getMessage());
-            transactionRollback(transaction);
+            UtilDB.transactionRollback(transaction);
             result = false;
-        } finally {
-            em.close();
         }
         logger.debug("player [{}] historyPlayerTracking inserted", data.size());
         return result;
     }
 
 
-    private void insertHistoryByType(List<LeaderboardBaseEntity> data, LeaderboardType type, EntityManager em, String seasonName, LocalDateTime time) {
+    private void insertHistoryByType(List<LeaderboardBaseEntity> data, LeaderboardType type, String seasonName, LocalDateTime time) {
         int minUnit = getMinUnit(data.get(0).getParseTime());
         switch (type) {
             case PLAYER:
@@ -130,17 +113,17 @@ public class HistoryDB {
                 for (LeaderboardBaseEntity leaderboard : data) {
                     history = new HistoryPlayer(leaderboard, seasonName, minUnit);
                     history.setParseTime(time);
-                    em.persist(history);
+                    this.em.persist(history);
                 }
                 break;
             case GUILD:
                 for (LeaderboardBaseEntity leaderboard : data) {
-                    em.persist(new HistoryGuild(leaderboard, seasonName, minUnit, time));
+                    this.em.persist(new HistoryGuild(leaderboard, seasonName, minUnit, time));
                 }
                 break;
             case HELL:
                 for (LeaderboardBaseEntity leaderboard : data) {
-                    em.persist(new HistoryHell(leaderboard, seasonName, minUnit, time));
+                    this.em.persist(new HistoryHell(leaderboard, seasonName, minUnit, time));
                 }
                 break;
         }
@@ -153,53 +136,57 @@ public class HistoryDB {
     }
 
     public void deleteHistoryUntilDateWithType(LocalDateTime date, String tableName) {
-        EntityManager em = makeTransaction();
-        EntityTransaction transaction = em.getTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return ;
+        }
+        EntityTransaction transaction = this.em.getTransaction();
         try {
             transaction.begin();
             String sql = "DELETE FROM " + tableName + " WHERE parseTime < :date";
-            Query query = em.createNativeQuery(sql);
+            Query query = this.em.createNativeQuery(sql);
             query.setParameter("date", date);
             query.executeUpdate();
             transaction.commit();
         } catch (Exception e) {
             logger.error("deleteHistoryUntilDateWithType error");
             logger.error(e.getMessage());
-            transactionRollback(transaction);
-        } finally {
-            em.close();
+            UtilDB.transactionRollback(transaction);
         }
         logger.debug("date : [{}], tableName : [{}]", date, tableName);
         logger.debug("deleteHistoryUntilDateWithType success");
     }
 
-    public void deleteAllQuery(String tableName, EntityManager em) {
+    public void deleteAllQuery(String tableName) {
         String sql = "DELETE FROM " + tableName + "";
-        Query query = em.createNativeQuery(sql);
+        Query query = this.em.createNativeQuery(sql);
         query.executeUpdate();
     }
 
     public LeaderboardBaseEntity findHistoryPK(String name, LocalDateTime parseTime, LeaderboardType type) {
         MemberPK pk = new MemberPK(name, parseTime);
         Object leaderboard = null;
-        EntityManager em = makeTransaction();
+        this.em = UtilDB.checkEntityManager(this.db, this.em);
+        if (this.em == null) {
+            logger.error("EntityManager is null");
+            return null;
+        }
         try {
             switch (type) {
                 case PLAYER:
-                    leaderboard = em.find(HistoryPlayer.class, pk);
+                    leaderboard = this.em.find(HistoryPlayer.class, pk);
                     break;
                 case GUILD:
-                    leaderboard = em.find(HistoryGuild.class, pk);
+                    leaderboard = this.em.find(HistoryGuild.class, pk);
                     break;
                 case HELL:
-                    leaderboard = em.find(HistoryHell.class, pk);
+                    leaderboard = this.em.find(HistoryHell.class, pk);
                     break;
             }
         } catch (Exception e) {
             logger.error("findLeaderboardPK error");
             logger.error(e.getMessage());
-        } finally {
-            em.close();
         }
         if (leaderboard == null) {
             return null;
