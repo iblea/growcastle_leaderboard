@@ -320,7 +320,17 @@ public class LeaderboardDB {
             logger.error(e.getMessage());
             leaderboardList = null;
         }
+        detachEntityPlayer(leaderboardList);
         return leaderboardList;
+    }
+
+    public void detachEntityPlayer(List<LeaderboardPlayer> leaderboardList) {
+        if (leaderboardList == null) {
+            return ;
+        }
+        for (LeaderboardPlayer leaderboard : leaderboardList) {
+            em.detach(leaderboard);
+        }
     }
 
     public boolean updateLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
@@ -329,8 +339,6 @@ public class LeaderboardDB {
             logger.error("EntityManager is null");
             return false;
         }
-        boolean result = true;
-        EntityTransaction transaction = this.em.getTransaction();
 
         if (data == null) {
             logger.error("data is null");
@@ -340,6 +348,9 @@ public class LeaderboardDB {
             logger.warn("data is empty");
             return false;
         }
+
+        boolean result = true;
+        EntityTransaction transaction = this.em.getTransaction();
 
         try {
             transaction.begin();
