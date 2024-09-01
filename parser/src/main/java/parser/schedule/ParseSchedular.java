@@ -74,6 +74,7 @@ public class ParseSchedular {
         if (this.guildMemberWaveDB == null) {
             this.guildMemberWaveDB = new GuildMemberWaveDB(this.db);
         }
+        return true;
     }
 
     public void start() {
@@ -255,8 +256,6 @@ public class ParseSchedular {
 
     public void getParseLeaderboards(boolean updateInform) {
         setDatabaseConnection();
-        boolean result;
-
         List<LeaderboardBaseEntity> leaderboardData = null;
 
         // parse Leaderboard guild data
@@ -340,7 +339,7 @@ public class ParseSchedular {
             this.tgBot.sendMsg("Leaderboard Player Data Parse Error");
             return ;
         }
-        result = this.leaderboardDB.updateLeaderboardsPlayerTracking(leaderboardData);
+        boolean result = this.leaderboardDB.updateLeaderboardsPlayerTracking(leaderboardData);
         if (! result) {
             logger.error("Leaderboard Player Data Update Error");
             this.tgBot.sendMsg("Leaderboard Player Data Update Error");
@@ -363,7 +362,7 @@ public class ParseSchedular {
 
 
 
-    public void testFunc() {
+    private void testFunc() {
         // System.out.println("start time : " + LocalDateTime.now());
         // for (int i = 0; i < 15; i++) {
         //     try {
