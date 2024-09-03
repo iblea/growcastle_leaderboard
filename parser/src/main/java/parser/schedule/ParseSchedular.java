@@ -77,6 +77,18 @@ public class ParseSchedular {
         return true;
     }
 
+    private void clearAllEntityManager() {
+        if(this.leaderboardDB != null) {
+            this.leaderboardDB.clearEntityManager();
+        }
+        if (this.historyDB != null) {
+            this.historyDB.clearEntityManager();
+        }
+        if (this.guildMemberWaveDB != null) {
+            this.guildMemberWaveDB.clearEntityManager();
+        }
+    }
+
     public void start() {
         // Runnable scheduleRunnable = new ScheduleRunner();
         tgBot.sendMsg("bot scheduler start");
@@ -90,7 +102,7 @@ public class ParseSchedular {
                 if (! isSecondDivide10()) {
                     return ;
                 }
-                getGrowCastleData();
+                scheduleMain();
                 // testFunc();
 
                 // try {
@@ -133,6 +145,11 @@ public class ParseSchedular {
         return divide15Minutes(nowPlus15Minutes);
     }
 
+
+    public void scheduleMain() {
+        getGrowCastleData();
+        clearAllEntityManager();
+    }
 
     // Main Scheduler
     public void getGrowCastleData() {

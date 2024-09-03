@@ -30,6 +30,12 @@ public class GuildMemberWaveDB {
         this.em = UtilDB.setEntityManager(this.db);
     }
 
+    public void clearEntityManager() {
+        if ( this.em != null && this.em.isOpen() ) {
+            this.em.clear();
+        }
+    }
+
     public boolean transactionRollback(EntityTransaction transaction) {
         boolean stat = true;
         try {
