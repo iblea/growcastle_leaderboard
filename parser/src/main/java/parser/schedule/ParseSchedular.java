@@ -80,12 +80,15 @@ public class ParseSchedular {
     private void clearAllEntityManager() {
         if(this.leaderboardDB != null) {
             this.leaderboardDB.clearEntityManager();
+            this.leaderboardDB.closeEntityManager();
         }
         if (this.historyDB != null) {
             this.historyDB.clearEntityManager();
+            this.historyDB.closeEntityManager();
         }
         if (this.guildMemberWaveDB != null) {
             this.guildMemberWaveDB.clearEntityManager();
+            this.guildMemberWaveDB.closeEntityManager();
         }
     }
 
@@ -186,6 +189,7 @@ public class ParseSchedular {
         SeasonDataDB seasonDataDB = new SeasonDataDB(this.db);
         if (this.seasonData.isNull()) {
             SeasonData data = seasonDataDB.findSeasonData();
+            seasonDataDB.closeEntityManager();
             if (data != null) {
                 this.seasonData = null;
                 this.seasonData = new SeasonData(data);
@@ -217,6 +221,7 @@ public class ParseSchedular {
         if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
             logger.info("update season data");
             seasonDataDB.updateSeasonData(seasonData);
+            seasonDataDB.closeEntityManager();
         } else {
             // 10분 단위로 계산을 진행하므로
             // 파싱한 시각이 시즌 종료 시간을 지났을 수가 있다.

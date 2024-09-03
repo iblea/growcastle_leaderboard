@@ -42,6 +42,12 @@ public class HistoryDB {
         }
     }
 
+    public void closeEntityManager() {
+        if ( UtilDB.closeEntityManager(this.em) ) {
+            this.em = null;
+        }
+    }
+
 
     public boolean insertHistory(List<LeaderboardBaseEntity> data, LeaderboardType type, String seasonName, LocalDateTime time) {
         this.em = UtilDB.checkEntityManager(this.db, this.em);

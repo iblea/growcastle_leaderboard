@@ -24,11 +24,11 @@ public class UtilDB {
 
     public static EntityManager checkEntityManager(Database db, EntityManager em) {
         if (em == null) {
-            logger.error("EntityManager is null");
+            logger.debug("EntityManager is null");
             return setEntityManager(db);
         }
         if (!em.isOpen()) {
-            logger.error("EntityManager is closed");
+            logger.debug("EntityManager is closed");
             return setEntityManager(db);
         }
         return em;
@@ -36,7 +36,7 @@ public class UtilDB {
 
     public static boolean closeEntityManager(EntityManager em) {
         if (em == null) {
-            logger.error("EntityManager is null");
+            logger.info("EntityManager is null");
             return false;
         }
         try {

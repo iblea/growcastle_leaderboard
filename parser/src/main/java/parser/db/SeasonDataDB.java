@@ -35,6 +35,12 @@ public class SeasonDataDB {
         }
     }
 
+    public void closeEntityManager() {
+        if ( UtilDB.closeEntityManager(this.em) ) {
+            this.em = null;
+        }
+    }
+
 
     public boolean updateSeasonData(SeasonData data) {
         this.em = UtilDB.checkEntityManager(this.db, this.em);

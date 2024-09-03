@@ -46,6 +46,12 @@ public class LeaderboardDB {
         }
     }
 
+    public void closeEntityManager() {
+        if ( UtilDB.closeEntityManager(this.em) ) {
+            this.em = null;
+        }
+    }
+
 
     public boolean insertLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
         this.em = UtilDB.checkEntityManager(this.db, this.em);
