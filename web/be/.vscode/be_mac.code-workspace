@@ -1,0 +1,46 @@
+{
+    "folders": [
+        {
+            "name": "be",
+            "path": "../"
+        },
+    ],
+    "settings": {
+        "java.compile.nullAnalysis.mode": "automatic",
+        // "java.jdt.ls.java.home": "/usr/lib/jvm/java-17-openjdk-arm64",
+        "java.jdt.ls.java.home": "/opt/homebrew/Cellar/openjdk@17/17.0.10/libexec/openjdk.jdk/Contents/Home",
+        "java.references.includeDecompiledSources": true,
+        "java.symbols.includeSourceMethodDeclarations": true,
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "debug.inlineValues": "off",
+        // "java.errors.incompleteClasspath.severity": "ignore",
+
+        "java.project.referencedLibraries": [
+            // "/usr/lib/jvm/openjdk-17/lib/java.base/**/*.java",
+            // "/usr/lib/jvm/openjdk-17/lib/**/*.java",
+
+            "/opt/homebrew/Cellar/openjdk@17/17.0.10/libexec/openjdk.jdk/Contents/Home/lib/src/java.base/**/*.java",
+            "/opt/homebrew/Cellar/openjdk@17/17.0.10/libexec/openjdk.jdk/Contents/Home/lib/src/**/*.java",
+
+            "~/.gradle/cache/modules-2/files-2.1/**/*.jar",
+
+        ],
+        "sqltools.connections": [
+            {
+                "previewLimit": 50,
+                "server": "localhost",
+                "driver": "PostgreSQL",
+                "name": "h2_test",
+                "group": "h2_database",
+                "database": "/home/ible/db/growcastle/growcastle",
+                "username": "gc",
+                "password": "gcparser1",
+                "connectString": "jdbc:h2:tcp://localhost/~/db/growcastle/growcastle"
+            }
+        ],
+        "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m -Xlog:disable"
+
+
+
+    }
+}
