@@ -9,15 +9,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
-public class HomeController {
+public class MainController {
 
     // @GetMapping("/")
     // public String home() {
+    //     // src/main/resources/templates/home.html
     //     return "home";
     // }
 
     @GetMapping("/")
-    public void foo(HttpServletResponse res) {
+    public void mainpage(HttpServletResponse res) {
         try {
             PrintWriter out = res.getWriter();
             out.println("Hello, Spring!");
@@ -26,8 +27,7 @@ public class HomeController {
             ex.printStackTrace();
         }
     }
-    public String hometest() {
-        return "Response!";
-    }
+
+
 
 }
