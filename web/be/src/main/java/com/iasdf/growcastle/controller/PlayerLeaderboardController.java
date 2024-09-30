@@ -34,42 +34,22 @@ public class PlayerLeaderboardController {
         return ResponseEntity.ok("test");
     }
 
-
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Map<String, Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+    public ResponseEntity<ErrorReturn> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String paramName = ex.getName();
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
-            .body(getErrorJson("Argument Error"));
+            // .body(new ErrorReturn(ex.getMessage()));
+            .body(new ErrorReturn(paramName + " is invalid"));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", 0);
-        response.put("msg", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    public ResponseEntity<ErrorReturn> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorReturn(ex.getMessage()));
     }
 
-
-    private void isValidName(String name) {
-        if (name.length() == 0) {
-            throw new IllegalArgumentException("Name is too short");
-        }
-        if (name.length() > 21) {
-            throw new IllegalArgumentException("Name is too long");
-        }
-        Matcher matcher = this.namePattern.matcher(name);
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException("Name is invalid, Only alphabet, number, space, '_', '-' are allowed");
-        }
-    }
-
-    public Map<String, Object> getErrorJson(String errmsg) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", 0);
-        response.put("msg", errmsg);
-        return response;
-    }
 }
