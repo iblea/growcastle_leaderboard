@@ -18,14 +18,16 @@ import org.springframework.http.HttpStatus;
 
 @Controller
 public class PlayerLeaderboardController {
-    private Pattern namePattern = Pattern.compile("^[a-zA-Z0-9 _-]+$");
 
     @GetMapping("/player/leaderboard")
     public ResponseEntity<Object> getMethodName(
         @RequestParam(name = "name", required = false, defaultValue = "") String name,
-        @RequestParam(name = "cnt", required = false, defaultValue = "100") int cnt
+        @RequestParam(name = "cnt", required = false, defaultValue = "0") Integer cnt
     ) {
         ArgChecker.isValidUserName(name);
+        int showCnt = cnt;
+        ArgChecker.isValidCnt(showCnt);
+
         Map<String, Object> response = new HashMap<>();
         response.put("success", 1);
         response.put("data", null);

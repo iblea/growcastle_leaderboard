@@ -24,4 +24,10 @@ public class ArgChecker {
         }
     }
 
+    public static void isValidCnt(int cnt) {
+        if (cnt < 0) {
+            throw new IllegalArgumentException("Cnt value can't be negative");
+        }
+    }
+
 }
