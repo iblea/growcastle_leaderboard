@@ -5,19 +5,19 @@ import org.springframework.context.annotation.Bean;
 // import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.iasdf.growcastle.repository.PlayerRepository;
-import com.iasdf.growcastle.service.PlayerService;
+import com.iasdf.growcastle.repository.PlayerLeaderboardRepository;
+import com.iasdf.growcastle.service.PlayerLeaderboardService;
 
 @Configuration
 public class SpringConfig {
 
     @Bean
-    public PlayerService playerService() {
-        return new PlayerService(playerRepository());
+    public PlayerLeaderboardService playerLeaderboardService() {
+        return new PlayerLeaderboardService(playerLeaderboardRepository());
     }
 
-    public PlayerRepository playerRepository() {
-        return new PlayerRepository();
+    public PlayerLeaderboardRepository playerLeaderboardRepository() {
+        return new PlayerLeaderboardRepository();
     }
 
 }

@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.iasdf.growcastle.domain.Player;
 
-public class PlayerRepository {
+public class PlayerLeaderboardRepository {
 
     public List<Player> findAll() {
         return new LinkedList<>();

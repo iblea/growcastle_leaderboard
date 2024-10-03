@@ -13,16 +13,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.iasdf.growcastle.common.ArgChecker;
 import com.iasdf.growcastle.domain.Player;
-import com.iasdf.growcastle.service.PlayerService;
+import com.iasdf.growcastle.service.PlayerLeaderboardService;
 
 @Controller
 public class PlayerLeaderboardController {
 
     // @Autowired
-    private final PlayerService playerService;
+    private final PlayerLeaderboardService playerLeaderboardService;
 
-    public PlayerLeaderboardController(PlayerService playerService) {
-        this.playerService = playerService;
+    public PlayerLeaderboardController(PlayerLeaderboardService playerLeaderboardService) {
+        this.playerLeaderboardService = playerLeaderboardService;
     }
 
     @GetMapping("/player/leaderboard")
@@ -33,7 +33,7 @@ public class PlayerLeaderboardController {
         int showCnt = cnt;
         ArgChecker.isValidCnt(showCnt);
 
-        List<Player> players = playerService.findPlayers(showCnt);
+        List<Player> players = playerLeaderboardService.findPlayers(showCnt);
         if (players == null) {
             throw new SQLDataException("Player Leaderboard Data Search Error");
         }

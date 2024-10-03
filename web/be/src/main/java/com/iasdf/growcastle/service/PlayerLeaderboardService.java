@@ -4,13 +4,13 @@ import java.util.List;
 
 import com.iasdf.growcastle.domain.Player;
 import com.iasdf.growcastle.domain.Players;
-import com.iasdf.growcastle.repository.PlayerRepository;
+import com.iasdf.growcastle.repository.PlayerLeaderboardRepository;
 
-public class PlayerService {
+public class PlayerLeaderboardService {
 
-    private final PlayerRepository playerRepository;
+    private final PlayerLeaderboardRepository playerRepository;
 
-    public PlayerService(PlayerRepository playerRepository) {
+    public PlayerLeaderboardService(PlayerLeaderboardRepository playerRepository) {
         this.playerRepository = playerRepository;
     }
 
