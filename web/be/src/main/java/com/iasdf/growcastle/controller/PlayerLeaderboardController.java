@@ -1,20 +1,19 @@
 package com.iasdf.growcastle.controller;
 
+import java.sql.SQLDataException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.iasdf.growcastle.common.ArgChecker;
-import com.iasdf.growcastle.dto.ErrorReturn;
-
-import org.springframework.http.HttpStatus;
+import com.iasdf.growcastle.domain.Player;
+import com.iasdf.growcastle.service.PlayerService;
 
 @Controller
 public class PlayerLeaderboardController {
@@ -29,10 +28,15 @@ public class PlayerLeaderboardController {
     @GetMapping("/player/leaderboard")
     public ResponseEntity<Object> leaderboards(
         @RequestParam(name = "cnt", required = false, defaultValue = "0") Integer cnt
-    ) {
-        ArgChecker.isValidUserName(name);
+    ) throws SQLDataException {
+        // ArgChecker.isValidUserName(name);
         int showCnt = cnt;
         ArgChecker.isValidCnt(showCnt);
+
+        List<Player> players = playerService.findPlayers(showCnt);
+        if (players == null) {
+            throw new SQLDataException("Player Leaderboard Data Search Error");
+        }
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", 1);
@@ -40,28 +44,18 @@ public class PlayerLeaderboardController {
 
         return ResponseEntity.ok("test");
     }
+
+    @GetMapping("/player/leaderboard/{name}")
+    public ResponseEntity<Object> findLeaderboards(
+        @PathVariable String name
+        // @RequestParam(name = "name", required = false, defaultValue = "") String name
+    ) {
+        ArgChecker.isValidUserName(name);
         Map<String, Object> response = new HashMap<>();
         response.put("success", 1);
         response.put("data", null);
+
         return ResponseEntity.ok("test");
-    }
-
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ErrorReturn> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        String paramName = ex.getName();
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            // .body(new ErrorReturn(ex.getMessage()));
-            .body(new ErrorReturn(paramName + " is invalid"));
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ErrorReturn> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(new ErrorReturn(ex.getMessage()));
     }
 
 }
