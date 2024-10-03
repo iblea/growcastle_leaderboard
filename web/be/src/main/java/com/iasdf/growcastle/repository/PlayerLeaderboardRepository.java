@@ -1,22 +1,18 @@
 package com.iasdf.growcastle.repository;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
-import com.iasdf.growcastle.domain.Player;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public class PlayerLeaderboardRepository {
+import com.iasdf.growcastle.domain.LeaderboardPlayer;
+import com.iasdf.growcastle.domain.MemberPK;
 
-    public List<Player> findAll() {
-        return new LinkedList<>();
-    }
+import lombok.NonNull;
 
-    public List<Player> finds(int limit) {
-        if (limit < 0) {
-            return findAll();
-        }
-        return new LinkedList<>();
-    }
 
+@Repository
+public interface PlayerLeaderboardRepository extends JpaRepository<LeaderboardPlayer, MemberPK>
+{
+    @NonNull List<LeaderboardPlayer> findAll();
 }
