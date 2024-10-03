@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.iasdf.growcastle.common.ArgChecker;
-import com.iasdf.growcastle.domain.Player;
+import com.iasdf.growcastle.dto.LeaderboardPlayerDTO;
 import com.iasdf.growcastle.service.PlayerLeaderboardService;
 
 @Controller
@@ -27,22 +27,25 @@ public class PlayerLeaderboardController {
 
     @GetMapping("/player/leaderboard")
     public ResponseEntity<Object> leaderboards(
-        @RequestParam(name = "cnt", required = false, defaultValue = "0") Integer cnt
+        @RequestParam(name = "cnt", required = false, defaultValue = "0") Integer cnt,
+        @RequestParam(name = "page", required = false, defaultValue = "1") Integer page
     ) throws SQLDataException {
         // ArgChecker.isValidUserName(name);
         int showCnt = cnt;
         ArgChecker.isValidCnt(showCnt);
+        ArgChecker.isValidPage(page);
 
-        List<Player> players = playerLeaderboardService.findPlayers(showCnt);
+        List<LeaderboardPlayerDTO> players = playerLeaderboardService.findPlayers(showCnt, page);
         if (players == null) {
             throw new SQLDataException("Player Leaderboard Data Search Error");
         }
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", 1);
+        response.put("cnt", players.size());
         response.put("data", players);
 
-        return ResponseEntity.ok("test");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/player/leaderboard/{name}")
