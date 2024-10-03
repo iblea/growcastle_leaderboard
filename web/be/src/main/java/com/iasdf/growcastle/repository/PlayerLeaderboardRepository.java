@@ -10,13 +10,11 @@ import com.iasdf.growcastle.domain.MemberPK;
 import com.iasdf.growcastle.domain.QLeaderboardPlayer;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
-import lombok.NonNull;
-
 
 @Repository
 public interface PlayerLeaderboardRepository extends JpaRepository<LeaderboardPlayer, MemberPK>, PlayerLeaderboardRepositoryCustom
 {
-    @NonNull List<LeaderboardPlayer> findAll();
+    List<LeaderboardPlayer> findAll();
 }
 
 interface PlayerLeaderboardRepositoryCustom {
