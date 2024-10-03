@@ -26,7 +26,13 @@ public class ArgChecker {
 
     public static void isValidCnt(int cnt) {
         if (cnt < 0) {
-            throw new IllegalArgumentException("Cnt value can't be negative");
+            throw new IllegalArgumentException("Cnt must not be negative.");
+        }
+    }
+
+    public static void isValidPage(int page) {
+        if (page <= 0) {
+            throw new IllegalArgumentException("Page value must be greater than 0");
         }
     }
 
