@@ -8,7 +8,7 @@
     "settings": {
         "java.compile.nullAnalysis.mode": "automatic",
         "java.jdt.ls.java.home": "/usr/lib/jvm/java-17-openjdk-arm64",
-        // "java.jdt.ls.java.home": "/opt/homebrew/Cellar/openjdk@17/17.0.10/libexec/openjdk.jdk/Contents/Home",
+        // "java.jdt.ls.java.home": "/opt/homebrew/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home",
         "java.references.includeDecompiledSources": true,
         "java.symbols.includeSourceMethodDeclarations": true,
         "java.configuration.updateBuildConfiguration": "automatic",
@@ -19,8 +19,8 @@
             "/usr/lib/jvm/openjdk-17/lib/java.base/**/*.java",
             "/usr/lib/jvm/openjdk-17/lib/**/*.java",
 
-            // "/opt/homebrew/Cellar/openjdk@17/17.0.10/libexec/openjdk.jdk/Contents/Home/lib/src/java.base/**/*.java",
-            // "/opt/homebrew/Cellar/openjdk@17/17.0.10/libexec/openjdk.jdk/Contents/Home/lib/src/**/*.java",
+            // "/opt/homebrew/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home/lib/src/java.base/**/*.java",
+            // "/opt/homebrew/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home/lib/src/**/*.java",
 
             "~/.gradle/cache/modules-2/files-2.1/**/*.jar",
 
