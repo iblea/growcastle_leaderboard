@@ -19,15 +19,27 @@ import org.springframework.http.HttpStatus;
 @Controller
 public class PlayerLeaderboardController {
 
+    // @Autowired
+    private final PlayerService playerService;
+
+    public PlayerLeaderboardController(PlayerService playerService) {
+        this.playerService = playerService;
+    }
+
     @GetMapping("/player/leaderboard")
-    public ResponseEntity<Object> getMethodName(
-        @RequestParam(name = "name", required = false, defaultValue = "") String name,
+    public ResponseEntity<Object> leaderboards(
         @RequestParam(name = "cnt", required = false, defaultValue = "0") Integer cnt
     ) {
         ArgChecker.isValidUserName(name);
         int showCnt = cnt;
         ArgChecker.isValidCnt(showCnt);
 
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", 1);
+        response.put("data", players);
+
+        return ResponseEntity.ok("test");
+    }
         Map<String, Object> response = new HashMap<>();
         response.put("success", 1);
         response.put("data", null);
