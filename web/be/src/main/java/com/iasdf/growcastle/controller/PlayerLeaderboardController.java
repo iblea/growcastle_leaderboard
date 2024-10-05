@@ -48,17 +48,4 @@ public class PlayerLeaderboardController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/player/leaderboard/{name}")
-    public ResponseEntity<Object> findLeaderboards(
-        @PathVariable String name
-        // @RequestParam(name = "name", required = false, defaultValue = "") String name
-    ) {
-        ArgChecker.isValidUserName(name);
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", 1);
-        response.put("data", null);
-
-        return ResponseEntity.ok("test");
-    }
-
 }
