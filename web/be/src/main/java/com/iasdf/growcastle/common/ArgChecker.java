@@ -36,4 +36,14 @@ public class ArgChecker {
         }
     }
 
+    public static void isValidUnit(int unit) {
+        switch (unit) {
+            case 15:
+            case 30:
+            case 60:
+                return;
+        }
+        throw new IllegalArgumentException("Unit values must be only 15, 30, and 60");
+    }
+
 }
