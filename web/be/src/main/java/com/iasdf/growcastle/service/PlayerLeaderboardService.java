@@ -2,15 +2,20 @@ package com.iasdf.growcastle.service;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.iasdf.growcastle.dto.LeaderboardPlayerDTO;
 import com.iasdf.growcastle.repository.PlayerLeaderboardRepository;
 
+@Service
 public class PlayerLeaderboardService {
 
-    private final PlayerLeaderboardRepository playerRepository;
+    private final PlayerLeaderboardRepository playerLeaderboardRepository;
 
+    @Autowired
     public PlayerLeaderboardService(PlayerLeaderboardRepository playerRepository) {
-        this.playerRepository = playerRepository;
+        this.playerLeaderboardRepository = playerRepository;
     }
 
     /*
@@ -18,7 +23,7 @@ public class PlayerLeaderboardService {
      */
     public List<LeaderboardPlayerDTO> findAllPlayers() {
         return LeaderboardPlayerDTO.toDTO(
-            playerRepository.findAll()
+            playerLeaderboardRepository.findAll()
         );
     }
 
@@ -38,7 +43,7 @@ public class PlayerLeaderboardService {
         }
 
         return LeaderboardPlayerDTO.toDTO(
-            playerRepository.findsOffset(limit, (page - 1) * limit)
+            playerLeaderboardRepository.findsOffset(limit, (page - 1) * limit)
         );
     }
 
