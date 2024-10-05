@@ -12,7 +12,8 @@ import lombok.Setter;
 
 @Embeddable
 @Getter @Setter
-public class MemberPK implements Serializable {
+public class MemberPK implements Serializable
+{
     @Column(name = "name", nullable = false)
     private String name;
 

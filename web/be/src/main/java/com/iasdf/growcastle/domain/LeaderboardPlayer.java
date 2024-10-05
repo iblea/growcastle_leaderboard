@@ -9,8 +9,8 @@ import lombok.Setter;
 @Entity
 @Table(name = "leaderboard_player")
 @Getter @Setter
-public class LeaderboardPlayer extends LeaderboardBaseEntity {
-
+public class LeaderboardPlayer extends LeaderboardBaseEntity
+{
     @Column(name = "wave")
     private int wave;
 

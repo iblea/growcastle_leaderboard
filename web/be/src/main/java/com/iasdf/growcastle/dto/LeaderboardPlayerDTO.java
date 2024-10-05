@@ -11,7 +11,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class LeaderboardPlayerDTO {
+public class LeaderboardPlayerDTO
+{
     private String name;
     private int score;
     private int rank;

@@ -13,7 +13,8 @@ import lombok.Setter;
 @BatchSize(size = 100)
 @MappedSuperclass
 @Getter @Setter
-class LeaderboardBaseEntity {
+public class LeaderboardBaseEntity
+{
     @Id
     private MemberPK memberPK;
 
@@ -26,6 +27,19 @@ class LeaderboardBaseEntity {
 
     public void setMemberPK(MemberPK memberPK) {
         this.memberPK = memberPK;
+    }
+
+    public LeaderboardBaseEntity() {
+        this.memberPK = new MemberPK();
+        this.rank = 0;
+        this.score = 0;
+    }
+
+    public LeaderboardBaseEntity(int rank, String name, int score, LocalDateTime parseTime)
+    {
+        this.memberPK = new MemberPK(name, parseTime);
+        this.rank = rank;
+        this.score = score;
     }
 
 }
