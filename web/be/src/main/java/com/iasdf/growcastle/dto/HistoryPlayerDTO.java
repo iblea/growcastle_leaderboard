@@ -46,6 +46,9 @@ public class HistoryPlayerDTO
     }
 
     public static List<HistoryPlayerDTO> toDTO(List<HistoryPlayer> players) {
+        if (players == null) {
+            return null;
+        }
         List<HistoryPlayerDTO> list = new LinkedList<>();
 
         for (HistoryPlayer player : players) {
@@ -55,6 +58,9 @@ public class HistoryPlayerDTO
     }
 
     public static HistoryPlayerDTO toDTO(HistoryPlayer player) {
+        if (player == null) {
+            return null;
+        }
         return new HistoryPlayerDTO(player);
     }
 

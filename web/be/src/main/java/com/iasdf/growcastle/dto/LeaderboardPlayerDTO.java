@@ -46,6 +46,9 @@ public class LeaderboardPlayerDTO
     }
 
     public static List<LeaderboardPlayerDTO> toDTO(List<LeaderboardPlayer> players) {
+        if (players == null) {
+            return null;
+        }
         List<LeaderboardPlayerDTO> list = new LinkedList<>();
 
         for (LeaderboardPlayer player : players) {
@@ -55,6 +58,9 @@ public class LeaderboardPlayerDTO
     }
 
     public static LeaderboardPlayerDTO toDTO(LeaderboardPlayer player) {
+        if (player == null) {
+            return null;
+        }
         return new LeaderboardPlayerDTO(player);
     }
 }
