@@ -17,13 +17,14 @@ public interface PlayerLeaderboardRepository extends JpaRepository<LeaderboardPl
     List<LeaderboardPlayer> findAll();
 }
 
-interface PlayerLeaderboardRepositoryCustom {
-
+interface PlayerLeaderboardRepositoryCustom
+{
     List<LeaderboardPlayer> findsOffset(int limit, int offset);
 }
 
 // @RequiredArgsConstructor
-class PlayerLeaderboardRepositoryCustomImpl implements PlayerLeaderboardRepositoryCustom {
+class PlayerLeaderboardRepositoryCustomImpl implements PlayerLeaderboardRepositoryCustom
+{
 
     private final JPAQueryFactory queryFactory;
     private QLeaderboardPlayer qLeaderboardPlayer = new QLeaderboardPlayer("leaderboard_player");

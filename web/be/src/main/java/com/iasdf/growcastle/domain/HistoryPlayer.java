@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "history_player")
 @Getter @Setter
-public class HistoryPlayer extends HistoryBaseEntity {
+public class HistoryPlayer extends HistoryBaseEntity
+{
 
     @Column(name = "wave")
     private int wave;

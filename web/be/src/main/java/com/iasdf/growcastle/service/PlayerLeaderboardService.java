@@ -9,7 +9,8 @@ import com.iasdf.growcastle.dto.LeaderboardPlayerDTO;
 import com.iasdf.growcastle.repository.PlayerLeaderboardRepository;
 
 @Service
-public class PlayerLeaderboardService {
+public class PlayerLeaderboardService
+{
 
     private final PlayerLeaderboardRepository playerLeaderboardRepository;
 
