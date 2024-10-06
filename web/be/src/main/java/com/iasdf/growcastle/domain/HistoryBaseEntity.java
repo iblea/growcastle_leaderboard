@@ -26,16 +26,16 @@ public class HistoryBaseEntity extends LeaderboardBaseEntity
         this.minUnit = 0;
     }
 
-    public HistoryBaseEntity(int rank, String name, int score, LocalDateTime parseTime)
+    public HistoryBaseEntity(String name, LocalDateTime parseTime, int rank, int score)
     {
-        super(rank, name, score, parseTime);
+        super(name, parseTime, rank, score);
         this.season = "";
         this.minUnit = 0;
     }
 
-    public HistoryBaseEntity(int rank, String name, int score, LocalDateTime parseTime, String season, int minUnit)
+    public HistoryBaseEntity(String name, LocalDateTime parseTime, int rank, int score, String season, int minUnit)
     {
-        super(rank, name, score, parseTime);
+        super(name, parseTime, rank, score);
         this.season = season;
         this.minUnit = minUnit;
     }

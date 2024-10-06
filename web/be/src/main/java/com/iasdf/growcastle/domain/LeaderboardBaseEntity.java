@@ -35,7 +35,7 @@ public class LeaderboardBaseEntity
         this.score = 0;
     }
 
-    public LeaderboardBaseEntity(int rank, String name, int score, LocalDateTime parseTime)
+    public LeaderboardBaseEntity(String name, LocalDateTime parseTime, int rank, int score)
     {
         this.memberPK = new MemberPK(name, parseTime);
         this.rank = rank;

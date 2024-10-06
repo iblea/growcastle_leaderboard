@@ -26,4 +26,27 @@ public class HistoryPlayer extends HistoryBaseEntity
     @Column(name = "crystaljump")
     private int crystalJump;
 
+    public HistoryPlayer() { }
+
+    public HistoryPlayer(String name, LocalDateTime parseTime, int rank, int score,
+        int wave, int hornJump, int dhornJump, int crystalJump) {
+
+        super(name, parseTime, rank, score);
+        this.wave = wave;
+        this.hornJump = hornJump;
+        this.dhornJump = dhornJump;
+        this.crystalJump = crystalJump;
+    }
+
+    public HistoryPlayer(String name, LocalDateTime parseTime, int rank, int score,
+        String season, int minUnit,
+        int wave, int hornJump, int dhornJump, int crystalJump) {
+
+        super(name, parseTime, rank, score, season, minUnit);
+        this.wave = wave;
+        this.hornJump = hornJump;
+        this.dhornJump = dhornJump;
+        this.crystalJump = crystalJump;
+    }
+
 }

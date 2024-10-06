@@ -25,6 +25,11 @@ public class MemberPK implements Serializable
         this.parseTime = TimeUtil.getNow();
     }
 
+    public MemberPK(MemberPK memberPK) {
+        this.name = memberPK.getName();
+        this.parseTime = memberPK.getParseTime();
+    }
+
     public MemberPK(String name) {
         this.name = name;
         this.parseTime = TimeUtil.getNow();
