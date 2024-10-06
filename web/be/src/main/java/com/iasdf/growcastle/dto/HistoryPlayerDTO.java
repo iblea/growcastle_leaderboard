@@ -14,14 +14,11 @@ import lombok.Setter;
 public class HistoryPlayerDTO
 {
     private String name;
-    private int score;
-    private int rank;
     @JsonProperty(value="parse_time")
     private LocalDateTime parseTime;
 
-    private String season;
-    @JsonProperty(value="min_unit")
-    private int minUnit;
+    private int score;
+    private int rank;
 
     private int wave;
     @JsonProperty(value="horn_jump")
@@ -31,18 +28,30 @@ public class HistoryPlayerDTO
     @JsonProperty(value="crystal_jump")
     private int crystalJump;
 
+    public HistoryPlayerDTO() {}
+
     public HistoryPlayerDTO(HistoryPlayer historyPlayer)
     {
         this.name = historyPlayer.getMemberPK().getName();
+        this.parseTime = historyPlayer.getMemberPK().getParseTime();
         this.score = historyPlayer.getScore();
         this.rank = historyPlayer.getRank();
-        this.parseTime = historyPlayer.getMemberPK().getParseTime();
-        this.season = historyPlayer.getSeason();
-        this.minUnit = historyPlayer.getMinUnit();
         this.wave = historyPlayer.getWave();
         this.hornJump = historyPlayer.getHornJump();
         this.doubleHornJump = historyPlayer.getDhornJump();
         this.crystalJump = historyPlayer.getCrystalJump();
+    }
+
+    public HistoryPlayerDTO(String name, LocalDateTime parseTime, int score, int rank, int wave, int hornJump, int doubleHornJump, int crystalJump)
+    {
+        this.name = name;
+        this.parseTime = parseTime;
+        this.score = score;
+        this.rank = rank;
+        this.wave = wave;
+        this.hornJump = hornJump;
+        this.doubleHornJump = doubleHornJump;
+        this.crystalJump = crystalJump;
     }
 
     public static List<HistoryPlayerDTO> toDTO(List<HistoryPlayer> players) {
