@@ -1,5 +1,7 @@
 package com.iasdf.growcastle.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.iasdf.growcastle.dto.HistoryPlayerDTO;
@@ -19,4 +21,11 @@ public class PlayerHistoryService {
             playerHistoryRepository.findPlayerInfo(name, 60)
         );
     }
+
+    public List<HistoryPlayerDTO> findPlayerHistory(String name) {
+        return HistoryPlayerDTO.toDTO(
+            playerHistoryRepository.findPlayerHistory(name, 60)
+        );
+    }
+
 }

@@ -2,6 +2,7 @@ package com.iasdf.growcastle.controller;
 
 import java.sql.SQLDataException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,15 +34,16 @@ public class PlayerHistoryController {
         ArgChecker.isValidUserName(name);
         ArgChecker.isValidUnit(unit);
 
-        HistoryPlayerDTO player = playerHistoryService.findPlayer(name);
+        // HistoryPlayerDTO player = playerHistoryService.findPlayer(name);
+        List<HistoryPlayerDTO> player = playerHistoryService.findPlayerHistory(name);
         if (player == null) {
             throw new SQLDataException("Player History Data Search Error");
         }
         Map<String, Object> response = new HashMap<>();
         response.put("success", 1);
-        response.put("data", null);
+        response.put("data", player);
 
-        return ResponseEntity.ok("test");
+        return ResponseEntity.ok(response);
     }
 
 }
