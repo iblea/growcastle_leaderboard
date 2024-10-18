@@ -9,15 +9,13 @@ name: Java CI with Gradle
 
 on:
   push:
+    branches: [ "main" ]
     paths:
       - 'parser/**'
-	  - '.github/workflows/**'
-    branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
     paths:
       - 'parser/**'
-	  - '.github/workflows/**'
-    branches: [ "main" ]
 
 env:
   working-directory: ./parser
