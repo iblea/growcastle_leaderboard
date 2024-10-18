@@ -8,9 +8,11 @@
 name: Java CI with Gradle
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
+  push:
+    paths:
+      - 'parser/**'
+	  - '.github/workflows/**'
     branches: [ "main" ]
 
 env:
