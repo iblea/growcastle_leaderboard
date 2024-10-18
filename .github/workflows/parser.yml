@@ -15,9 +15,11 @@ on:
       - 'parser/**'
       - '.github/workflows/parser.yml'
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - 'main'
     paths:
       - 'parser/**'
+      - '.github/workflows/parser.yml'
 
 env:
   working-directory: ./parser
