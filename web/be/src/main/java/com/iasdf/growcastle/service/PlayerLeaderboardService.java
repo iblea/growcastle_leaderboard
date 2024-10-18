@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.iasdf.growcastle.dto.LeaderboardPlayerDTO;
+import com.iasdf.growcastle.dto.LeaderboardData;
 import com.iasdf.growcastle.repository.PlayerLeaderboardRepository;
 
 @Service
@@ -22,8 +22,8 @@ public class PlayerLeaderboardService
     /*
      * 전체 플레이어 조회
      */
-    public List<LeaderboardPlayerDTO> findAllPlayers() {
-        return LeaderboardPlayerDTO.toDTO(
+    public LeaderboardData findAllPlayers() {
+        return LeaderboardData.toDTOPlayer(
             playerLeaderboardRepository.findAll()
         );
     }
@@ -32,7 +32,7 @@ public class PlayerLeaderboardService
      * 전체 플레이어 조회
      */
     // 10, 20, 50, 100, 200
-    public List<LeaderboardPlayerDTO> findPlayers(int limit, int page) {
+    public LeaderboardData findPlayers(int limit, int page) {
         if (limit < 0) {
             return null;
         }
@@ -43,7 +43,7 @@ public class PlayerLeaderboardService
             return findAllPlayers();
         }
 
-        return LeaderboardPlayerDTO.toDTO(
+        return LeaderboardData.toDTOPlayer(
             playerLeaderboardRepository.findsOffset(limit, (page - 1) * limit)
         );
     }

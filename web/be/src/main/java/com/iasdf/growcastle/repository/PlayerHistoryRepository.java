@@ -86,35 +86,40 @@ ORDER BY
         return queryFactory
             .select(
                 // 생성자를 통한 매핑
-                // Projections.constructor(
-                //     HistoryPlayer.class,
-                //     historyPlayerSub.memberPK.name,
-                //     historyPlayerSub.parseTime1H.as("parseTime"),
-                //     historyPlayerSub.rank.max().as("rank"),
-                //     historyPlayerSub.score.max().as("score"),
-                //     historyPlayerSub.wave.sum().as("wave"),
-                //     historyPlayerSub.hornJump.sum().as("hornJump"),
-                //     historyPlayerSub.dhornJump.sum().as("doubleHornJump"),
-                //     historyPlayerSub.crystalJump.sum().as("crystalJump")
-                // )
-
-                // 디폴트 생성자가 필요함.
-                // as를 통해 필드명을 객체의 이름에 맞게 매핑
-                Projections.fields(
+                Projections.constructor(
                     HistoryPlayer.class,
                     historyPlayerSub.memberPK.name,
                     historyPlayerSub.parseTime1H.as("parseTime"),
-                    historyPlayerSub.score.max().as("score"),
                     Expressions.cases()
                         .when(historyPlayerSub.parseTime1H.minute().eq(0))
                         .then(historyPlayerSub.rank.max())
                         .otherwise(-1)
                         .as("rank"),
+                    // historyPlayerSub.rank.max().as("rank"),
+                    historyPlayerSub.score.max().as("score"),
                     historyPlayerSub.wave.sum().as("wave"),
                     historyPlayerSub.hornJump.sum().as("hornJump"),
-                    historyPlayerSub.dhornJump.sum().as("dhornJump"),
+                    historyPlayerSub.dhornJump.sum().as("doubleHornJump"),
                     historyPlayerSub.crystalJump.sum().as("crystalJump")
                 )
+
+                // // 디폴트 생성자가 필요함.
+                // // as를 통해 필드명을 객체의 이름에 맞게 매핑
+                // Projections.fields(
+                //     HistoryPlayer.class,
+                //     historyPlayerSub.memberPK.name.as("name"),
+                //     historyPlayerSub.parseTime1H.as("parseTime"),
+                //     historyPlayerSub.score.max().as("score"),
+                //     Expressions.cases()
+                //         .when(historyPlayerSub.parseTime1H.minute().eq(0))
+                //         .then(historyPlayerSub.rank.max())
+                //         .otherwise(-1)
+                //         .as("rank"),
+                //     historyPlayerSub.wave.sum().as("wave"),
+                //     historyPlayerSub.hornJump.sum().as("hornJump"),
+                //     historyPlayerSub.dhornJump.sum().as("dhornJump"),
+                //     historyPlayerSub.crystalJump.sum().as("crystalJump")
+                // )
             ).from(historyPlayerSub)
             .where(
                 historyPlayerSub.memberPK.name.toLowerCase().eq(name.toLowerCase())
