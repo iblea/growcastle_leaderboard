@@ -72,6 +72,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - run: touch ${{ env.working-directory }}/src/main/resources/application.properties
+    - run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ${{ env.working-directory }}/src/main/resources/application.properties
+    - run: cat ${{ env.working-directory }}/src/main/resources/application.properties
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
