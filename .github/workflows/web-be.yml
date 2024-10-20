@@ -51,7 +51,6 @@ jobs:
       run: |
         touch ./src/main/resources/application.properties
         echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
-        cat ./src/main/resources/application.properties
       # run: |
       #   touch ${{ env.working-directory }}/src/main/resources/application.properties
       #   echo "${{ secrets.APPLICATION_PROPERTIES }}" > ${{ env.working-directory }}/src/main/resources/application.properties
