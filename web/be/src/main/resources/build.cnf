@@ -1,0 +1,3 @@
+JAR_DIR="build/libs"
+JAR_NAME="growcastle-0.0.1-SNAPSHOT.jar"
+LOG_DIR="/var/log/gc_backend/"

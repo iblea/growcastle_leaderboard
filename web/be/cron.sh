@@ -3,8 +3,13 @@
 curpath=$(dirname "$(realpath $0)")
 cd "$curpath"
 
-JAR_DIR="build/libs"
-JAR_NAME="growcastle-0.0.1-SNAPSHOT.jar"
+CONF_PATH="./src/main/resources/build.cnf"
+
+if [ ! -f "$CONF_PATH" ]; then
+    echo "config file [${CONF_PATH}] is not exist"
+    exit 1
+fi
+source "${CONF_PATH}"
 
 if [ ! -f "${JAR_DIR}/${JAR_NAME}" ]; then
     echo "${JAR_DIR}/${JAR_NAME} is not exist"
