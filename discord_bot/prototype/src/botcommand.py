@@ -412,6 +412,7 @@ async def print_history(interaction: discord.Interaction,
     for i in range(1, len(embeds)):
         await interaction.followup.send(embed=embeds[i])
 
+
 async def print_leaderboard(
     interaction: discord.Interaction,
     db_parser: db.ParsePlayer,
