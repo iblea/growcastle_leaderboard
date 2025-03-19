@@ -3,20 +3,12 @@
 curpath=$(dirname "$(realpath $0)")
 cd "$curpath"
 
-JAR_DIR="build/libs"
-JAR_NAME="parser.jar"
+parser_dirs=(
+    "player_parser"
+)
 
-if [ ! -f "${JAR_DIR}/${JAR_NAME}" ]; then
-    echo "${JAR_DIR}/${JAR_NAME} is not exist"
-	exit 1
-fi
-
-proc=$(ps -aef | grep "java -jar.*${JAR_NAME}" | grep -v "grep")
-if [ -z "$proc" ]; then
-    cd "$curpath"
-    echo -n "" > output.log
-    nohup ./start.sh >> output.log 2>&1 &
-    echo "start growacastle api parser program"
-else
-    echo "already running"
-fi
+for parser_dir in "${parser_dirs[@]}"; do
+    cd "$curpath/$parser_dir/"
+    ./cron.sh
+    cd - >/dev/null 2>&1
+done
