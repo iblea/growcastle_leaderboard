@@ -38,6 +38,8 @@ public class ParseAPI {
 
     private static OkHttpClient okHttpClient = null;
     private static List<Protocol> protocols = null;
+    private static long lastConnectionResetTime;
+    private static final long CONNECTION_RESET_INTERVAL = 6 * 60 * 60 * 1000; // 6시간(밀리초)
 
 
     private LocalDateTime startSeasonDate = null;
@@ -60,6 +62,7 @@ public class ParseAPI {
             logger.info("set OkHttp3 Client");
             okHttpClient = createHttpClient(10, 30000);   // 10개의 연결, 30초 유지
         }
+        lastConnectionResetTime = System.currentTimeMillis();
     }
 
     public static OkHttpClient getClient() {
@@ -104,6 +107,18 @@ public class ParseAPI {
             .build();
     }
 
+    public static void resetHttpClient() {
+        // 기존 연결 종료
+        if (okHttpClient != null) {
+            okHttpClient.connectionPool().evictAll();
+            okHttpClient.dispatcher().executorService().shutdown();
+        }
+
+        // 새 클라이언트 생성
+        okHttpClient = createHttpClient(10, 30000);
+        logger.info("HTTP Client has been reset");
+        lastConnectionResetTime = System.currentTimeMillis();
+    }
 
 
     public LocalDateTime getStartSeasonDate() {
@@ -173,6 +188,7 @@ public class ParseAPI {
                     break;
                 }
             } catch(Not200OK | IOException e) {
+                ParseAPI.resetHttpClient();
                 // logging
                 if (try_count == MAXTRY) {
                     logger.error("requestURL failed");
@@ -187,6 +203,11 @@ public class ParseAPI {
     public String requestURL(String urlString)
         throws IOException, Not200OK
     {
+        // 6시간마다 커넥션 리셋
+        if (System.currentTimeMillis() - lastConnectionResetTime > CONNECTION_RESET_INTERVAL) {
+            ParseAPI.resetHttpClient();
+            logger.info("HTTP Client automatically reset after 6 hours");
+        }
 
         Request request = new Request.Builder()
             .url(urlString)
