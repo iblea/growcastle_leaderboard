@@ -107,6 +107,11 @@ public class ParseAPI {
             .build();
     }
 
+    public static boolean isResetTime() {
+        // 6시간마다 커넥션 리셋
+        return System.currentTimeMillis() - lastConnectionResetTime > CONNECTION_RESET_INTERVAL;
+    }
+
     public static void resetHttpClient() {
         // 기존 연결 종료
         if (okHttpClient != null) {
@@ -203,8 +208,7 @@ public class ParseAPI {
     public String requestURL(String urlString)
         throws IOException, Not200OK
     {
-        // 6시간마다 커넥션 리셋
-        if (System.currentTimeMillis() - lastConnectionResetTime > CONNECTION_RESET_INTERVAL) {
+        if (isResetTime()) {
             ParseAPI.resetHttpClient();
             logger.info("HTTP Client automatically reset after 6 hours");
         }
