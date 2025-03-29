@@ -1,3 +1,10 @@
+-- /etc/postgresql/<version>/main/pg_hba.conf
+-- local   all             postgres                                scram-sha-256 (peer -> scram-sha-256)
+--  ALTER USER postgres PASSWORD '<new password>';
+-- CREATE USER <user> WITH PASSWORD '<password>';
+-- CREATE DATABASE <database> OWNER <user>;
+
+
 CREATE TABLE token
 (
     bot_name      VARCHAR(128) NOT NULL,
