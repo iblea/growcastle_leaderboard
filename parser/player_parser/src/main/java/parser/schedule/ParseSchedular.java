@@ -2,16 +2,19 @@ package parser.schedule;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.LinkedList;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import parser.db.Database;
-import parser.db.LeaderboardDB;
-import parser.db.SeasonDataDB;
 import parser.db.GuildMemberWaveDB;
 import parser.db.HistoryDB;
+import parser.db.LeaderboardDB;
+import parser.db.SeasonDataDB;
 import parser.entity.GuildMemberWave;
 import parser.entity.LeaderboardBaseEntity;
 import parser.entity.LeaderboardPlayer;
@@ -19,11 +22,6 @@ import parser.entity.SeasonData;
 import parser.parser.LeaderboardType;
 import parser.parser.ParseGuild;
 import parser.parser.ParseLeaderboard;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-// import parser.schedule.ScheduleRunner;
 import parser.telegram.TelegramBot;
 
 public class ParseSchedular {
@@ -130,10 +128,10 @@ public class ParseSchedular {
     public LocalDateTime divide5Minutes(LocalDateTime timeobj) {
         int minute = timeobj.getMinute();
         if (minute == 0) {
-            return timeobj.withMinute(0).withSecond(0).withNano(0);
+            return timeobj.withMinute(0).withSecond(30).withNano(0);
         }
         minute = (minute / 5) * 5;
-        return timeobj.withMinute(minute).withSecond(0).withNano(0);
+        return timeobj.withMinute(minute).withSecond(30).withNano(0);
     }
 
     public LocalDateTime divideHour(LocalDateTime timeobj) {
@@ -163,8 +161,8 @@ public class ParseSchedular {
     public void getGrowCastleData() {
         logger.debug("Get GrowCastle Data Scheduler Start");
         LocalDateTime now = getNowKST();
-        LocalDateTime nowDivide5Minutes = divide5Minutes(now);
-        boolean updateInform = (nowDivide5Minutes.isEqual(this.nextParseTime) || nowDivide5Minutes.isAfter(this.nextParseTime));
+        // LocalDateTime nowDivide5Minutes = divide5Minutes(now);
+        boolean updateInform = (now.isEqual(this.nextParseTime) || now.isAfter(this.nextParseTime));
         // boolean updateInform = true;
 
         if (checkSeasonEnd(now)) {
@@ -185,9 +183,9 @@ public class ParseSchedular {
             logger.info("Delete ago Start Season Date : {}", this.seasonData.getStartDate());
             deleteDatabaseUntilDate(this.seasonData.getStartDate());
         }
-        // getParseGuilds(nowDivideHour);
+        // getParseGuilds(now);
         // this.nextParseTime = getUpdateNextTime(nowDivideHour);
-        this.nextParseTime = getDivide5MinutesPlus5Minutes(nowDivide5Minutes);
+        this.nextParseTime = getDivide5MinutesPlus5Minutes(now);
     }
 
     public void parseSeasonData(LocalDateTime now) {

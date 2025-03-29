@@ -133,7 +133,7 @@ public class HistoryDB {
                 // this.em.merge(new HistoryPlayer(leaderboard, seasonName, minUnit, hourTime));
             }
             transaction.commit();
-            logger.debug("insertedCount : [{}]", totalInsertedCount);
+            logger.debug("insertedCount (player) : [{}]", totalInsertedCount);
         } catch (Exception e) {
             logger.error("insertHistory error");
             logger.error(e.getMessage());
@@ -142,6 +142,43 @@ public class HistoryDB {
         }
         logger.debug("player [{}] historyPlayerTracking inserted", data.size());
         return result;
+    }
+
+    private void upsertHistory(List<LeaderboardBaseEntity> data, LeaderboardType type, String seasonName, LocalDateTime time) {
+        String jpql;
+        if (type == LeaderboardType.GUILD) {
+            jpql = "UPDATE " + HistoryGuild.class.getSimpleName() + " h SET";
+        } else if (type == LeaderboardType.HELL) {
+            jpql = "UPDATE " + HistoryHell.class.getSimpleName() + " h SET";
+        } else {
+            logger.error("invalid type");
+            return;
+        }
+
+        // String jpql = "UPDATE " + type.getHistoryTableName() + " h SET" +
+        jpql +=
+            " h.rank = :rank," +
+            " h.score = :score" +
+            " WHERE name = :name and parseTime = :parseTime";
+        LocalDateTime hourTime = time.withMinute(0).withSecond(0).withNano(0);
+        int totalInsertedCount = 0;
+        for (LeaderboardBaseEntity leaderboard : data) {
+            int updatedCount = this.em.createQuery(jpql)
+                .setParameter("rank", leaderboard.getRank())
+                .setParameter("score", leaderboard.getScore())
+                .setParameter("name", leaderboard.getName())
+                .setParameter("parseTime", hourTime)
+                .executeUpdate();
+            if (updatedCount == 0) {
+                totalInsertedCount++;
+                if (type == LeaderboardType.GUILD) {
+                    this.em.persist(new HistoryGuild(leaderboard, seasonName, 0, hourTime));
+                } else if (type == LeaderboardType.HELL) {
+                    this.em.persist(new HistoryHell(leaderboard, seasonName, 0, hourTime));
+                }
+            }
+        }
+        logger.debug("insertedCount (other) : [{}]", totalInsertedCount);
     }
 
 
@@ -157,14 +194,10 @@ public class HistoryDB {
                 }
                 break;
             case GUILD:
-                for (LeaderboardBaseEntity leaderboard : data) {
-                    this.em.persist(new HistoryGuild(leaderboard, seasonName, minUnit, time));
-                }
+                this.upsertHistory(data, type, seasonName, time);
                 break;
             case HELL:
-                for (LeaderboardBaseEntity leaderboard : data) {
-                    this.em.persist(new HistoryHell(leaderboard, seasonName, minUnit, time));
-                }
+                this.upsertHistory(data, type, seasonName, time);
                 break;
         }
     }
