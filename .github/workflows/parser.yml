@@ -48,7 +48,17 @@ jobs:
       uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
     - name: Build with Gradle Wrapper
-      run: ./gradlew build
+      run: |
+        # parser 디렉토리 아래의 모든 *_parser 디렉토리를 찾아서 빌드
+        find_dirs=$(find . -name "*_parser" -type d)
+        for dir in ${find_dirs[@]}; do
+          if [ -d "$dir" ]; then
+            echo "Building $dir..."
+            cd "$dir"
+            ./gradlew build
+            cd ../..
+          fi
+        done
 
     # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
     # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
