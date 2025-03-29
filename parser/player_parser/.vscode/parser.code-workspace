@@ -6,6 +6,15 @@
         },
     ],
     "settings": {
+        "jdk.project.jdkhome": "/usr/lib/jvm/java-17-openjdk-arm64",
+        "jdk.jdkhome": "/usr/lib/jvm/java-17-openjdk-arm64",
+        "jdk.java.imports.groups": [
+            "java",
+            "javax",
+            "org",
+            "com",
+            ""
+        ],
         "java.compile.nullAnalysis.mode": "automatic",
         "java.jdt.ls.java.home": "/usr/lib/jvm/java-17-openjdk-arm64",
         // "java.jdt.ls.java.home": "/opt/homebrew/Cellar/openjdk@17/17.0.10/libexec/openjdk.jdk/Contents/Home",
