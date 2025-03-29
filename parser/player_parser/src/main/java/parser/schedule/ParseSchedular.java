@@ -34,16 +34,16 @@ public class ParseSchedular {
     private Database db;
 
     // TODO: 길드는 이후 DB에서 가져오는 것으로 변경할 예정
-    private String[] guilds = { "underdog", "sayonara", "redbridge",
-                "paragonia", "droplet",
-                "skeleton_skl", "shalom" };
+    private String[] guilds = {"underdog", "sayonara", "redbridge",
+        "paragonia", "droplet",
+        "skeleton_skl", "shalom"};
     // private String[] guilds = { "underdog" };
-
 
     private SeasonData seasonData = null;
 
     private LocalDateTime nextParseTime = null;
-    private static final int PARSE_TERM_SEC = 900;
+    // private static final int PARSE_TERM_SEC = 3600;
+    private static final int PARSE_TERM_SEC = 300;
 
     private LeaderboardDB leaderboardDB = null;
     private HistoryDB historyDB = null;
@@ -53,7 +53,8 @@ public class ParseSchedular {
         this.tgBot = tgBot;
         this.db = db;
         this.seasonData = new SeasonData();
-        this.nextParseTime = getDivide15MinutesPlus15Minutes(getNowKST());
+        // this.nextParseTime = getUpdateNextTime(getNowKST());
+        this.nextParseTime = getDivide5MinutesPlus5Minutes(getNowKST());
         logger.info("Next History Parse Time : {}", this.nextParseTime);
         this.setDatabaseConnection();
     }
@@ -78,7 +79,7 @@ public class ParseSchedular {
     }
 
     private void clearAllEntityManager() {
-        if(this.leaderboardDB != null) {
+        if (this.leaderboardDB != null) {
             this.leaderboardDB.clearEntityManager();
             this.leaderboardDB.closeEntityManager();
         }
@@ -97,13 +98,11 @@ public class ParseSchedular {
         tgBot.sendMsg("bot scheduler start");
 
         final Timer timer = new Timer();
-        TimerTask timerTask = new TimerTask()
-        {
+        TimerTask timerTask = new TimerTask() {
             @Override
-            public void run()
-            {
-                if (! isSecondDivide10()) {
-                    return ;
+            public void run() {
+                if (!isSecondDivide10()) {
+                    return;
                 }
                 scheduleMain();
                 // testFunc();
@@ -123,19 +122,22 @@ public class ParseSchedular {
         timer.scheduleAtFixedRate(timerTask, 0, 1000);
     }
 
-
     private boolean isSecondDivide10() {
         LocalDateTime now = getNowKST();
         return (now.getSecond() % 10 == 0);
     }
 
-    public LocalDateTime divide15Minutes(LocalDateTime timeobj) {
+    public LocalDateTime divide5Minutes(LocalDateTime timeobj) {
         int minute = timeobj.getMinute();
         if (minute == 0) {
             return timeobj.withMinute(0).withSecond(0).withNano(0);
         }
-        minute = (minute / 15) * 15;
+        minute = (minute / 5) * 5;
         return timeobj.withMinute(minute).withSecond(0).withNano(0);
+    }
+
+    public LocalDateTime divideHour(LocalDateTime timeobj) {
+        return timeobj.withMinute(0).withSecond(0).withNano(0);
     }
 
     private LocalDateTime getNowKST() {
@@ -143,11 +145,14 @@ public class ParseSchedular {
         return LocalDateTime.now(kstZoneId).withNano(0);
     }
 
-    private LocalDateTime getDivide15MinutesPlus15Minutes(LocalDateTime timeobj) {
-        LocalDateTime nowPlus15Minutes = timeobj.plusSeconds(PARSE_TERM_SEC);
-        return divide15Minutes(nowPlus15Minutes);
+    private LocalDateTime getDivide5MinutesPlus5Minutes(LocalDateTime timeobj) {
+        LocalDateTime nowPlus5Minutes = timeobj.plusSeconds(PARSE_TERM_SEC);
+        return divide5Minutes(nowPlus5Minutes);
     }
-
+    private LocalDateTime getUpdateNextTime(LocalDateTime timeobj) {
+        LocalDateTime nowPlus1Hour = timeobj.plusHours(1);
+        return divideHour(nowPlus1Hour);
+    }
 
     public void scheduleMain() {
         getGrowCastleData();
@@ -158,8 +163,8 @@ public class ParseSchedular {
     public void getGrowCastleData() {
         logger.debug("Get GrowCastle Data Scheduler Start");
         LocalDateTime now = getNowKST();
-        LocalDateTime nowDivide15Minute = divide15Minutes(now);
-        boolean updateInform = (nowDivide15Minute.isEqual(this.nextParseTime) || nowDivide15Minute.isAfter(this.nextParseTime));
+        LocalDateTime nowDivide5Minutes = divide5Minutes(now);
+        boolean updateInform = (nowDivide5Minutes.isEqual(this.nextParseTime) || nowDivide5Minutes.isAfter(this.nextParseTime));
         // boolean updateInform = true;
 
         if (checkSeasonEnd(now)) {
@@ -172,16 +177,17 @@ public class ParseSchedular {
         getParseLeaderboards(updateInform);
 
         // parse Guild data
-        if (! updateInform) {
-            return ;
+        if (!updateInform) {
+            return;
         }
 
         if (this.seasonData.isNotNull()) {
             logger.info("Delete ago Start Season Date : {}", this.seasonData.getStartDate());
             deleteDatabaseUntilDate(this.seasonData.getStartDate());
         }
-        getParseGuilds(nowDivide15Minute);
-        this.nextParseTime = getDivide15MinutesPlus15Minutes(nowDivide15Minute);
+        // getParseGuilds(nowDivideHour);
+        // this.nextParseTime = getUpdateNextTime(nowDivideHour);
+        this.nextParseTime = getDivide5MinutesPlus5Minutes(nowDivide5Minutes);
     }
 
     public void parseSeasonData(LocalDateTime now) {
@@ -194,16 +200,16 @@ public class ParseSchedular {
                 this.seasonData = null;
                 this.seasonData = new SeasonData(data);
                 // 이미 파싱된 데이터가 시즌 종료 시간을 지나지 않았을 경우 다시 파싱하지 않는다.
-                if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
+                if (!isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
                     logger.info("Season Data is already parsed : {}", this.seasonData.getEndDate());
-                    return ;
+                    return;
                 }
                 this.seasonData.setNull();
             }
         } else {
-            if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
+            if (!isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
                 logger.info("Season Data is already existed : {}", this.seasonData.getEndDate());
-                return ;
+                return;
             }
             this.seasonData.setNull();
         }
@@ -216,9 +222,9 @@ public class ParseSchedular {
         if (this.seasonData.isNull()) {
             logger.error("Season Date Parse Error");
             tgBot.sendMsg("Season Date Parse Error");
-            return ;
+            return;
         }
-        if (! isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
+        if (!isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
             logger.info("update season data");
             seasonDataDB.updateSeasonData(seasonData);
             seasonDataDB.closeEntityManager();
@@ -241,8 +247,8 @@ public class ParseSchedular {
     }
 
     /**
-     * 시즌 종료 시간을 체크한다.
-     * 시즌종료일의 23시 50분 부터는 히스토리 정보는 파싱하지 않는다.
+     * 시즌 종료 시간을 체크한다. 시즌종료일의 23시 50분 부터는 히스토리 정보는 파싱하지 않는다.
+     *
      * @return
      */
     public boolean checkSeasonEnd(LocalDateTime now) {
@@ -257,7 +263,7 @@ public class ParseSchedular {
         }
 
         LocalDateTime endSeasonDate = this.seasonData.getEndDate();
-        if (! isAfterSeasonEnd(now, endSeasonDate)) {
+        if (!isAfterSeasonEnd(now, endSeasonDate)) {
             return false;
         }
 
@@ -282,15 +288,14 @@ public class ParseSchedular {
 
         // parse Leaderboard guild data
         leaderboardData = ParseLeaderboard.guild(
-            this.tgBot, getNowKST()
+                this.tgBot, getNowKST()
         ).parseLeaderboards();
         insertGuildData(leaderboardData, updateInform);
         leaderboardData.clear();
 
-
         // parse Leaderboard player data
         leaderboardData = ParseLeaderboard.player(
-            this.tgBot, getNowKST()
+                this.tgBot, getNowKST()
         ).parseLeaderboards();
         insertPlayerData(leaderboardData, updateInform);
         leaderboardData.clear();
@@ -320,59 +325,58 @@ public class ParseSchedular {
         if (allGuildMembers.isEmpty()) {
             logger.error("Guild Data Parse Error");
             this.tgBot.sendMsg("Guild Data Parse Error");
-            return ;
+            return;
         }
 
         boolean insertStat = false;
         insertStat = this.guildMemberWaveDB.insertGuildMemberWaves(allGuildMembers);
-        if (! insertStat) {
+        if (!insertStat) {
             logger.error("Guild Data Insert Error");
             this.tgBot.sendMsg("Guild Data Insert Error : " + failCount);
         }
     }
 
-
     public void insertGuildData(List<LeaderboardBaseEntity> leaderboardData, boolean updateInform) {
         if (leaderboardData == null || leaderboardData.isEmpty()) {
             logger.error("Leaderboard Guild Data Parse Error");
             this.tgBot.sendMsg("Leaderboard Guild Data Parse Error");
-			return ;
+            return;
         }
         boolean result = this.leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.GUILD);
-        if (! result) {
+        if (!result) {
             logger.error("Leaderboard Guild Data Update Error");
             this.tgBot.sendMsg("Leaderboard Guild Data Update Error");
-            return ;
+            return;
         }
         if (updateInform) {
             result = this.historyDB.insertHistory(
-                leaderboardData, LeaderboardType.GUILD, this.seasonData.getSeasonName(), this.nextParseTime
+                    leaderboardData, LeaderboardType.GUILD, this.seasonData.getSeasonName(), this.nextParseTime
             );
-            if (! result) {
+            if (!result) {
                 logger.error("History Guild Data Insert Error");
                 this.tgBot.sendMsg("History Guild Data Insert Error");
             }
         }
     }
 
-	public void insertPlayerData(List<LeaderboardBaseEntity> leaderboardData, boolean updateInform) {
+    public void insertPlayerData(List<LeaderboardBaseEntity> leaderboardData, boolean updateInform) {
         if (leaderboardData == null || leaderboardData.isEmpty()) {
             logger.error("Leaderboard Player Data Parse Error");
             this.tgBot.sendMsg("Leaderboard Player Data Parse Error");
-            return ;
+            return;
         }
         boolean result = this.leaderboardDB.updateLeaderboardsPlayerTracking(leaderboardData);
-        if (! result) {
+        if (!result) {
             logger.error("Leaderboard Player Data Update Error");
             this.tgBot.sendMsg("Leaderboard Player Data Update Error");
-            return ;
+            return;
         }
         if (updateInform) {
             List<LeaderboardPlayer> data = this.leaderboardDB.getLeaderboardPlayersAll();
             result = this.historyDB.insertHistoryPlayerTracking(
-                data, this.seasonData.getSeasonName(), this.nextParseTime
+                    data, this.seasonData.getSeasonName(), this.nextParseTime
             );
-            if (! result) {
+            if (!result) {
                 logger.error("History Player Data Insert Error");
                 this.tgBot.sendMsg("History Player Data Insert Error");
             } else {
@@ -381,8 +385,6 @@ public class ParseSchedular {
             }
         }
     }
-
-
 
     private void testFunc() {
         // System.out.println("start time : " + LocalDateTime.now());
@@ -398,12 +400,11 @@ public class ParseSchedular {
         //     }
         // }
         // System.out.println("end time : " + LocalDateTime.now());
-
         logger.debug("testFunc");
         LocalDateTime now = getNowKST();
-        LocalDateTime nowDivide15Minute = divide15Minutes(now);
+        LocalDateTime nowDivideHour = divideHour(now);
         System.err.println("now : " + now);
-        System.err.println("nowDivide15Minute : " + nowDivide15Minute);
+        System.err.println("nowDivideHour : " + nowDivideHour);
         // HistoryPlayer historydPlayer = new HistoryPlayer(new LeaderboardBaseEntity(1, "test", 100));
         // logger.debug("rank : {}", historydPlayer.getRank());
     }

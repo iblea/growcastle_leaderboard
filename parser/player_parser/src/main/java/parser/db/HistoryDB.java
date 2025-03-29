@@ -95,7 +95,9 @@ public class HistoryDB {
             return false;
         }
 
-        int minUnit = getMinUnit(time);
+        LocalDateTime hourTime = time.withMinute(0).withSecond(0).withNano(0);
+        // int minUnit = getMinUnit(hourTime);
+        int minUnit = 0;
         if (data.isEmpty()) {
             logger.warn("insert data is empty");
             return false;
@@ -103,10 +105,35 @@ public class HistoryDB {
 
         try {
             transaction.begin();
+            String jpql = "UPDATE " + HistoryPlayer.class.getSimpleName() + " h SET" +
+                    " h.rank = :rank," +
+                    " h.score = :score," +
+                    " h.wave = h.wave + :wave," +
+                    " h.hornJump = h.hornJump + :hornJump," +
+                    " h.dhornJump = h.dhornJump + :dhornJump," +
+                    " h.crystalJump = h.crystalJump + :crystalJump" +
+                    " WHERE name = :name and parseTime = :parseTime";
+
+            int totalInsertedCount = 0;
             for (LeaderboardPlayer leaderboard : data) {
-                this.em.persist(new HistoryPlayer(leaderboard, seasonName, minUnit, time));
+                int updatedCount = this.em.createQuery(jpql)
+                    .setParameter("rank", leaderboard.getRank())
+                    .setParameter("score", leaderboard.getScore())
+                    .setParameter("wave", leaderboard.getWave())
+                    .setParameter("hornJump", leaderboard.getHornJump())
+                    .setParameter("dhornJump", leaderboard.getDHornJump())
+                    .setParameter("crystalJump", leaderboard.getCrystalJump())
+                    .setParameter("name", leaderboard.getName())
+                    .setParameter("parseTime", hourTime)
+                    .executeUpdate();
+                if (updatedCount == 0) {
+                    this.em.persist(new HistoryPlayer(leaderboard, seasonName, minUnit, hourTime));
+                    totalInsertedCount++;
+                }
+                // this.em.merge(new HistoryPlayer(leaderboard, seasonName, minUnit, hourTime));
             }
             transaction.commit();
+            logger.debug("insertedCount : [{}]", totalInsertedCount);
         } catch (Exception e) {
             logger.error("insertHistory error");
             logger.error(e.getMessage());

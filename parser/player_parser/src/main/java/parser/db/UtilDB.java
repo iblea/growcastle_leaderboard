@@ -24,7 +24,7 @@ public class UtilDB {
 
     public static EntityManager checkEntityManager(Database db, EntityManager em) {
         if (em == null) {
-            logger.debug("EntityManager is null");
+            logger.debug("EntityManager is null 1");
             return setEntityManager(db);
         }
         if (!em.isOpen()) {
@@ -35,8 +35,9 @@ public class UtilDB {
     }
 
     public static boolean closeEntityManager(EntityManager em) {
+        System.out.println("closeEntityManager");
         if (em == null) {
-            logger.info("EntityManager is null");
+            logger.info("EntityManager is null 2");
             return false;
         }
         try {

@@ -168,7 +168,7 @@ public class LeaderboardDB {
     }
 
     private void insertsqlLeaderboardsPlayerTracking(List<LeaderboardBaseEntity> data, List<LeaderboardPlayer> agoWaveData) {
-        if (agoWaveData == null ) {
+        if (agoWaveData == null) {
             logger.error("agoWaveData is null");
             return ;
         }
@@ -346,6 +346,7 @@ public class LeaderboardDB {
     }
 
     public boolean updateLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
+        System.out.println("updateLeaderboards");
         this.em = UtilDB.checkEntityManager(this.db, this.em);
         if (this.em == null) {
             logger.error("EntityManager is null");
