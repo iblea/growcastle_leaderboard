@@ -168,7 +168,7 @@ def get_sql_with_rank(rank: str, cur):
     return get_sql_with_username(name)
 
 
-def get_sql_with_username(username: str):
+def get_sql_with_username1(username: str):
     sql = """WITH ranked_data AS (
     SELECT
         name,
@@ -205,6 +205,28 @@ ORDER BY
     name, parsetime_1h;
 """.format(username)
     return sql
+
+def get_sql_with_username(username: str):
+    sql = """
+SELECT
+    name,
+    parsetime,
+    rank,
+    score,
+    wave,
+    hornjump,
+    dhornjump,
+    crystaljump,
+    min_unit
+FROM
+    history_player
+WHERE
+    LOWER(name) = LOWER('{}')
+ORDER BY
+    name, parsetime;
+    """.format(username)
+    return sql
+
 
 
 def execute_query(cur, sql):
@@ -488,7 +510,8 @@ class ParsePlayer:
             if curtime.minute == 0 and curtime.second == 0:
                 curtime = curtime.replace(minute=0, second=1)
             else:
-                curtime = (curtime + timedelta(hours=1)).replace(minute=0, second=1)
+                # curtime = (curtime + timedelta(hours=1)).replace(minute=0, second=1)
+                curtime = curtime.replace(minute=0, second=1)
             while season_rotate < curtime:
                 list_season.append(season_rotate)
                 season_rotate = season_rotate + timedelta(hours=1)
@@ -499,7 +522,8 @@ class ParsePlayer:
                 found = False
                 diff = list_season_time - start_season
                 # parse_time_string = "{} day {:2d} hour".format(diff.days, diff.seconds // 3600)
-                diffhour = (diff.seconds // 3600) - 1
+                # diffhour = (diff.seconds // 3600) - 1
+                diffhour = (diff.seconds // 3600)
                 if diffhour < 0:
                     diffhour = 23
                 parse_time_string = "{:2d}".format(diffhour)
@@ -518,7 +542,8 @@ class ParsePlayer:
                             "diff": diff,
                             "hornjump": data[5],
                             "dhornjump": data[6],
-                            "crystaljump": data[7]
+                            "crystaljump": data[7],
+                            "min_unit": data[8]
                         })
                         ago_wave = data[3]
                         found = True
@@ -534,13 +559,14 @@ class ParsePlayer:
                         "diff": 0,
                         "hornjump": 0,
                         "dhornjump": 0,
-                        "crystaljump": 0
+                        "crystaljump": 0,
+                        "min_unit": 0
                     })
                     ago_wave = 0
 
             break
-        if len(userData) >= 1:
-            userData[0]["parse_time"] = " X"
+        # if len(userData) >= 1:
+        #     userData[0]["parse_time"] = " X"
         return userData
 
     def get_current_leaderboard(self):
