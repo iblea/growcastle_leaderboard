@@ -35,7 +35,7 @@ public class UtilDB {
     }
 
     public static boolean closeEntityManager(EntityManager em) {
-        System.out.println("closeEntityManager");
+        // System.out.println("closeEntityManager");
         if (em == null) {
             logger.info("EntityManager is null 2");
             return false;

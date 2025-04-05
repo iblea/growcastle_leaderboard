@@ -346,7 +346,8 @@ public class LeaderboardDB {
     }
 
     public boolean updateLeaderboards(List<LeaderboardBaseEntity> data, LeaderboardType type) {
-        System.out.println("updateLeaderboards");
+        // System.out.println("updateLeaderboards");
+        logger.debug("updateLeaderboards");
         this.em = UtilDB.checkEntityManager(this.db, this.em);
         if (this.em == null) {
             logger.error("EntityManager is null");

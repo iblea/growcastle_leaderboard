@@ -95,19 +95,28 @@ public class HistoryDB {
             return false;
         }
 
-        LocalDateTime hourTime = time.withMinute(0).withSecond(0).withNano(0);
+        // LocalDateTime hourTime = time.withMinute(0).withSecond(0).withNano(0);
         // int minUnit = getMinUnit(hourTime);
-        int minUnit = 0;
+
+
+        // 만약 insert 시키고 있는 현재 시간이 15:00:30 이라면, 14:55:00 ~ 15:00:00 까지의 웨이브 변경을 누적시키는 것이기 때문에 시간 조정 필요.
+        LocalDateTime standardTime = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusMinutes(5);
+        int minUnit = (standardTime.getMinute() / 5) * 5;
+        LocalDateTime hourTime = standardTime.withMinute(0).withSecond(0).withNano(0);
         if (data.isEmpty()) {
             logger.warn("insert data is empty");
             return false;
         }
+        // System.out.println("CONSOLE | standardTime: " + standardTime);
+        // System.out.println("CONSOLE | minUnit: " + minUnit);
+        // System.out.println("CONSOLE | hourTime: " + hourTime);
 
         try {
             transaction.begin();
             String jpql = "UPDATE " + HistoryPlayer.class.getSimpleName() + " h SET" +
                     " h.rank = :rank," +
                     " h.score = :score," +
+                    " h.minUnit = :minUnit," +
                     " h.wave = h.wave + :wave," +
                     " h.hornJump = h.hornJump + :hornJump," +
                     " h.dhornJump = h.dhornJump + :dhornJump," +
@@ -119,6 +128,7 @@ public class HistoryDB {
                 int updatedCount = this.em.createQuery(jpql)
                     .setParameter("rank", leaderboard.getRank())
                     .setParameter("score", leaderboard.getScore())
+                    .setParameter("minUnit", minUnit)
                     .setParameter("wave", leaderboard.getWave())
                     .setParameter("hornJump", leaderboard.getHornJump())
                     .setParameter("dhornJump", leaderboard.getDHornJump())
