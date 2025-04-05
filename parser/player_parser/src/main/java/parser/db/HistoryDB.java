@@ -1,13 +1,15 @@
 package parser.db;
 
-import java.util.List;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import parser.entity.HistoryGuild;
 import parser.entity.HistoryHell;
@@ -16,9 +18,6 @@ import parser.entity.LeaderboardBaseEntity;
 import parser.entity.LeaderboardPlayer;
 import parser.entity.MemberPK;
 import parser.parser.LeaderboardType;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 // 5분마다 800건
 // 1일 = 24시간 = 1440분 = 288개
@@ -213,6 +212,7 @@ public class HistoryDB {
     }
 
     public void deleteHistoryUntilDate(LocalDateTime date) {
+        date = date.minusMinutes(10);
         for (LeaderboardType type : LeaderboardType.values()) {
             deleteHistoryUntilDateWithType(date, type.getHistoryTableName());
         }
