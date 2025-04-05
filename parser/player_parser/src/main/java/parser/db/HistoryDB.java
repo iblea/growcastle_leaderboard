@@ -100,7 +100,7 @@ public class HistoryDB {
 
         // 만약 insert 시키고 있는 현재 시간이 15:00:30 이라면, 14:55:00 ~ 15:00:00 까지의 웨이브 변경을 누적시키는 것이기 때문에 시간 조정 필요.
         LocalDateTime standardTime = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusMinutes(5);
-        int minUnit = (standardTime.getMinute() / 5) * 5;
+        int minUnit = (standardTime.getMinute() / 5) * 5 + 5;
         LocalDateTime hourTime = standardTime.withMinute(0).withSecond(0).withNano(0);
         if (data.isEmpty()) {
             logger.warn("insert data is empty");
