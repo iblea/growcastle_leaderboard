@@ -514,21 +514,6 @@ class ParsePlayer:
                 list_season.append(season_rotate)
                 season_rotate = season_rotate + timedelta(hours=1)
 
-
-            if (len(history_data) > 0):
-                data = history_data.pop(0)
-                userData.append({
-                    "name": data[0],
-                    "parse_time": "X",
-                    "rank": data[2],
-                    "score": data[3],
-                    "wave": data[4],
-                    "diff": 0,
-                    "hornjump": data[5],
-                    "dhornjump": data[6],
-                    "crystaljump": data[7],
-                    "min_unit": data[8]
-                })
             ago_wave = 0
             for list_season_time in list_season:
                 found = False
