@@ -379,7 +379,10 @@ async def print_history(interaction: discord.Interaction,
 
         if show_chart:
             for i in range(start_index, showlen, 1):
-                title = "`{}`\n\n'{}' user data, {} day\n\n".format(HISTORY_CHART_FORMAT, username, i + 1)
+                if i == showlen - 1:
+                    title = "`{}`\n\n'{}' user data, {} day ({})\n\n".format(HISTORY_CHART_FORMAT, username, i + 1, history[-1]["min_unit"])
+                else:
+                    title = "`{}`\n\n'{}' user data, {} day\n\n".format(HISTORY_CHART_FORMAT, username, i + 1)
                 history_arr = history[24*i:24*(i+1)]
                 string = ""
                 if i == 0:
@@ -396,7 +399,7 @@ async def print_history(interaction: discord.Interaction,
                 if history_len < 24*(i):
                     break
                 if i == showlen - 1:
-                    title = "`{}`\n\n'{}' user data, {} day ({})\n\n".format(HISTORY_CHART_FORMAT, username, i + 1, history_arr[-1]["min_unit"])
+                    title = "`{}`\n\n'{}' user data, {} day ({})\n\n".format(HISTORY_CHART_FORMAT, username, i + 1, history[-1]["min_unit"])
                 else:
                     title = "`{}`\n\n'{}' user data, {} day\n\n".format(HISTORY_CHART_FORMAT, username, i + 1)
                 string = ""
