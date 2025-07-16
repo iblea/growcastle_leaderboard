@@ -369,7 +369,7 @@ async def print_history(interaction: discord.Interaction,
 
         if show_all == False:
             difflen = 2
-            if history_len <= 24:
+            if history_len < 24:
                 difflen = 1
             elif history_len % 24 == 0:
                 start_index = (history_len // 24) - 2
