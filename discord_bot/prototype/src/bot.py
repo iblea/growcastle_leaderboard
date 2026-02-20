@@ -415,6 +415,9 @@ rank 미기입 시 20위까지 출력합니다.
         async def lb(interaction: discord.Interaction, rank: str = ""):
             await leaderboard_command(interaction, rank, False)
 
+        @self.tree.command()
+        async def lbg(interaction: discord.Interaction, rank: str = ""):
+            await guild_leaderboard_command(interaction, rank)
 
 
 
@@ -475,6 +478,33 @@ rank 미기입 시 20위까지 출력합니다.
                 conf=self.config,
                 show_rank=rank_num,
                 is_nickname_space=is_nickname_space
+            )
+
+        async def guild_leaderboard_command(
+            interaction: discord.Interaction,
+            rank: str = "",
+        ):
+            global db_parser
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+
+            rank_num = 20
+            if len(rank) > 0:
+                if db.arg_check_number(rank) is False:
+                    await interaction.response.send_message("argument is wrong")
+                    return
+                rank_num = int(rank)
+
+            if db_parser is None:
+                db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+
+            await botcommand.print_guild_leaderboard(
+                interaction=interaction,
+                db_parser=db_parser,
+                show_rank=rank_num,
             )
 
 
@@ -557,13 +587,14 @@ rank 미기입 시 20위까지 출력합니다.
         now = datetime.datetime.now()
         result = "```\n"
 
-        # # 46~54위
-        # for data in leaderboards:
-        #     rank = data[0]
-        #     if 46 <= rank <= 54:
-        #         result += "{:2d}. {:6d} | {} ({})\n".format(rank, data[2], data[1], diff_score - data[2])
-        #
-        # result += "----------\n"
+        # 길드 리더보드 1~6위
+        guild_leaderboards = db_parser.get_current_guild_leaderboard()
+        if guild_leaderboards and len(guild_leaderboards) > 0:
+            show_guild_len = min(len(guild_leaderboards), 6)
+            for i in range(show_guild_len):
+                gdata = guild_leaderboards[i]
+                result += "{:2d}. {:>7d} | {}\n".format(gdata[0], gdata[2], gdata[1])
+            result += "----------\n"
 
         # 1~15위
         for data in leaderboards:

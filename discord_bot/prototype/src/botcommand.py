@@ -420,6 +420,55 @@ async def print_history(interaction: discord.Interaction,
         await interaction.followup.send(embed=embeds[i])
 
 
+async def print_guild_leaderboard(
+    interaction: discord.Interaction,
+    db_parser: db.ParsePlayer,
+    show_rank: int,
+) -> None:
+
+    if (show_rank == 0):
+        await interaction.response.send_message("error, input rank > 0")
+        return
+
+    if db_parser is None:
+        await interaction.response.send_message("error, contact to developer")
+        return
+
+    leaderboards = db_parser.get_current_guild_leaderboard()
+    if leaderboards is None:
+        await interaction.response.send_message("error, contact to developer")
+        return
+
+    if len(leaderboards) == 0:
+        await interaction.response.send_message("guild leaderboard not found")
+        return
+
+    show_length = min(len(leaderboards), show_rank)
+    show_page = ((show_rank - 1) // 20) + 1
+
+    embeds = []
+    show_index = 1
+
+    while show_index <= show_page:
+
+        start_idx = (show_index - 1) * 20
+        end_idx = min(show_index * 20, show_length)
+
+        title = "guild leaderboard {} ~ {}".format(start_idx + 1, end_idx)
+        string = "```\n"
+        for i in range(start_idx, end_idx):
+            data = leaderboards[i]
+            string += "{:2d}. {:>7d} | {}\n".format(data[0], data[2], data[1])
+
+        string += "```\n"
+        embed = discord.Embed(title=title)
+        embed.description = (string)
+        embeds.append(embed)
+        show_index += 1
+
+    await interaction.response.send_message(embeds=embeds)
+
+
 async def print_leaderboard(
     interaction: discord.Interaction,
     db_parser: db.ParsePlayer,

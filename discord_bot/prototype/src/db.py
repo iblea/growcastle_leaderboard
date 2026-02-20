@@ -84,6 +84,23 @@ def get_leaderboards(cur):
     return leaderboards
 
 
+def get_guild_leaderboards(cur):
+    if cur is None:
+        return None
+
+    leaderboards = None
+    try:
+        cur.execute("""SELECT rank, name, score, parsetime
+            FROM leaderboard_guild order by rank asc""")
+        leaderboards = cur.fetchall()
+    except Exception as e:
+        print("================= get guild leaderboard error =================")
+        print(e)
+        leaderboards = None
+
+    return leaderboards
+
+
 def get_historydata_by_username(cur, username):
 
     sql_format= """SELECT rank, score, parsetime
@@ -582,6 +599,32 @@ class ParsePlayer:
             return None
 
         leaderboards = get_leaderboards(cur)
+        if leaderboards is None:
+            print("data is None or sql error")
+            return None
+        if len(leaderboards) == 0:
+            print("data is empty")
+            return []
+
+        return leaderboards
+
+    def get_current_guild_leaderboard(self):
+
+        if self.config["db"]["port"] == 0:
+            return None
+
+        if self.conn is None:
+            self.conn = open_conn(self.config)
+            if self.conn is None:
+                return None
+
+        cur = get_cursor(self.conn)
+        if cur is None:
+            print("error: cannot get cursor")
+            self.conn = conn_close(self.conn)
+            return None
+
+        leaderboards = get_guild_leaderboards(cur)
         if leaderboards is None:
             print("data is None or sql error")
             return None
