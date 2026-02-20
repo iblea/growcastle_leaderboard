@@ -557,13 +557,13 @@ rank 미기입 시 20위까지 출력합니다.
         now = datetime.datetime.now()
         result = "```\n"
 
-        # 46~54위
-        for data in leaderboards:
-            rank = data[0]
-            if 46 <= rank <= 54:
-                result += "{:2d}. {:6d} | {} ({})\n".format(rank, data[2], data[1], diff_score - data[2])
-
-        result += "----------\n"
+        # # 46~54위
+        # for data in leaderboards:
+        #     rank = data[0]
+        #     if 46 <= rank <= 54:
+        #         result += "{:2d}. {:6d} | {} ({})\n".format(rank, data[2], data[1], diff_score - data[2])
+        #
+        # result += "----------\n"
 
         # 1~15위
         for data in leaderboards:
@@ -573,13 +573,81 @@ rank 미기입 시 20위까지 출력합니다.
 
         result += "----------\n"
 
-        # 내 정보
+        # 내 정보 + 주변 ±2 랭킹
         if my_data_list:
             for my_data in my_data_list:
+                my_rank = my_data[0]
+
+                # 주변 ±2 랭킹 찾기
+                nearby_upper = []
+                nearby_lower = []
+                for data in leaderboards:
+                    r = data[0]
+                    if my_rank - 2 <= r <= my_rank - 1:
+                        nearby_upper.append(data)
+                    elif my_rank + 1 <= r <= my_rank + 2:
+                        nearby_lower.append(data)
+
+                nearby_upper.sort(key=lambda x: x[0])
+                nearby_lower.sort(key=lambda x: x[0])
+
+                my_score = my_data[2]
+                for data in nearby_upper:
+                    result += "{:2d}. {:6d} | {} ({})\n".format(data[0], data[2], data[1], my_score - data[2])
+
                 result += "{:2d}. {:6d} | {}\n".format(my_data[0], my_data[2], my_data[1])
 
-        result += "```\n"
-        result += f"updated: {now.strftime('%Y-%m-%d %H:%M:%S')}"
+                for data in nearby_lower:
+                    result += "{:2d}. {:6d} | {} ({})\n".format(data[0], data[2], data[1], my_score - data[2])
+        else:
+            result += "-\n"
+
+        result += "----------\n"
+
+        # x등까지 남은 wave
+        if my_data_list:
+            my_rank = my_data_list[0][0]
+            my_score = my_data_list[0][2]
+
+            # 내 등수에 따른 표시 등수 필터링
+            if my_rank >= 70:
+                target_ranks = []
+            else:
+                target_ranks = [1, 2, 3, 4, 5, 6, 10, 11, 50, 51]
+                if my_rank <= 3:
+                    target_ranks = [r for r in target_ranks if r not in [10, 11]]
+                if my_rank > 3:
+                    target_ranks = [r for r in target_ranks if r not in [1, 2]]
+                if my_rank > 5:
+                    target_ranks = [r for r in target_ranks if r not in [1, 2, 3]]
+                if my_rank > 15:
+                    target_ranks = [r for r in target_ranks if r not in [4, 5, 6]]
+                if my_rank > 35:
+                    target_ranks = [r for r in target_ranks if r not in [10, 11]]
+                if my_rank <= 20:
+                    target_ranks = [r for r in target_ranks if r not in [50, 51]]
+
+            rank_scores = {}
+            for data in leaderboards:
+                if data[0] in target_ranks:
+                    rank_scores[data[0]] = data[2] - my_score
+
+            if 4 <= my_rank <= 5:
+                line_groups = [[3, 4, 5], [6, 10, 11]]
+            else:
+                line_groups = [[1, 2, 3], [4, 5, 6], [10, 11], [50, 51]]
+            for group in line_groups:
+                parts = []
+                for r in group:
+                    if r in rank_scores:
+                        parts.append("{:>2}: ({:>7})".format(r, rank_scores[r]))
+                if parts:
+                    result += "  ".join(parts) + "\n"
+
+            result += "me: ({})\n".format(my_rank)
+
+        result += f"updated: {now.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        result += "```"
         return result
 
 
