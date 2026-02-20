@@ -48,11 +48,11 @@ class DiscordBot(discord.Client):
     last_leaderboard_update_second: int = -1
 
     def __init__(self,
-            config: dict,
-            schedule_second: int = 3,
-            # intents: discord.Intents = discord.Intents.default()
-            intents = discord.Intents().all()
-    ) -> None:
+                 config: dict,
+                 schedule_second: int = 3,
+                 # intents: discord.Intents = discord.Intents.default()
+                 intents = discord.Intents().all()
+                 ) -> None:
         self.config =config
 
         server_id: int = self.config.get("bot_server")
@@ -536,7 +536,7 @@ rank 미기입 시 20위까지 출력합니다.
 
 
     async def update_leaderboard_channel(self):
-        """leaderboard 채널에 메시지 업데이트 (edit or send)"""
+        """leaderboard 채널에 메시지 업데이트 (purge and send)"""
         if not self.leaderboard_channel:
             return
 
@@ -545,16 +545,9 @@ rank 미기입 시 20위까지 출력합니다.
             return
 
         try:
-            if self.last_leaderboard_message_id:
-                try:
-                    old_message = await self.leaderboard_channel.fetch_message(self.last_leaderboard_message_id)
-                    await old_message.edit(content=message)
-                except discord.NotFound:
-                    new_message = await self.leaderboard_channel.send(message)
-                    self.last_leaderboard_message_id = new_message.id
-            else:
-                new_message = await self.leaderboard_channel.send(message)
-                self.last_leaderboard_message_id = new_message.id
+            await self.leaderboard_channel.purge(check=lambda m: m.author.id == self.user.id)
+            new_message = await self.leaderboard_channel.send(message)
+            self.last_leaderboard_message_id = new_message.id
         except Exception as e:
             print(f"update_leaderboard_channel error: {e}")
 
@@ -748,13 +741,13 @@ rank 미기입 시 20위까지 출력합니다.
             self.alert_channel = super().get_channel(self.config["bot_channel"][0])
             await self.alert_channel.send("initialize")
 
-        # 0초, 30초 부근마다 leaderboard 채널 업데이트
+        # 15초 부근마다 leaderboard 채널 업데이트
         if self.leaderboard_channel is not None:
             current_second = datetime.datetime.now().second
+            current_segment = current_second // 15
             if self.last_leaderboard_update_second < 0 or \
-               not ((self.last_leaderboard_update_second < 30 and current_second < 30) or
-                    (self.last_leaderboard_update_second >= 30 and current_second >= 30)):
-                self.last_leaderboard_update_second = current_second
+               self.last_leaderboard_update_second != current_segment:
+                self.last_leaderboard_update_second = current_segment
                 await self.update_leaderboard_channel()
 
         if self.config.get("parse_stop") == True:
