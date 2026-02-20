@@ -42,6 +42,11 @@ class DiscordBot(discord.Client):
 
     parse_fail_count = 0
 
+    leaderboard_channel_id: int = 0
+    leaderboard_channel: Optional[discord.TextChannel] = None
+    last_leaderboard_message_id: Optional[int] = None
+    last_leaderboard_update_second: int = -1
+
     def __init__(self,
             config: dict,
             schedule_second: int = 3,
@@ -54,6 +59,8 @@ class DiscordBot(discord.Client):
         self.discord_bot_token = self.config.get("bot_token")
         self.discord_guild_object = discord.Object(id=server_id)
         self.discord_response_chat_id = self.config.get("bot_channel")
+
+        self.leaderboard_channel_id = self.config.get("bot_channel_id_leaderboard", 0) or 0
 
         self.schedule_second = schedule_second
 
@@ -111,6 +118,16 @@ class DiscordBot(discord.Client):
         @self.event
         async def on_ready():
             print(f'Logged in as {self.user} (ID: {self.user.id})')
+
+            # leaderboard 채널 설정
+            if self.leaderboard_channel_id > 0:
+                self.leaderboard_channel = self.get_channel(self.leaderboard_channel_id)
+                if self.leaderboard_channel:
+                    print(f"Leaderboard channel set: {self.leaderboard_channel.name}")
+                    await self.find_last_leaderboard_message()
+                else:
+                    print(f"Warning: Leaderboard channel ID {self.leaderboard_channel_id} not found")
+
             print('-----------------------------------')
             self.schedular.start()
 
@@ -472,6 +489,100 @@ rank 미기입 시 20위까지 출력합니다.
         self.run(self.discord_bot_token)
 
 
+    async def find_last_leaderboard_message(self):
+        """leaderboard 채널에서 봇이 작성한 마지막 메시지 찾기"""
+        if not self.leaderboard_channel:
+            return
+
+        try:
+            async for message in self.leaderboard_channel.history(limit=100):
+                if message.author.id == self.user.id:
+                    self.last_leaderboard_message_id = message.id
+                    print(f"Leaderboard message found: {message.id}")
+                    return
+            print("No leaderboard message found in channel")
+        except Exception as e:
+            print(f"find_last_leaderboard_message error: {e}")
+
+
+    async def update_leaderboard_channel(self):
+        """leaderboard 채널에 메시지 업데이트 (edit or send)"""
+        if not self.leaderboard_channel:
+            return
+
+        message = self.get_leaderboard_message()
+        if not message:
+            return
+
+        try:
+            if self.last_leaderboard_message_id:
+                try:
+                    old_message = await self.leaderboard_channel.fetch_message(self.last_leaderboard_message_id)
+                    await old_message.edit(content=message)
+                except discord.NotFound:
+                    new_message = await self.leaderboard_channel.send(message)
+                    self.last_leaderboard_message_id = new_message.id
+            else:
+                new_message = await self.leaderboard_channel.send(message)
+                self.last_leaderboard_message_id = new_message.id
+        except Exception as e:
+            print(f"update_leaderboard_channel error: {e}")
+
+
+    def get_leaderboard_message(self):
+        """leaderboard 채널에 표시할 메시지 생성"""
+        global db_parser
+        if db_parser is None:
+            db_parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+
+        leaderboards = db_parser.get_current_leaderboard()
+        if leaderboards is None or len(leaderboards) == 0:
+            return None
+
+        # monitoring player 목록
+        monitoring_players = list(self.config.get("monitoring", {}).get("player", {}).keys())
+
+        # 내 정보 찾기 (monitoring player 중 leaderboard에 있는 유저)
+        my_data_list = []
+        diff_score = 0
+        for data in leaderboards:
+            if data[1].lower() in monitoring_players:
+                my_data_list.append(data)
+                if diff_score == 0:
+                    diff_score = data[2]
+
+        if not my_data_list:
+            diff_score = leaderboards[0][2]
+
+        now = datetime.datetime.now()
+        result = "```\n"
+
+        # 46~54위
+        for data in leaderboards:
+            rank = data[0]
+            if 46 <= rank <= 54:
+                result += "{:2d}. {:6d} | {} ({})\n".format(rank, data[2], data[1], diff_score - data[2])
+
+        result += "----------\n"
+
+        # 1~15위
+        for data in leaderboards:
+            rank = data[0]
+            if 1 <= rank <= 15:
+                result += "{:2d}. {:6d} | {} ({})\n".format(rank, data[2], data[1], diff_score - data[2])
+
+        result += "----------\n"
+
+        # 내 정보
+        if my_data_list:
+            for my_data in my_data_list:
+                result += "{:2d}. {:6d} | {}\n".format(my_data[0], my_data[2], my_data[1])
+
+        result += "```\n"
+        result += f"updated: {now.strftime('%Y-%m-%d %H:%M:%S')}"
+        return result
+
+
     async def parse_growcastle_api(self):
         if self.config.get("parse_stop") == True:
             return
@@ -538,6 +649,15 @@ rank 미기입 시 20위까지 출력합니다.
             print("set alert channel")
             self.alert_channel = super().get_channel(self.config["bot_channel"][0])
             await self.alert_channel.send("initialize")
+
+        # 0초, 30초 부근마다 leaderboard 채널 업데이트
+        if self.leaderboard_channel is not None:
+            current_second = datetime.datetime.now().second
+            if self.last_leaderboard_update_second < 0 or \
+               not ((self.last_leaderboard_update_second < 30 and current_second < 30) or
+                    (self.last_leaderboard_update_second >= 30 and current_second >= 30)):
+                self.last_leaderboard_update_second = current_second
+                await self.update_leaderboard_channel()
 
         if self.config.get("parse_stop") == True:
             return
