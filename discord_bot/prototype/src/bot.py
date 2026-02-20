@@ -536,7 +536,7 @@ rank 미기입 시 20위까지 출력합니다.
 
 
     async def update_leaderboard_channel(self):
-        """leaderboard 채널에 메시지 업데이트 (purge and send)"""
+        """leaderboard 채널에 메시지 업데이트 (edit or purge and send)"""
         if not self.leaderboard_channel:
             return
 
@@ -545,9 +545,14 @@ rank 미기입 시 20위까지 출력합니다.
             return
 
         try:
-            await self.leaderboard_channel.purge(check=lambda m: m.author.id == self.user.id)
-            new_message = await self.leaderboard_channel.send(message)
-            self.last_leaderboard_message_id = new_message.id
+            last_msg_id = self.leaderboard_channel.last_message_id
+            if last_msg_id and last_msg_id == self.last_leaderboard_message_id:
+                old_message = await self.leaderboard_channel.fetch_message(last_msg_id)
+                await old_message.edit(content=message)
+            else:
+                await self.leaderboard_channel.purge(check=lambda m: m.author.id == self.user.id)
+                new_message = await self.leaderboard_channel.send(message)
+                self.last_leaderboard_message_id = new_message.id
         except Exception as e:
             print(f"update_leaderboard_channel error: {e}")
 
