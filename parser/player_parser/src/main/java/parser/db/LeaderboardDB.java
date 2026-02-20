@@ -27,9 +27,9 @@ public class LeaderboardDB {
 
     private static Logger logger = LogManager.getLogger(LeaderboardDB.class);
 
-    private static final int NO_JUMP = 5;
-    private static final int HORN_JUMP = 6;
-    private static final int DHORN_JUMP = 7;
+    private static final int NO_JUMP = 6;
+    private static final int HORN_JUMP = 7;
+    private static final int DHORN_JUMP = 8;
 
 
     private Database db;
