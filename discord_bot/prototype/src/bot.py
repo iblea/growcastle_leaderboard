@@ -638,7 +638,14 @@ rank 미기입 시 20위까지 출력합니다.
         if my_data_list:
             my_rank = my_data_list[0][0]
             my_score = my_data_list[0][2]
-            result += "---------- me: ({})\n".format(my_rank)
+            guild_rank = "-"
+            guild_name = self.config.get("monitoring", {}).get("guild", {}).get("name", "")
+            if guild_name and guild_leaderboards:
+                for gdata in guild_leaderboards:
+                    if gdata[1].lower() == guild_name.lower():
+                        guild_rank = gdata[0]
+                        break
+            result += "---------- me: ({}, {})\n".format(my_rank, guild_rank)
 
             # 내 등수에 따른 표시 등수 필터링
             if my_rank >= 70:
