@@ -22,6 +22,8 @@ client = None
 db_parser = None
 schedule_channel = None
 
+MY_GUILD_NAME = "underdog"
+
 
 class DiscordBot(discord.Client):
     discord_guild_object: Optional[discord.Object] = None
@@ -588,10 +590,21 @@ rank 미기입 시 20위까지 출력합니다.
         # 길드 리더보드 1~6위
         guild_leaderboards = db_parser.get_current_guild_leaderboard()
         if guild_leaderboards and len(guild_leaderboards) > 0:
+            # Underdog 길드 점수 찾기
+            underdog_score = 0
+            for gdata in guild_leaderboards:
+                if gdata[1].lower() == MY_GUILD_NAME:
+                    underdog_score = gdata[2]
+                    break
+
             show_guild_len = min(len(guild_leaderboards), 6)
             for i in range(show_guild_len):
                 gdata = guild_leaderboards[i]
-                result += "{:2d}. {:>7d} | {}\n".format(gdata[0], gdata[2], gdata[1])
+                if gdata[1].lower() == MY_GUILD_NAME:
+                    result += "{:2d}. {:>7d} | {}\n".format(gdata[0], gdata[2], gdata[1])
+                else:
+                    diff = underdog_score - gdata[2]
+                    result += "{:2d}. {:>7d} | {} ({})\n".format(gdata[0], gdata[2], gdata[1], diff)
             result += "----------\n"
 
         # 1~15위
