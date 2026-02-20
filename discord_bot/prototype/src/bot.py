@@ -632,13 +632,13 @@ rank 미기입 시 20위까지 출력합니다.
                     result += "{:2d}. {:6d} | {} ({})\n".format(data[0], data[2], data[1], my_score - data[2])
         else:
             result += "-\n"
-
-        result += "----------\n"
+            result += "----------\n"
 
         # x등까지 남은 wave
         if my_data_list:
             my_rank = my_data_list[0][0]
             my_score = my_data_list[0][2]
+            result += "---------- me: ({})\n".format(my_rank)
 
             # 내 등수에 따른 표시 등수 필터링
             if my_rank >= 70:
@@ -663,19 +663,11 @@ rank 미기입 시 20위까지 출력합니다.
                 if data[0] in target_ranks:
                     rank_scores[data[0]] = data[2] - my_score
 
-            if 4 <= my_rank <= 5:
-                line_groups = [[3, 4, 5], [6, 10, 11]]
-            else:
-                line_groups = [[1, 2, 3], [4, 5, 6], [10, 11], [50, 51]]
-            for group in line_groups:
-                parts = []
-                for r in group:
-                    if r in rank_scores:
-                        parts.append("{:>2}: ({:>7})".format(r, rank_scores[r]))
-                if parts:
-                    result += "  ".join(parts) + "\n"
-
-            result += "me: ({})\n".format(my_rank)
+            display_ranks = [r for r in target_ranks if r in rank_scores]
+            for i in range(0, len(display_ranks), 2):
+                chunk = display_ranks[i:i+2]
+                parts = ["{:>2}: ({:>7})".format(r, rank_scores[r]) for r in chunk]
+                result += "  ".join(parts) + "\n"
 
         result += f"updated: {now.strftime('%Y-%m-%d %H:%M:%S')}\n"
         result += "```"
