@@ -16,6 +16,7 @@ import telegram_bot
 import db
 
 import copy
+import asyncio
 
 
 client = None
@@ -102,11 +103,23 @@ class DiscordBot(discord.Client):
 
     async def setup_hook(self) -> None:
         self.tree.copy_global_to(guild=self.discord_guild_object)
-        self.loop.create_task(self.schedular())
         print(f'Create in as {self.user} (ID: {self.user.id})')
+        self.loop.create_task(self._aligned_schedular())
         await self.tree.sync(guild=self.discord_guild_object)
 
         print("hook set done")
+
+
+    async def _aligned_schedular(self):
+        """create_task를 %3 == 0 초에 맞춰 실행"""
+        now = datetime.datetime.now()
+        current_second = now.second
+        wait_seconds = (3 - (current_second % 3)) % 3
+        if wait_seconds > 0:
+            await asyncio.sleep(wait_seconds)
+        now = datetime.datetime.now()
+        print(f"schedular create_task executed at second: {now.second}")
+        await self.schedular()
 
 
     # discord event
