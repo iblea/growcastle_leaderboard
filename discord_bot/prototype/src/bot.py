@@ -220,6 +220,15 @@ class DiscordBot(discord.Client):
             await botcommand.user_ok(interaction=interaction, conf=self.config, username=user)
 
         @self.tree.command()
+        async def o(interaction: discord.Interaction, user: str = ""):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_ok(interaction=interaction, conf=self.config, username=user)
+
+        @self.tree.command()
         async def no(interaction: discord.Interaction, user: str = ""):
             if botcommand.channel_check(
                 interaction=interaction,
