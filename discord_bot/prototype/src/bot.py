@@ -678,7 +678,16 @@ rank 미기입 시 20위까지 출력합니다.
                     if gdata[1].lower() == guild_name.lower():
                         guild_rank = gdata[0]
                         break
-            result += "---------- me: ({}, {})\n".format(my_rank, guild_rank)
+            season_day_str = ""
+            season_start_str = self.config.get("data", {}).get("seasons", {}).get("start", "")
+            if season_start_str:
+                kst_tz = datetime.timezone(datetime.timedelta(hours=9))
+                season_start_date = datetime.datetime.strptime(season_start_str, "%Y-%m-%d %H:%M:%S").date()
+                current_kst_date = datetime.datetime.now(kst_tz).date()
+                day_num = (current_kst_date - season_start_date).days + 1
+                if 1 <= day_num <= 5:
+                    season_day_str = " day: {}".format(day_num)
+            result += "---------- me: ({}, {}){}\n".format(my_rank, guild_rank, season_day_str)
 
             # 내 등수에 따른 표시 등수 필터링
             if my_rank >= 70:
