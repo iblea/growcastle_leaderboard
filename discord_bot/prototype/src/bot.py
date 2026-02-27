@@ -39,6 +39,7 @@ class DiscordBot(discord.Client):
     alert_interval = 2
     alert_list: dict = {}
     alert_channel: Optional[int] = None
+    crash_channel: Optional[discord.TextChannel] = None
     last_end_season: str = ""
     last_season_expire_start: int = 0
     last_season_expire_end: int = 0
@@ -790,6 +791,13 @@ rank 미기입 시 20위까지 출력합니다.
             self.alert_channel = super().get_channel(self.config["bot_channel"][0])
             await self.alert_channel.send("initialize")
 
+        if self.crash_channel is None:
+            crash_channel_id = self.config.get("bot_channel_crash", 0)
+            if crash_channel_id:
+                self.crash_channel = super().get_channel(crash_channel_id)
+            if self.crash_channel is None:
+                self.crash_channel = self.alert_channel
+
         # 15초 부근마다 leaderboard 채널 업데이트
         if self.leaderboard_channel is not None:
             current_second = datetime.datetime.now().second
@@ -828,7 +836,7 @@ rank 미기입 시 20위까지 출력합니다.
                 continue
 
             msg: str = "user : {} is crashed".format(key)
-            await self.alert_channel.send("<@"+ user["user"] + "> " + msg)
+            await self.crash_channel.send("<@"+ user["user"] + "> " + msg)
 
             if telegram_use == True:
                 parseTime_datetime = datetime.datetime.fromtimestamp(user["last_wave_time"])
