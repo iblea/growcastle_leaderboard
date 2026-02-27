@@ -43,6 +43,11 @@ public class ParseSchedular {
     // private static final int PARSE_TERM_SEC = 3600;
     private static final int PARSE_TERM_SEC = 300;
 
+    // 시즌 종료일 프로그램 종료 시각 (crontab에 의해 23:52에 재시작)
+    private static final int EXIT_HOUR = 23;
+    private static final int EXIT_MINUTE = 51;
+    private static final int EXIT_SECOND = 10;
+
     private LeaderboardDB leaderboardDB = null;
     private HistoryDB historyDB = null;
     private GuildMemberWaveDB guildMemberWaveDB = null;
@@ -157,6 +162,19 @@ public class ParseSchedular {
         clearAllEntityManager();
     }
 
+    public void exitProgram(String reason) {
+        logger.info("Program Exit : {}", reason);
+        if (tgBot != null) {
+            tgBot.sendMsg("Program Exit : " + reason);
+        }
+        System.exit(0);
+    }
+
+    public boolean isAfterExitTime(LocalDateTime now) {
+        LocalDateTime exitTime = now.toLocalDate().atTime(EXIT_HOUR, EXIT_MINUTE, EXIT_SECOND);
+        return !now.isBefore(exitTime);
+    }
+
     // Main Scheduler
     public void getGrowCastleData() {
         logger.debug("Get GrowCastle Data Scheduler Start");
@@ -168,6 +186,9 @@ public class ParseSchedular {
         if (checkSeasonEnd(now)) {
             logger.debug("Season End, Only Leaderboard Data Parse");
             getParseLeaderboards(false);
+            if (isAfterExitTime(now)) {
+                exitProgram("Season End");
+            }
             return;
         }
 
