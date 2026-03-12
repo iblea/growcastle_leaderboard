@@ -27,12 +27,12 @@ dependencies {
     testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
 
     // This dependency is used by the application.
-    implementation("com.google.guava:guava:31.1-jre")
-    implementation("org.hibernate:hibernate-core:5.6.5.Final")
+    implementation("com.google.guava:guava:33.4.0-jre")
+    implementation("org.hibernate.orm:hibernate-core:6.4.4.Final")
     implementation("com.h2database:h2:2.2.224")
     // https://mvnrepository.com/artifact/org.postgresql/postgresql
     implementation("org.postgresql:postgresql:42.7.3")
-    implementation("javax.xml.bind:jaxb-api:2.3.1")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")
 
     // telegram bot
     // https://rubenlagus.github.io/TelegramBotsDocumentation/lesson-1.html#prepare-to-launch

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<persistence version="2.2"
-            xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
+<persistence version="3.0"
+            xmlns="https://jakarta.ee/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
 
     <persistence-unit name="growcastle">
         <!-- https://sweetburble.tistory.com/6 -->
@@ -20,13 +20,13 @@
 
         <properties>
             <!-- 필수 속성 -->
-            <property name="javax.persistence.jdbc.user" value="<username>"/>
-            <property name="javax.persistence.jdbc.password" value="<password>"/>
-            <!-- <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/> -->
-            <!-- <property name="javax.persistence.jdbc.url" value="jdbc:h2:tcp://localhost:<port>/<path>"/> -->
+            <property name="jakarta.persistence.jdbc.user" value="<username>"/>
+            <property name="jakarta.persistence.jdbc.password" value="<password>"/>
+            <!-- <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver"/> -->
+            <!-- <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:tcp://localhost:<port>/<path>"/> -->
             <!-- <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/> -->
-            <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-            <property name="javax.persistence.jdbc.url"    value="jdbc:postgresql://localhost:<port>/<db>" />
+            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="jakarta.persistence.jdbc.url"    value="jdbc:postgresql://localhost:<port>/<db>" />
             <property name="hibernate.dialect"    value="org.hibernate.dialect.PostgreSQLDialect" />
             <!-- <property name="hibernate.default_schema" value="public"/> -->
 
@@ -34,7 +34,7 @@
             <property name="hibernate.show_sql" value="false"/>
             <property name="hibernate.format_sql" value="false"/>
             <property name="hibernate.use_sql_comments" value="false"/>
-            <property name="hibernate.id.new_generator_mappings" value="false"/>
+
             <!-- <property name="hibernate.hbm2ddl.auto" value="create-drop"/> -->
             <!-- <property name="hibernate.hbm2ddl.auto" value="update"/> -->
             <!-- <property name="hibernate.hbm2ddl.auto" value="create" /> -->
