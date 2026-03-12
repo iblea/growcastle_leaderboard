@@ -1,5 +1,5 @@
 
 MAIN_SCRIPT="prototype_bot_main.py"
-VENV_NAME="gcleaderboard"
+VENV_NAME="venv_gcleaderboard"
 # pip3 freeze > requirements_freeze.txt
 FREEZE_PATH="requirements_freeze.txt"

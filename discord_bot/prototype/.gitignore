@@ -1,6 +1,6 @@
 
 # venv
-gcleaderboard/
+venv_gcleaderboard/
 
 # ide
 .vscode/**
