@@ -790,6 +790,7 @@ rank 미기입 시 20위까지 출력합니다.
             print("set alert channel")
             self.alert_channel = super().get_channel(self.config["bot_channel"][0])
             await self.alert_channel.send("initialize")
+            print("initialize message send")
 
         if self.crash_channel is None:
             crash_channel_id = self.config.get("bot_channel_crash", 0)

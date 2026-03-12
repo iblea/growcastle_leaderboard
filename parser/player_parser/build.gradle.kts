@@ -67,9 +67,10 @@ tasks.withType<Jar> {
     manifest {
         attributes["Main-Class"] = application.mainClass
     }
-    // https://colabear754.tistory.com/198
-    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    // 프로젝트 리소스가 의존성보다 우선되도록 순서 지정
+    from(sourceSets.main.get().output)
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
 }
 
 tasks.named<Test>("test") {
