@@ -120,7 +120,7 @@ public class HistoryDB {
                     " h.hornJump = h.hornJump + :hornJump," +
                     " h.dhornJump = h.dhornJump + :dhornJump," +
                     " h.crystalJump = h.crystalJump + :crystalJump" +
-                    " WHERE name = :name and parseTime = :parseTime";
+                    " WHERE h.memberPK.name = :name and h.memberPK.parseTime = :parseTime";
 
             int totalInsertedCount = 0;
             for (LeaderboardPlayer leaderboard : data) {
@@ -168,7 +168,7 @@ public class HistoryDB {
         jpql +=
             " h.rank = :rank," +
             " h.score = :score" +
-            " WHERE name = :name and parseTime = :parseTime";
+            " WHERE h.memberPK.name = :name and h.memberPK.parseTime = :parseTime";
         LocalDateTime hourTime = time.withMinute(0).withSecond(0).withNano(0);
         int totalInsertedCount = 0;
         for (LeaderboardBaseEntity leaderboard : data) {
