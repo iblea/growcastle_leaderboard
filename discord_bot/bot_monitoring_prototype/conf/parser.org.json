@@ -3,6 +3,7 @@
     "bot_server": 0,
     "bot_channel": [ ],
     "bot_channel_crash": 0,
+    "bot_channel_id_leaderboard": 0,
     "retry_count": 3,
     "alert_repeat": 1,
     "schedule": 150,
