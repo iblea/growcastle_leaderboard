@@ -105,22 +105,21 @@ class DiscordBot(discord.Client):
     async def setup_hook(self) -> None:
         self.tree.copy_global_to(guild=self.discord_guild_object)
         print(f'Create in as {self.user} (ID: {self.user.id})')
-        self.loop.create_task(self._aligned_schedular())
         await self.tree.sync(guild=self.discord_guild_object)
 
         print("hook set done")
 
 
     async def _aligned_schedular(self):
-        """create_task를 %3 == 0 초에 맞춰 실행"""
+        """tasks.loop를 %3 == 0 초에 맞춰 시작"""
         now = datetime.datetime.now()
         current_second = now.second
         wait_seconds = (3 - (current_second % 3)) % 3
         if wait_seconds > 0:
             await asyncio.sleep(wait_seconds)
         now = datetime.datetime.now()
-        print(f"schedular create_task executed at second: {now.second}")
-        await self.schedular()
+        print(f"schedular start at second: {now.second}")
+        self.schedular.start()
 
 
     # discord event
@@ -145,7 +144,7 @@ class DiscordBot(discord.Client):
                     print(f"Warning: Leaderboard channel ID {self.leaderboard_channel_id} not found")
 
             print('-----------------------------------')
-            self.schedular.start()
+            self.loop.create_task(self._aligned_schedular())
 
         print("event set done")
 
