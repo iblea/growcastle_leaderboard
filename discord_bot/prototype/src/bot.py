@@ -825,7 +825,7 @@ rank 미기입 시 20위까지 출력합니다.
         # print("alert")
         telegram_use: bool = self.config["telegram_use"]
         # alarm
-        alert_keys = self.alert_list.keys()
+        alert_keys = list(self.alert_list.keys())
         for key in alert_keys:
             user = self.alert_list[key]
             username: str = key
