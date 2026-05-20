@@ -90,7 +90,7 @@ def telegram_thread():
                 last_update_id = update.update_id
                 if update.message and update.message.text:
                     text = update.message.text.strip()
-                    if text in ("/ok", "/o", "ok", "o"):
+                    if text in ("/ok", "/o", "ok", "o", "/chk", "/c", "chk", "c"):
                         result = handle_ok_command()
                         loop.run_until_complete(telegram_msg_send(result))
         except Exception:
