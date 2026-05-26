@@ -294,4 +294,53 @@ class ParseSchedularTest {
         }
     }
 
+    // ========================================================
+    // 백오프 모드 분기 - scheduleMain 통합 동작
+    // ========================================================
+
+    @Nested
+    @DisplayName("scheduleMain - 백오프 모드 분기")
+    class ScheduleMainBackoffTest {
+
+        private ParseSchedular createSpySchedular() {
+            ParseSchedular schedular = new ParseSchedular(null, null);
+            ParseSchedular spySchedular = spy(schedular);
+            doNothing().when(spySchedular).getGrowCastleData();
+            return spySchedular;
+        }
+
+        private BackoffMonitor getMonitor(ParseSchedular target) throws Exception {
+            Field field = ParseSchedular.class.getDeclaredField("backoffMonitor");
+            field.setAccessible(true);
+            return (BackoffMonitor) field.get(target);
+        }
+
+        @Test
+        @DisplayName("정상 모드: scheduleMain -> getGrowCastleData 호출")
+        void normalMode_callsGetGrowCastleData() {
+            ParseSchedular spy = createSpySchedular();
+
+            spy.scheduleMain();
+
+            verify(spy).getGrowCastleData();
+        }
+
+        @Test
+        @DisplayName("T5: 백오프 모드 + nextRetryTime 미도달 → getGrowCastleData 호출 안 됨")
+        void backoffMode_notReady_skipsGetGrowCastleData() throws Exception {
+            ParseSchedular spy = createSpySchedular();
+            BackoffMonitor monitor = getMonitor(spy);
+            for (int i = 0; i < BackoffMonitor.BACKOFF_THRESHOLD; i++) {
+                monitor.recordFailure();
+            }
+            // nextRetryTime 을 먼 미래로 잡아 isReadyToRetry false 보장
+            monitor.enterBackoffMode(LocalDateTime.now().plusDays(1));
+
+            spy.scheduleMain();
+
+            verify(spy, never()).getGrowCastleData();
+            assertThat(monitor.isInBackoffMode()).isTrue();
+        }
+    }
+
 }

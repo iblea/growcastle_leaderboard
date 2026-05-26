@@ -52,10 +52,13 @@ public class ParseSchedular {
     private HistoryDB historyDB = null;
     private GuildMemberWaveDB guildMemberWaveDB = null;
 
+    private final BackoffMonitor backoffMonitor;
+
     public ParseSchedular(TelegramBot tgBot, Database db) {
         this.tgBot = tgBot;
         this.db = db;
         this.seasonData = new SeasonData();
+        this.backoffMonitor = new BackoffMonitor();
         // this.nextParseTime = getUpdateNextTime(getNowKST());
         this.nextParseTime = getDivide5MinutesPlus5Minutes(getNowKST());
         logger.info("Next History Parse Time : {}", this.nextParseTime);
@@ -158,8 +161,73 @@ public class ParseSchedular {
     }
 
     public void scheduleMain() {
+        LocalDateTime now = getNowKST();
+
+        // 백오프 모드: 데이터 수집 정지, 헬스 체크만 진행
+        if (backoffMonitor.isInBackoffMode()) {
+            handleBackoffMode(now);
+            return;
+        }
+
+        // 정상 모드: 사이클 전후 카운트 비교로 성공/실패 판정
+        int beforeFailCount = backoffMonitor.getConsecutiveFailCount();
         getGrowCastleData();
         clearAllEntityManager();
+        int afterFailCount = backoffMonitor.getConsecutiveFailCount();
+
+        if (beforeFailCount == afterFailCount && beforeFailCount > 0) {
+            backoffMonitor.recordSuccess();
+        }
+
+        if (backoffMonitor.shouldEnterBackoff()) {
+            enterBackoff(now);
+        }
+    }
+
+    /**
+     * 백오프 모드 처리. nextRetryTime 도달 시 헬스 체크 1회.
+     * 성공 시 정상 모드 복귀, 실패 시 단계 진행.
+     */
+    private void handleBackoffMode(LocalDateTime now) {
+        if (!backoffMonitor.isReadyToRetry(now)) {
+            return;
+        }
+        boolean healthy = healthCheck();
+        if (healthy) {
+            recoverFromBackoff();
+        } else {
+            backoffMonitor.advanceBackoff(now);
+        }
+    }
+
+    /**
+     * 백오프 모드용 헬스 체크. ParseLeaderboard.player 호출 결과의 비어있지 않음으로 판정.
+     * 결과는 폐기.
+     */
+    private boolean healthCheck() {
+        List<LeaderboardBaseEntity> result =
+                ParseLeaderboard.player(this.tgBot, getNowKST()).parseLeaderboards();
+        return result != null && !result.isEmpty();
+    }
+
+    private void enterBackoff(LocalDateTime now) {
+        backoffMonitor.enterBackoffMode(now);
+        tgBot.sendMsg("지수 백오프 서버 체커를 시작합니다...");
+        clearAllEntityManager();
+    }
+
+    private void recoverFromBackoff() {
+        backoffMonitor.recoverFromBackoff();
+        tgBot.sendMsg("서버가 복구되었습니다.");
+    }
+
+    /**
+     * HTTP 호출 실패 카운트 증가 + 카운트 포함 텔레그램 알람 발송.
+     * DB 에러는 본 메서드를 사용하지 않고 기존 알람 경로 유지.
+     */
+    private void recordHttpFailure(String baseMsg) {
+        int count = backoffMonitor.recordFailure();
+        tgBot.sendMsg(baseMsg + " (" + count + "/" + BackoffMonitor.BACKOFF_THRESHOLD + ")");
     }
 
     public void exitProgram(String reason) {
@@ -240,7 +308,7 @@ public class ParseSchedular {
         this.seasonData.setEndDate(parseAPI.getEndSeasonDate());
         if (this.seasonData.isNull()) {
             logger.error("Season Date Parse Error");
-            tgBot.sendMsg("Season Date Parse Error");
+            recordHttpFailure("Season Date Parse Error");
             return;
         }
         if (!isAfterSeasonEnd(now, this.seasonData.getEndDate())) {
@@ -358,7 +426,7 @@ public class ParseSchedular {
     public void insertGuildData(List<LeaderboardBaseEntity> leaderboardData, boolean updateInform) {
         if (leaderboardData == null || leaderboardData.isEmpty()) {
             logger.error("Leaderboard Guild Data Parse Error");
-            this.tgBot.sendMsg("Leaderboard Guild Data Parse Error");
+            recordHttpFailure("Leaderboard Guild Data Parse Error");
             return;
         }
         boolean result = this.leaderboardDB.updateLeaderboards(leaderboardData, LeaderboardType.GUILD);
@@ -381,7 +449,7 @@ public class ParseSchedular {
     public void insertPlayerData(List<LeaderboardBaseEntity> leaderboardData, boolean updateInform) {
         if (leaderboardData == null || leaderboardData.isEmpty()) {
             logger.error("Leaderboard Player Data Parse Error");
-            this.tgBot.sendMsg("Leaderboard Player Data Parse Error");
+            recordHttpFailure("Leaderboard Player Data Parse Error");
             return;
         }
         boolean result = this.leaderboardDB.updateLeaderboardsPlayerTracking(leaderboardData);
