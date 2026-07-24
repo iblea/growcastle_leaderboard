@@ -46,6 +46,14 @@ class DiscordBot(discord.Client):
 
     parse_fail_count = 0
 
+    # 연속 실패로 인한 자동 parse_stop 여부 (수동 /check 정지와 구분)
+    parse_stop_by_failure: bool = False
+    # 자동 정지 시 DB parsetime 갱신을 확인하는 헬스 체크
+    health_check_interval = 60
+    next_health_check_time = 0
+    recover_check_count = 0
+    last_health_parsetime = None
+
     leaderboard_channel_id: int = 0
     leaderboard_channel: Optional[discord.TextChannel] = None
     last_leaderboard_message_id: Optional[int] = None
@@ -747,10 +755,14 @@ rank 미기입 시 20위까지 출력합니다.
                 await self.alert_channel.send("parse growcastle api fail {} count".format(self.parse_fail_count))
 
             # 1분에 6번, 10분에 60번 (10분이상 파싱 연속 실패 시 알림)
+            # alert_list는 비우지 않는다 (기존 crash 유저 알림 유지)
             if self.parse_fail_count > 60:
                 print("parse fail count over 60")
                 self.config["parse_stop"] = True
-                self.alert_list = {}
+                self.parse_stop_by_failure = True
+                self.next_health_check_time = 0
+                self.recover_check_count = 0
+                self.last_health_parsetime = None
                 set_config(config_dict=self.config)
                 await self.alert_channel.send("parse stop, fail over 60")
             return
@@ -765,6 +777,36 @@ rank 미기입 시 20위까지 출력합니다.
 
         # parse guild
         # guild alarm (guild alarm은 길드 파싱한 후 최초 1회에 한에서만 동작함)
+
+
+    # 자동 parse_stop 상태에서 DB의 parsetime(leaderboard_player 최신값)이
+    # 연속 3회 갱신되면 parser.jar가 복구된 것으로 보고 parse_stop을 해제한다
+    async def check_parse_recovery(self):
+        parser = db.ParsePlayer(bot=self.alert_channel, config=self.config)
+        parsetime = parser.get_latest_parsetime()
+        if parsetime is None:
+            self.recover_check_count = 0
+            self.last_health_parsetime = None
+            return
+
+        if self.last_health_parsetime is not None and \
+           parsetime != self.last_health_parsetime:
+            self.recover_check_count += 1
+        else:
+            self.recover_check_count = 0
+        self.last_health_parsetime = parsetime
+
+        if self.recover_check_count < 3:
+            return
+
+        print("parse recovered, release parse_stop")
+        self.config["parse_stop"] = False
+        self.parse_stop_by_failure = False
+        self.parse_fail_count = 0
+        self.recover_check_count = 0
+        self.last_health_parsetime = None
+        set_config(config_dict=self.config)
+        await self.alert_channel.send("parse recovered, parse_stop released")
 
 
     # n초마다 돌면서 crash 상태인지 확인
@@ -808,9 +850,14 @@ rank 미기입 시 20위까지 출력합니다.
                 await self.update_leaderboard_channel()
 
         if self.config.get("parse_stop") == True:
-            return
-
-        if curr_time >= self.next_parse_time:
+            # 연속 실패로 인한 자동 정지인 경우에만 복구 헬스 체크 수행
+            # (수동 /check 정지는 자동 해제하지 않음)
+            # 아래의 alert 루프는 계속 진행되어 기존 crash 유저 알림은 유지된다
+            if self.parse_stop_by_failure == True and \
+               curr_time >= self.next_health_check_time:
+                self.next_health_check_time = curr_time + self.health_check_interval
+                await self.check_parse_recovery()
+        elif curr_time >= self.next_parse_time:
             # parse player
             await self.parse_growcastle_api()
 
@@ -833,6 +880,8 @@ rank 미기입 시 20위까지 출력합니다.
                 del self.alert_list[key]
                 continue
             if self.config["monitoring"]["player"][username]["check"] == True:
+                # /ok 로 알림을 해제한 유저는 alert_list에서도 제거
+                del self.alert_list[key]
                 continue
 
             msg: str = "user : {} is crashed".format(key)

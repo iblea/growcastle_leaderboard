@@ -101,6 +101,24 @@ def get_guild_leaderboards(cur):
     return leaderboards
 
 
+def get_latest_player_parsetime(cur):
+    if cur is None:
+        return None
+
+    parsetime = None
+    try:
+        cur.execute("SELECT MAX(parsetime) FROM leaderboard_player")
+        row = cur.fetchone()
+        if row is not None:
+            parsetime = row[0]
+    except Exception as e:
+        print("================= get latest parsetime error =================")
+        print(e)
+        parsetime = None
+
+    return parsetime
+
+
 def get_historydata_by_username(cur, username):
 
     sql_format= """SELECT rank, score, parsetime
@@ -352,6 +370,24 @@ class ParsePlayer:
     def get_alert_list(self):
         return self.alert_list
 
+    def get_latest_parsetime(self):
+        if self.config["db"]["port"] == 0:
+            return None
+
+        if self.conn is None:
+            self.conn = open_conn(self.config)
+            if self.conn is None:
+                print("error: cannot connect db")
+                return None
+
+        cur = get_cursor(self.conn)
+        if cur is None:
+            print("error: cannot get cursor")
+            self.conn = conn_close(self.conn)
+            return None
+
+        return get_latest_player_parsetime(cur)
+
 
     async def parse_leaderboard(self, curr_time) -> bool:
 
@@ -443,6 +479,10 @@ class ParsePlayer:
         return True
 
     def wave_diff_and_set_alarm(self, username: str, user_data: dict):
+
+        # parse_stop 상태에서는 웨이브 미변경을 crash로 판정하지 않는다 (alert_list 추가 금지)
+        if self.config.get("parse_stop") == True:
+            return
 
         # TODO: crash time config로부터 가져오기
         crash_time = 200
