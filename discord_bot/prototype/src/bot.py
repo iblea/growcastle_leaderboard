@@ -154,6 +154,25 @@ class DiscordBot(discord.Client):
             print('-----------------------------------')
             self.loop.create_task(self._aligned_schedular())
 
+        @self.event
+        async def on_message(message: discord.Message):
+            # 슬래시 명령어 외 채팅 'o', 'p', 'r' 입력 처리
+            if message.author.bot:
+                return
+            if len(self.discord_response_chat_id) > 0 and \
+               message.channel.id not in self.discord_response_chat_id:
+                return
+            # 명령어와 유저명 인자 분리
+            args = message.content.strip().split(maxsplit=1)
+            cmd = args[0].lower() if args else ""
+            arg = args[1].strip() if len(args) > 1 else ""
+            if len(args) == 1 and cmd in ("o", "ok"):
+                await botcommand.text_ok(message=message, conf=self.config)
+            elif cmd in ("p", "pause"):
+                await botcommand.text_pause(message=message, conf=self.config, username=arg, pause=True)
+            elif cmd in ("r", "resume"):
+                await botcommand.text_pause(message=message, conf=self.config, username=arg, pause=False)
+
         print("event set done")
 
 
@@ -258,6 +277,42 @@ class DiscordBot(discord.Client):
                 return
             await botcommand.user_notok(interaction=interaction, conf=self.config, username=user)
 
+        @self.tree.command()
+        async def pause(interaction: discord.Interaction, user: str = ""):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_pause(interaction=interaction, conf=self.config, username=user)
+
+        @self.tree.command()
+        async def resume(interaction: discord.Interaction, user: str = ""):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_resume(interaction=interaction, conf=self.config, username=user)
+
+        @self.tree.command()
+        async def p(interaction: discord.Interaction, user: str = ""):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_pause(interaction=interaction, conf=self.config, username=user)
+
+        @self.tree.command()
+        async def r(interaction: discord.Interaction, user: str = ""):
+            if botcommand.channel_check(
+                interaction=interaction,
+                chat_id=self.discord_response_chat_id
+            ) == False:
+                return
+            await botcommand.user_resume(interaction=interaction, conf=self.config, username=user)
+
         # """ admin command
         @self.tree.command()
         async def reboot(interaction: discord.Interaction):
@@ -334,6 +389,15 @@ delete monitoring user
 /userok [username]
 유저의 모니터링 알림을 일시적으로 해제합니다.
 유저가 웨이브를 다시 올리기 시작했을 때 자동으로 모니터링이 다시 시작됩니다.
+채팅창에 o 또는 ok 입력 시 별칭 유저에 대해 동일하게 동작합니다.
+
+/pause (/p) [username]
+정비 등으로 웨이브를 멈추기 전에 알림을 중지합니다.
+웨이브 정지가 확인된 후 다시 웨이브를 올리기 시작하면 자동으로 해제됩니다.
+
+/resume (/r) [username]
+pause를 수동으로 해제합니다.
+채팅창에 p [username], r [username] 입력으로도 사용할 수 있습니다.
 
 /userinfo [username]
 모니터링 중인 유저의 웨이브 정보와 리더보드의 순위권 및 차이를 출력합니다.
@@ -771,6 +835,8 @@ rank 미기입 시 20위까지 출력합니다.
         self.alert_list = parser.get_alert_list()
         self.config = parser.get_config()
         set_config(config_dict=self.config)
+        for username in parser.get_pause_release_list():
+            await parser.send_bot_msg("user : {} wave restarted, pause released".format(username))
         if self.last_end_season != self.config["data"]["seasons"]["end"]:
             self.last_end_season = self.config["data"]["seasons"]["end"]
             self.set_alert_ignore_time()
@@ -881,6 +947,10 @@ rank 미기입 시 20위까지 출력합니다.
                 continue
             if self.config["monitoring"]["player"][username]["check"] == True:
                 # /ok 로 알림을 해제한 유저는 alert_list에서도 제거
+                del self.alert_list[key]
+                continue
+            if self.config["monitoring"]["player"][username].get("pause", "") != "":
+                # /pause 중인 유저는 알림 제외
                 del self.alert_list[key]
                 continue
 

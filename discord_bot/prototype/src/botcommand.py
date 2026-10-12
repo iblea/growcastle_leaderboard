@@ -90,7 +90,11 @@ async def user_list(interaction: discord.Interaction, conf: dict) -> None:
     players = conf["monitoring"]["player"].keys()
     string = "monitoring list\n```\n"
     for player in players:
-        string += f"{player}\n"
+        pause: str = conf["monitoring"]["player"][player].get("pause", "")
+        if pause != "":
+            string += f"{player} (pause: {pause})\n"
+        else:
+            string += f"{player}\n"
     string += "```"
     await interaction.response.send_message(string)
 
@@ -264,6 +268,80 @@ async def user_notok(interaction: discord.Interaction,
     conf["monitoring"]["player"][username]["check"] = False
     config.set_config(conf)
     await interaction.response.send_message(f'"{username}" check stat change False')
+
+async def text_ok(message: discord.Message, conf: dict) -> None:
+    """채팅 'o', 'ok' 입력 시 별칭 유저의 check를 True로 설정"""
+    username: str = conf["alias"].get(str(message.author.id), "")
+    if username == "":
+        await message.channel.send("alias not found, add alias first")
+        return
+
+    player_data = conf["monitoring"]["player"]
+    username = username.lower()
+    if username not in player_data:
+        await message.channel.send(f'"{username}" not found in monitoring list')
+        return
+
+    if player_data[username]["check"] == True:
+        await message.channel.send(f'already "{username}" check is True')
+        return
+
+    conf["monitoring"]["player"][username]["check"] = True
+    config.set_config(conf)
+    await message.channel.send(f'"{username}" check stat change True')
+
+def set_user_pause(conf: dict, username: str, pause: bool) -> str:
+    """유저 pause 설정/해제 후 응답 메시지 반환"""
+    player_data = conf["monitoring"]["player"]
+    username = username.lower()
+    if username not in player_data:
+        return f'"{username}" not found in monitoring list'
+
+    paused: bool = player_data[username].get("pause", "") != ""
+    if pause == True and paused == True:
+        return f'already "{username}" is paused'
+    if pause == False and paused == False:
+        return f'"{username}" is not paused'
+
+    conf["monitoring"]["player"][username]["pause"] = db.PAUSE_WAIT if pause else ""
+    config.set_config(conf)
+    if pause:
+        return f'"{username}" paused, auto resume when wave restarts after stop'
+    return f'"{username}" resumed'
+
+async def user_pause(interaction: discord.Interaction,
+        conf: dict,
+        username: str) -> None:
+
+    if username == "":
+        username = get_alias_user(interaction, conf)
+        if username == "":
+            await interaction.response.send_message("alias not found, input username or add alias first")
+            return
+
+    await interaction.response.send_message(set_user_pause(conf, username, True))
+
+async def user_resume(interaction: discord.Interaction,
+        conf: dict,
+        username: str) -> None:
+
+    if username == "":
+        username = get_alias_user(interaction, conf)
+        if username == "":
+            await interaction.response.send_message("alias not found, input username or add alias first")
+            return
+
+    await interaction.response.send_message(set_user_pause(conf, username, False))
+
+async def text_pause(message: discord.Message, conf: dict, username: str, pause: bool) -> None:
+    """채팅 'p', 'r' 입력 시 pause 설정/해제 (username 미입력 시 별칭 유저)"""
+    if username == "":
+        username = conf["alias"].get(str(message.author.id), "")
+        if username == "":
+            await message.channel.send("alias not found, input username or add alias first")
+            return
+
+    await message.channel.send(set_user_pause(conf, username, pause))
 
 
 async def parse_stat(interaction: discord.Interaction,

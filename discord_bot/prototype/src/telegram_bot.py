@@ -3,6 +3,7 @@ import asyncio
 import threading
 from time import sleep
 from config import set_config
+from db import PAUSE_WAIT
 
 
 tg_bot: any = None
@@ -63,6 +64,50 @@ def handle_ok_command():
         return "all players already checked"
 
 
+def handle_pause_command(username: str, pause: bool):
+    """모니터링 유저의 pause 설정/해제 (username 미입력 시 전체 유저 대상)"""
+    global tg_config, tg_user
+
+    if tg_config is None:
+        return "config not found"
+
+    player_data = tg_config.get("monitoring", {}).get("player", {})
+    if not player_data:
+        return "no monitoring players"
+
+    if username == "":
+        targets = list(player_data.keys())
+    else:
+        username = username.lower()
+        if username not in player_data:
+            return '"{}" not found in monitoring list'.format(username)
+        targets = [username]
+
+    changed = []
+    for name in targets:
+        paused: bool = player_data[name].get("pause", "") != ""
+        if paused == pause:
+            continue
+        player_data[name]["pause"] = PAUSE_WAIT if pause else ""
+        changed.append(name)
+
+    if not changed:
+        return "already paused" if pause else "not paused"
+
+    if pause:
+        # pause 유저의 대기 중인 알림 제거
+        tg_lock.acquire()
+        for name in changed:
+            tg_user.pop(name, None)
+        tg_lock.release()
+
+    set_config(tg_config)
+
+    if pause:
+        return "paused (auto resume when wave restarts after stop): {}".format(", ".join(changed))
+    return "resumed: {}".format(", ".join(changed))
+
+
 def telegram_thread():
     global tg_user
     loop = asyncio.new_event_loop()
@@ -90,8 +135,18 @@ def telegram_thread():
                 last_update_id = update.update_id
                 if update.message and update.message.text:
                     text = update.message.text.strip()
+                    # 명령어와 유저명 인자 분리
+                    args = text.split(maxsplit=1)
+                    cmd = args[0].lower() if args else ""
+                    arg = args[1].strip() if len(args) > 1 else ""
                     if text in ("/ok", "/o", "ok", "o", "/chk", "/c", "chk", "c"):
                         result = handle_ok_command()
+                        loop.run_until_complete(telegram_msg_send(result))
+                    elif cmd in ("/pause", "/p", "pause", "p"):
+                        result = handle_pause_command(arg, True)
+                        loop.run_until_complete(telegram_msg_send(result))
+                    elif cmd in ("/resume", "/r", "resume", "r"):
+                        result = handle_pause_command(arg, False)
                         loop.run_until_complete(telegram_msg_send(result))
         except Exception:
             pass

@@ -18,6 +18,10 @@ rank_pattern = r'^[0-9]+$'
 compiled_username_pattern = re.compile(username_pattern)
 compiled_rank_pattern = re.compile(rank_pattern)
 
+# /pause 상태 (웨이브 정지 확인 대기 / 정지 확인 후 재개 대기)
+PAUSE_WAIT = "wait"
+PAUSE_STOPPED = "stopped"
+
 def open_conn(config):
     conn = None
     try:
@@ -355,6 +359,8 @@ class ParsePlayer:
         self.bot = bot
         self.config = config
         self.conn = None
+        # 이번 파싱에서 pause가 자동 해제된 유저 목록
+        self.pause_release_list = []
 
     async def send_bot_msg(self, msg):
         if self.bot is None:
@@ -369,6 +375,9 @@ class ParsePlayer:
 
     def get_alert_list(self):
         return self.alert_list
+
+    def get_pause_release_list(self):
+        return self.pause_release_list
 
     def get_latest_parsetime(self):
         if self.config["db"]["port"] == 0:
@@ -493,7 +502,12 @@ class ParsePlayer:
         if player_monitoring is None:
             return
 
+        pause: str = player_monitoring.get("pause", "")
+
         if last_wave_time + crash_time < int(time.time()):
+            # pause 중 웨이브 정지 확인 시 재개 대기 상태로 전환
+            if pause == PAUSE_WAIT:
+                self.config["monitoring"]["player"][username]["pause"] = PAUSE_STOPPED
             alert_user: str = player_monitoring.get("alert_user_id")
             self.alert_list[username] = {
                 "user": alert_user,
@@ -501,6 +515,10 @@ class ParsePlayer:
                 "last_wave_time": last_wave_time
             }
         else:
+            # 웨이브 정지 확인 후 재개 시 pause 자동 해제
+            if pause == PAUSE_STOPPED:
+                self.config["monitoring"]["player"][username]["pause"] = ""
+                self.pause_release_list.append(username)
             self.config["monitoring"]["player"][username]["check"] = False
             if username in self.alert_list:
                 del self.alert_list[username]
